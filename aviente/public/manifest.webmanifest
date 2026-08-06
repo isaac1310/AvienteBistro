@@ -1,0 +1,17 @@
+{
+  "name": "Aviente — Livre de Recettes de Famille",
+  "short_name": "Aviente",
+  "description": "The Aviente family cookbook: recipes, menu cards and the kids' week.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e3a2f",
+  "theme_color": "#1e3a2f",
+  "lang": "he",
+  "dir": "auto",
+  "icons": [
+    { "src": "/brand/icon-small.svg", "sizes": "16x16 32x32 48x48", "type": "image/svg+xml" },
+    { "src": "/brand/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/brand/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

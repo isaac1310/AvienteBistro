@@ -1,49 +1,156 @@
+/* Aviente — design tokens. §1 of the build spec is the source of truth for every
+ * value here; if the two disagree, the spec wins.
+ *
+ * Note this app has NO light/dark mode. It has two *themes* -- green and burgundy --
+ * both on a cream ground, chosen per user (family_members.theme). The kids section
+ * opts out of theming entirely.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── green, the default theme ─────────────────────────────────────────── */
+  --primary:        #1e3a2f;
+  --primary-deep:   #162c23;
+  --page:           #f7f2e7;
+  --card:           #ffffff;
+  --card-border:    #ded5c2;
+  --ink:            #2a2417;
+  --ink-soft:       #5c5442;
+  /* Gold is SPLIT on purpose. --gold is decorative only: rules, diamonds,
+     fleurons. --gold-ink is the only gold allowed to carry text -- it measures
+     4.37:1 on the cream page where --gold measures 2.02:1 and fails WCAG AA.
+     Using --gold for a label is an accessibility regression; §9.3 asserts it. */
+  --gold:           #c9a961;
+  --gold-deep:      #b08d3e;
+  --gold-ink:       #8a6d2f;
+
+  /* ── type ─────────────────────────────────────────────────────────────── */
+  /* Families are injected by next/font in layout.tsx. Hebrew faces are part of
+     the stack, not an afterthought: Cormorant and Jost contain zero Hebrew
+     glyphs, so without Frank Ruhl Libre and Heebo every Hebrew recipe would
+     silently fall back to a system font. */
+  --ser: var(--font-cormorant), var(--font-frank), 'Hoefler Text', Georgia, serif;
+  --san: var(--font-jost), var(--font-heebo), 'Avenir Next', Helvetica, sans-serif;
+  --kid: var(--font-baloo), var(--font-heebo), system-ui, sans-serif;
+
+  /* type scale */
+  --t-display: 2.75rem;
+  --t-title:   1.75rem;
+  --t-dish:    1.0625rem;   /* 17px, the menu card's dish size */
+  --t-body:    1rem;
+  --t-small:   0.8125rem;
+  --t-label:   0.6875rem;   /* 11px letterspaced small caps */
+
+  /* ── spacing, radius, rules ───────────────────────────────────────────── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+  --radius: 2px;            /* bistro = square corners; 2px is the whole budget */
+  --radius-kid: 12px;       /* the kids section is the one exception */
+  --tap: 44px;              /* minimum touch target on phone */
+  --shell: 1100px;          /* desktop content cap */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root[data-theme='burgundy'] {
+  --primary:      #5c2222;
+  --primary-deep: #4a1b1b;
+  --page:         #f7f0e4;
+  --card-border:  #e0d2be;
+  --ink:          #2a2017;
+  --gold-deep:    #a8763e;
 }
 
-html {
-  height: 100%;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
-html,
+html { -webkit-text-size-adjust: 100%; }
+
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--san);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Hebrew CONTENT is RTL; the app chrome stays LTR.
+   `:not(html)` matters: the document element carries a lang attribute too, and
+   without the exclusion this rule flipped the entire app -- reversing the category
+   grid and rendering counts as "RECETTES 5". Scope it to content elements only. */
+[lang='he']:not(html), .rtl { direction: rtl; text-align: right; }
+
+h1, h2, h3 { font-family: var(--ser); font-weight: 500; margin: 0; line-height: 1.15; }
+
+a { color: inherit; }
+
+/* Keyboard focus must stay visible -- Savta will not be the only one using a
+   keyboard, and drag-reorder needs a focus path anyway (§3.4). */
+:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
+
+/* ── shared furniture ───────────────────────────────────────────────────── */
+
+/* The gold rule with a rotated-square diamond. This is the app's signature and
+   the logo is built from it, so it lives here rather than in one component. */
+.rule {
+  position: relative;
+  height: 1px;
+  background: var(--gold);
+  opacity: .8;
+  border: 0;
+  margin: var(--sp-4) 0;
+}
+.rule::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 9px;
+  height: 9px;
+  background: var(--gold);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.eyebrow {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+/* Buttons: solid primary, cream text, letterspaced uppercase Jost. */
+.btn {
+  font: inherit;
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-height: var(--tap);
+  padding: 0 var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--page);
+  cursor: pointer;
+}
+.btn--ghost { background: transparent; color: var(--primary); }
+@media (hover: hover) {
+  .btn:hover { background: var(--primary-deep); border-color: var(--primary-deep); }
+  .btn--ghost:hover { background: rgba(30, 58, 47, .06); color: var(--primary); }
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+}
+
+.shell { max-width: var(--shell); margin: 0 auto; padding: 0 var(--sp-4); }

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Aviente">
+  <title>Aviente — small icon</title>
+  <!-- The 16-32px variant. icon.svg's double frame collapses into a smudge at this
+       size, so here there is ONE frame at a weight that survives, and the A is
+       fattened to hold its counter. Never scale icon.svg down to 16px; use this. -->
+  <rect width="64" height="64" fill="#1e3a2f"/>
+  <rect x="5" y="5" width="54" height="54" fill="none" stroke="#c9a961" stroke-width="3"/>
+  <path fill="#f7f2e7" d="M32 15 L45 49 L38 49 L34.5 39 L29.5 39 L26 49 L19 49 Z
+                          M32 24 L29.8 33 L34.2 33 Z"/>
+</svg>

@@ -1,150 +1,79 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
+.header {
+  background: var(--page);
+  border-bottom: 1px solid var(--card-border);
+}
 
-  --text-primary: #000;
-  --text-secondary: #666;
+.status {
+  max-width: 62ch;
+  margin: var(--sp-6) auto 0;
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+  text-align: center;
+}
+.status .eyebrow { display: block; margin-bottom: var(--sp-2); }
+.status code {
+  font-size: 0.95em;
+  background: rgba(30, 58, 47, 0.06);
+  padding: 1px 5px;
+  border-radius: var(--radius);
+}
 
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, 1fr); } }
 
+.cat {
+  padding: var(--sp-5) var(--sp-4);
   display: flex;
-  flex: 1;
   flex-direction: column;
   align-items: center;
+  gap: var(--sp-1);
+  min-height: 132px;
   justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
 }
-
-.main {
-  display: flex;
-  flex: 1;
-  width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
-}
-
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
-}
-
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
+.emoji { font-size: 1.5rem; line-height: 1; }
+.catName {
+  font-size: var(--t-title);
+  color: var(--primary);
   text-wrap: balance;
-  color: var(--text-primary);
+}
+.count {
+  margin: 0;
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
 }
 
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
+.proof { text-align: center; padding-bottom: var(--sp-6); }
+.he {
+  font-family: var(--ser);
+  font-size: 2rem;
+  color: var(--primary);
+  margin: var(--sp-3) 0 var(--sp-2);
+}
+.heBody {
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  margin: 0;
 }
 
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
-}
-
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
-}
-
-a.secondary {
-  border-color: var(--button-secondary-border);
-}
-
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
-}
-
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
-  }
-}
-
-.code {
-  font-family: var(--font-geist-mono);
-  font-size: 0.9em;
-  background: color-mix(in srgb, currentColor 8%, transparent);
-  padding: 0.1em 0.4em;
-  border-radius: 6px;
+.footer {
+  text-align: center;
+  padding: var(--sp-5) var(--sp-4) var(--sp-6);
+  font-size: 0.625rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
 }

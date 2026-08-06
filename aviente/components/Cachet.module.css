@@ -1,0 +1,95 @@
+.cachet {
+  position: relative;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+/* ── plaque: the splash and login lockup ─────────────────────────────────── */
+
+.plaque {
+  background: var(--primary);
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(var(--sp-6), 12vw, var(--sp-8));
+}
+
+/* The 1px + 2px double frame, the same construction as the menu card's. */
+.frameOuter,
+.frameInner {
+  position: absolute;
+  pointer-events: none;
+}
+.frameOuter {
+  inset: clamp(14px, 4.5vw, 22px);
+  border: 1px solid rgba(201, 169, 97, 0.45);
+}
+.frameInner {
+  inset: clamp(21px, 6.5vw, 31px);
+  border: 2px solid var(--gold);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.diamond {
+  width: 11px;
+  height: 11px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  margin-bottom: var(--sp-5);
+}
+
+.family,
+.est {
+  font-family: var(--san);
+  font-weight: 400;
+  font-size: var(--t-label);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.word {
+  font-family: var(--ser);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.hr {
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.7;
+  margin: var(--sp-4) 0 var(--sp-3);
+}
+
+.subtitle {
+  font-family: var(--ser);
+  font-style: italic;
+  margin: var(--sp-3) 0 0;
+}
+
+/* On the green plaque the gold is decorative-on-dark, where it measures 5.48:1 --
+   so --gold is legitimate for text here. On cream it would not be; that is what
+   --gold-ink exists for, and the header variant below uses it. */
+.plaque .family,
+.plaque .est { color: var(--gold); }
+.plaque .word { color: var(--page); font-size: clamp(2.75rem, 13vw, 3.75rem); }
+.plaque .hr { width: clamp(110px, 36vw, 150px); }
+.plaque .subtitle { color: rgba(247, 242, 231, 0.72); font-size: 0.9375rem; }
+
+/* ── header: the in-app lockup, on the cream page ────────────────────────── */
+
+.header { padding: var(--sp-5) 0 var(--sp-4); }
+.header .family,
+.header .est { color: var(--gold-ink); letter-spacing: 4px; }
+.header .word { color: var(--primary); font-size: var(--t-display); }
+.header .diamond { margin-bottom: var(--sp-3); }
+.header .hr { width: 140px; margin: var(--sp-3) 0 var(--sp-2); }
+.header .subtitle { color: var(--ink-soft); font-size: 0.9375rem; }

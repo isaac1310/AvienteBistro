@@ -1,0 +1,50 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--primary);
+  display: grid;
+  place-items: center;
+}
+
+/* The instant it starts leaving it stops being clickable. An opaque overlay is
+   still hit-testable mid-fade, which is how a splash swallows the first tap. */
+.hiding {
+  animation: settle var(--fade, 450ms) ease forwards;
+  pointer-events: none;
+}
+
+/* The plaque arrives a hair after the ground, so the green reads as the cover and
+   the mark as pressed into it. One orchestrated moment, not scattered effects. */
+.splash > :first-child {
+  animation: press 900ms cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+.foot {
+  position: absolute;
+  bottom: clamp(28px, 8vw, 44px);
+  margin: 0;
+  font-family: var(--san);
+  font-size: 0.5625rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(201, 169, 97, 0.6);
+}
+
+@keyframes press {
+  from { opacity: 0; transform: scale(0.965); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes settle {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* globals.css collapses all animation under reduced motion, which would leave the
+   cover parked at full opacity forever -- so the fade is re-enabled here at a
+   duration short enough not to read as motion. The component also shortens its
+   minimum display time to 600ms in the same case. */
+@media (prefers-reduced-motion: reduce) {
+  .splash > :first-child { animation: none !important; }
+  .hiding { animation: settle 120ms linear forwards !important; }
+}

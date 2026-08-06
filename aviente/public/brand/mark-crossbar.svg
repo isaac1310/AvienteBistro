@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 220" role="img" aria-label="Aviente">
+  <title>Aviente — crossbar mark</title>
+  <!-- Direction 2: LA BARRE. The A's crossbar IS the gold divider rule from the
+       app header, run out to full width and terminated with the diamond. The
+       mark and the page furniture are literally the same line. -->
+  <defs>
+    <style>
+      .ser { font-family: 'Cormorant Garamond','Cormorant','Hoefler Text',Baskerville,Georgia,serif; }
+      .san { font-family: 'Jost','Avenir Next',Futura,'Helvetica Neue',Arial,sans-serif; }
+    </style>
+  </defs>
+  <rect width="340" height="220" fill="#f7f2e7"/>
+  <!-- the A, drawn rather than set, so the crossbar can leave the letter -->
+  <path d="M170 42 L212 148 L196 148 L170 78 L144 148 L128 148 Z" fill="#1e3a2f"/>
+  <!-- crossbar continuing into the rule -->
+  <line x1="44" y1="118" x2="296" y2="118" stroke="#c9a961" stroke-width="2"/>
+  <rect x="38" y="112" width="11" height="11" fill="#c9a961" transform="rotate(45 43.5 117.5)"/>
+  <rect x="291" y="112" width="11" height="11" fill="#c9a961" transform="rotate(45 296.5 117.5)"/>
+  <text class="ser" x="170" y="186" fill="#1e3a2f" font-size="34" text-anchor="middle" letter-spacing="6">AVIENTE</text>
+</svg>

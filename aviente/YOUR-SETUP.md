@@ -40,23 +40,120 @@ later. Nothing downstream is blocked by it.
 
 ## 5 · Keys into `.env.local`  ← the one that unblocks me
 
-This does **not** need the Vercel domain. Until it's done the homepage counts are
-hard-coded and I can't wire the database.
+**What this is, in plain words.** The app is on your laptop. Your recipes are on
+Supabase's server. Right now the app has no idea where that server is or how to
+knock on its door. You're about to write its address and its doorbell into a small
+text file that lives next to the app and never leaves your machine.
 
-1. Project Settings → **API**.
-2. Copy the **Project URL** and the **anon / publishable** key.
-3. In a terminal:
-   ```bash
-   cp ~/Documents/Recipes/aviente/.env.example ~/Documents/Recipes/aviente/.env.local
-   ```
-4. Open `.env.local`, paste both values, and set `NEXT_PUBLIC_E2E=1`.
-5. Restart the dev server.
+Two values. The **URL** is the address. The **anon key** is the doorbell — it lets
+the app knock, but not walk in; who gets in is decided by the rules already
+installed in the database.
 
-The anon key is **safe** in client code — RLS protects the data, not key secrecy.
-The **`service_role`** key is not: leave it out, keep it out of Vercel, and don't
-paste it into chat.
+This does **not** need the Vercel domain. Do it now.
 
-**Done when:** the category counts come from the database.
+### 5a · Open the page with the values on it
+
+1. Go to your project on [supabase.com](https://supabase.com).
+2. Bottom-left, click the **gear icon** (Project Settings).
+3. In the left menu click **API Keys**. (On some accounts it's just **API** —
+   same page.)
+
+### 5b · Copy the address
+
+Look for **Project URL**. It looks like:
+
+```
+https://abcdefghijklm.supabase.co
+```
+
+Click the copy button next to it. Paste it somewhere you can get it back — a
+Notes window is fine.
+
+### 5c · Copy the doorbell
+
+Same page, find the key labelled **`anon`** — it may also say **public** or
+**publishable**. It's a long string starting `eyJ...`.
+
+Copy it too.
+
+> ⚠️ There is a **second** key on this page called **`service_role`** or
+> **secret**. **Do not copy that one.** It ignores every security rule in the
+> database. It doesn't belong in this file, doesn't belong in Vercel, and don't
+> paste it into a chat with me.
+>
+> How to tell them apart: the one you want says **anon**. If it says **secret** or
+> **service_role**, it's the wrong one.
+
+### 5d · Make the file
+
+Open Terminal and paste this one line, then press Enter:
+
+```bash
+cp ~/Documents/Recipes/aviente/.env.example ~/Documents/Recipes/aviente/.env.local
+```
+
+Nothing will appear to happen. That's correct — it quietly made a copy called
+`.env.local`, which is the real file. (The `.example` one is just a template, and
+the name starts with a dot so Finder hides it.)
+
+### 5e · Open the file
+
+```bash
+open -a TextEdit ~/Documents/Recipes/aviente/.env.local
+```
+
+TextEdit will open with a few lines of text and some comments.
+
+### 5f · Paste the two values in
+
+Find these two lines and put your values immediately after the `=`, with **no
+spaces** and **no quotes**:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklm.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...the long string...
+```
+
+Then find this line and add `1`:
+
+```
+NEXT_PUBLIC_E2E=1
+```
+
+Leave `SUPABASE_SERVICE_ROLE_KEY=` **empty**. Yes, really — nothing needs it yet.
+
+Common mistakes, all of which fail silently:
+- quotes around a value → remove them
+- a space after the `=` → remove it
+- the URL ending in a `/` → remove the slash
+- pasting the `secret` key into the `ANON_KEY` line → wrong key, go back to 5c
+
+### 5g · Save and close
+
+**⌘S**, then close TextEdit.
+
+### 5h · Restart the app
+
+If the dev server is running, stop it with **Ctrl+C** in its Terminal window, then:
+
+```bash
+cd ~/Documents/Recipes/aviente && npm run dev
+```
+
+A file like this is only read when the server starts, so without a restart nothing
+changes and it looks like you did it wrong.
+
+### 5i · Check it worked
+
+Open http://localhost:3000 and look at the small grey line under the header. It
+currently says the counts are hard-coded. Once I've wired the database that line
+goes away — but for now, the thing to confirm is simply that **the page still
+loads and there's no red error screen**.
+
+If you see an error mentioning `supabaseUrl` or `Invalid API key`, one of the two
+values is wrong or has a stray space. Tell me the error text and I'll pin it down.
+
+**Then tell me it's done** — that's my cue to wire the app to the database.
 
 ## 6 · Verify the seed
 

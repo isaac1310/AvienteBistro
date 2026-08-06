@@ -23,13 +23,12 @@ before any real recipes are photographed.
 - [x] **1 · Public signup OFF** — Auth → Sign In / Providers → Email.
 - [x] **2 · Four SQL files run** — `0001`, `0002`, `0003`, `seed.sql`.
 - [x] **3 · Two users created** — you and Moran, both Auto Confirm.
-- [ ] **4 · Link accounts to family members** ← you are here
 - [ ] **5 · Keys into `.env.local`** — unblocks all my remaining work
+- [x] **4 · Link accounts to family members**
 - [ ] **6 · Verify the seed**
-- [ ] **7 · Dev Supabase project** — so tests never touch the real recipes
-- [ ] **8 · Redirect URLs** — needs the Vercel domain
-- [ ] **9 · Vercel import** — needs care about which GitHub account
-- [ ] **10 · Flip the repo private**
+- [ ] **7 · Redirect URLs** — domain exists now, do it
+- [ ] **8 · Fix the Vercel deployment** — root directory + env vars
+- [ ] **9 · Flip the repo private**
 
 ---
 
@@ -213,29 +212,77 @@ real recipes.
    deployed. `npm run test:reset` refuses to run unless the ref looks like a dev
    database, precisely because it deletes everything.
 
-## 8 · Redirect URLs — after Vercel
+## 7 · Redirect URLs  ← do this now, the domain exists
 
-Auth → **URL Configuration**
+Your production domain is **`https://aviente-bistro.vercel.app`**.
 
-- **Site URL:** your Vercel production domain
-- **Redirect URLs:** add both `https://<domain>/**` and `http://localhost:3000/**`
+Supabase → **Authentication** → **URL Configuration**:
 
-Get this wrong and magic links read as "expired" — it looks like an app bug and
-isn't. Most common failure with this auth method.
+1. **Site URL** — paste exactly:
+   ```
+   https://aviente-bistro.vercel.app
+   ```
+   No trailing slash.
+2. **Redirect URLs** — click *Add URL* twice and add both:
+   ```
+   https://aviente-bistro.vercel.app/**
+   http://localhost:3000/**
+   ```
+   The `/**` matters: it means "any page on this site". Without it the magic link
+   has nowhere legal to land.
+3. Save.
 
-## 9 · Vercel import — watch the account
+Keep the localhost one forever — it's what lets you log in while developing.
 
-1. Sign in to Vercel with the **`isaac1310`** GitHub account. If you connect
-   `itzikavineta`, Vercel offers the **Locusview team** as a deploy scope, which
-   is exactly what the account rule forbids.
-2. Import `isaac1310/AvienteBistro`. Root directory: **`aviente`**.
-3. Env vars — **Production**: the production Supabase URL + anon key.
-   **Preview**: the *dev* project's URL + anon key, so a PR preview can't write to
-   the real cookbook.
-4. `NEXT_PUBLIC_E2E` must be set in **neither**. A password login in production
-   bypasses the whole auth gate.
+**Why this matters:** a magic link is only allowed to return you to an address on
+this list. If the address isn't listed, Supabase refuses and the browser shows
+something that looks like "link expired". It reads as a broken app and is actually
+a missing line here — the most common failure with this kind of login.
 
-## 10 · Flip the repo private
+## 8 · The Vercel deployment — already done, but broken
+
+**What step 8 is:** Vercel is what puts the app on the internet so Moran can open it
+on her phone instead of it only existing on your laptop. It watches the GitHub repo
+and rebuilds every time you push.
+
+You've done the import — the domain answers. But it currently returns
+**404: NOT_FOUND**, and the reason is almost certainly one setting:
+
+### The fix — set the Root Directory
+
+This repo has the Next.js app in a **subfolder** called `aviente`, not at the top.
+Vercel looked at the top level, found no app, and shipped nothing.
+
+1. Vercel → your project → **Settings** → **Build and Deployment**.
+2. Find **Root Directory**.
+3. Set it to:
+   ```
+   aviente
+   ```
+4. Save, then **Deployments** → the latest one → ⋯ → **Redeploy**.
+
+### While you are in Settings — the environment variables
+
+**Settings → Environment Variables.** The app needs the same two values you put in
+`.env.local`, or it will load and then fail the moment it wants a recipe:
+
+| Name | Value | Environments |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | your API URL | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the publishable key | Production, Preview |
+
+**Do not add** `SUPABASE_SERVICE_ROLE_KEY` — nothing deployed needs it.
+**Do not add** `NEXT_PUBLIC_E2E` — it turns on password sign-in for the test users,
+which in production would walk straight past the login gate.
+
+### One thing to check about the account
+
+The project must sit under your **personal** Vercel account, not a Locusview team.
+Vercel → top-left scope switcher: if it says anything resembling Locusview, the
+family cookbook is deploying on company infrastructure. Move it to your personal
+scope.
+
+## 9 · Flip the repo private
 
 ```bash
 gh repo edit isaac1310/AvienteBistro --visibility private --accept-visibility-change-consequences

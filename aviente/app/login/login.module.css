@@ -1,0 +1,124 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--page);
+}
+
+/* The plaque keeps its own green ground — it is the cover, not a page element. */
+.plaque {
+  position: relative;
+  min-height: min(46dvh, 380px);
+  display: grid;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-6);
+  text-align: center;
+}
+
+.label {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin: 0;
+}
+
+.field {
+  font: inherit;
+  font-size: 1rem;                 /* 16px minimum, or iOS zooms the page on focus */
+  text-align: center;
+  min-height: var(--tap);
+  padding: 0 var(--sp-3);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.field:focus { border-color: var(--gold-deep); }
+
+.code {
+  letter-spacing: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.sent {
+  border: 1px solid var(--card-border);
+  border-left: 2px solid var(--gold);
+  background: var(--card);
+  padding: var(--sp-4);
+  text-align: left;
+}
+.sent p { margin: 0 0 var(--sp-2); font-size: var(--t-small); line-height: 1.6; }
+.sent p:last-child { margin-bottom: 0; }
+
+.error {
+  font-size: var(--t-small);
+  color: #8c2b2b;
+  margin: 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--gold-ink);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--card-border);
+}
+
+.linkish {
+  font: inherit;
+  font-size: var(--t-small);
+  background: none;
+  border: 0;
+  color: var(--gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: var(--sp-2);
+  min-height: var(--tap);
+}
+
+.e2e {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px dashed var(--card-border);
+}
+.e2e summary {
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.e2eBody { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-3); }

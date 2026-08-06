@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env.local
+.env*.local
+.DS_Store
+*.pdf
+*.docx
+*.zip
+aviente/tests/reports/
+
+# Family recipe content — kept out of the repo while it is PUBLIC.
+# The seed is regenerable from these local files:
+#   node tools/seed-from-source.mjs --commit
+# Remove this block once the repo is private and you want the seed versioned.
+my_recipes*.json
+my_recipes*.md
+aviente/supabase/seed.sql

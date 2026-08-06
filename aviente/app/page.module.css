@@ -1,21 +1,30 @@
+/* Leaves room for the fixed nav: bottom bar on phone, sidebar from 1024px. */
+.frame {
+  padding-bottom: calc(var(--tap) + var(--sp-6));
+}
+@media (min-width: 1024px) {
+  .frame { padding-bottom: var(--sp-6); padding-left: 210px; }
+}
+
 .header {
   background: var(--page);
   border-bottom: 1px solid var(--card-border);
 }
 
-.status {
-  max-width: 62ch;
-  margin: var(--sp-6) auto 0;
-  color: var(--ink-soft);
-  font-size: var(--t-small);
+.main { padding-top: var(--sp-5); }
+
+.greeting {
   text-align: center;
+  margin: 0;
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-soft);
 }
-.status .eyebrow { display: block; margin-bottom: var(--sp-2); }
-.status code {
-  font-size: 0.95em;
-  background: rgba(30, 58, 47, 0.06);
-  padding: 1px 5px;
-  border-radius: var(--radius);
+.greeting .eyebrow {
+  display: block;
+  font-style: normal;
+  margin-bottom: var(--sp-1);
 }
 
 .grid {
@@ -26,7 +35,7 @@
   gap: var(--sp-3);
   grid-template-columns: repeat(2, 1fr);
 }
-@media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, 1fr); } }
 
 .cat {
@@ -35,17 +44,37 @@
   flex-direction: column;
   align-items: center;
   gap: var(--sp-1);
-  min-height: 132px;
+  min-height: 128px;
   justify-content: center;
+  text-decoration: none;
+  color: inherit;
 }
+@media (hover: hover) {
+  .cat:hover { border-color: var(--gold-deep); }
+}
+
+/* The Kids' Table is deliberately the odd one out (§3.1) — it is the only card
+   that ignores the theme, matching the planner it leads to. */
+.kids {
+  background: linear-gradient(160deg, #fde7f0 0%, #e7f2fd 100%);
+  border-color: #f3cfe0;
+}
+.kids .catName { font-family: var(--kid); font-weight: 600; color: #2f6b52; }
+.kids .count { color: #7a5f8f; }
+
 .emoji { font-size: 1.5rem; line-height: 1; }
+
 .catName {
+  font-family: var(--ser);
   font-size: var(--t-title);
   color: var(--primary);
+  text-align: center;
   text-wrap: balance;
+  line-height: 1.15;
 }
+
 .count {
-  margin: 0;
+  font-family: var(--san);
   font-size: var(--t-label);
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -53,23 +82,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-.proof { text-align: center; padding-bottom: var(--sp-6); }
-.he {
-  font-family: var(--ser);
-  font-size: 2rem;
-  color: var(--primary);
-  margin: var(--sp-3) 0 var(--sp-2);
-}
-.heBody {
-  font-family: var(--san);
-  font-size: var(--t-small);
-  color: var(--ink-soft);
-  margin: 0;
-}
-
 .footer {
   text-align: center;
-  padding: var(--sp-5) var(--sp-4) var(--sp-6);
+  padding: var(--sp-6) var(--sp-4) var(--sp-4);
   font-size: 0.625rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;

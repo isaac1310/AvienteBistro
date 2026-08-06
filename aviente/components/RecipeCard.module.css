@@ -1,0 +1,67 @@
+.card {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  padding: 0;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  min-height: 92px;
+}
+
+.thumb,
+.blueprint {
+  flex: 0 0 92px;
+  width: 92px;
+  object-fit: cover;
+  align-self: stretch;
+}
+
+/* Diagonal cream stripes — the "blueprint" placeholder from §3.2. */
+.blueprint {
+  display: grid;
+  place-items: center;
+  background-color: var(--page);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 6px,
+    rgba(30, 58, 47, 0.06) 6px, rgba(30, 58, 47, 0.06) 12px
+  );
+  border-right: 1px solid var(--card-border);
+}
+.blueprintEmoji { font-size: 1.5rem; opacity: 0.75; }
+
+.body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) 0;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--ser);
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--primary);
+}
+
+.titleEn {
+  font-family: var(--san);
+  font-size: 0.625rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+.meta {
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+@media (hover: hover) {
+  .card:hover { border-color: var(--gold-deep); }
+}

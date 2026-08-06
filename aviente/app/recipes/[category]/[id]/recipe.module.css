@@ -1,0 +1,163 @@
+.page { position: relative; padding-bottom: var(--sp-8); }
+
+.hero,
+.heroBlueprint {
+  display: block;
+  width: 100%;
+  height: min(42vh, 320px);
+  object-fit: cover;
+}
+
+.heroBlueprint {
+  display: grid;
+  place-items: center;
+  font-size: 3rem;
+  background-color: var(--primary);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 8px,
+    rgba(201, 169, 97, 0.14) 8px, rgba(201, 169, 97, 0.14) 16px
+  );
+}
+
+.overlay {
+  position: absolute;
+  top: var(--sp-3);
+  left: var(--sp-3);
+  right: var(--sp-3);
+  display: flex;
+  justify-content: space-between;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 var(--sp-4);
+  background: rgba(247, 242, 231, 0.94);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.body { padding-top: var(--sp-5); }
+
+.title {
+  font-size: var(--t-display);
+  color: var(--primary);
+  margin: var(--sp-1) 0 0;
+  text-wrap: balance;
+}
+
+.titleEn {
+  margin: var(--sp-1) 0 0;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+.attribution {
+  margin: var(--sp-2) 0 0;
+  font-family: var(--ser);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+/* The timing strip, ruled top and bottom in gold. */
+.timing {
+  margin: var(--sp-4) 0 0;
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.story {
+  margin: var(--sp-5) 0 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--card-border);
+  border-left: 2px solid var(--gold);
+  background: var(--card);
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.h2 {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-bottom: var(--sp-3);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.step { line-height: 1.7; }
+.step::marker { font-family: var(--ser); color: var(--gold-ink); }
+
+.stepHead {
+  display: block;
+  font-family: var(--ser);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+
+.serve { margin-top: var(--sp-6); }
+.serveList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: var(--sp-2);
+  font-size: var(--t-small);
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-7);
+}
+.actions > * { flex: 1 1 auto; text-align: center; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; }
+
+.edited {
+  margin: var(--sp-6) 0 0;
+  font-family: var(--san);
+  font-size: 0.625rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  opacity: 0.8;
+}
+
+@media (min-width: 768px) {
+  .hero, .heroBlueprint { height: min(46vh, 400px); }
+  .body { max-width: 68ch; margin: 0 auto; }
+}

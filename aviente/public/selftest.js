@@ -244,6 +244,46 @@
     });
   }
 
+  function scaling() {
+    group('scaling');
+    const A = window.Aviente;
+    if (!A?.scaleAmount) {
+      check('scaling exposed', () => skip('window.Aviente.scaleAmount missing'));
+      return;
+    }
+
+    /* Minimal ingredient shapes; only the fields scaleAmount reads. */
+    const ing = (o) => Object.assign(
+      { id: 'x', position: 0, name: 'n', amount: null, amount_max: null, unit: null, note: null }, o);
+    const at = (o, f) => A.scaleAmount(ing(o), f);
+
+    check('grams scale', () => eq(at({ amount: 500, unit: 'g' }, 2).text, '1 kg',
+      'g promotes to kg past 1000'));
+    check('a range scales at BOTH ends', () =>
+      eq(at({ amount: 400, amount_max: 500, unit: 'g' }, 1.5).text, '600–750 g', 'range'));
+    check('pcs rounds UP, not to 4.5', () => {
+      const r = at({ amount: 3, unit: 'pcs' }, 1.5);
+      return r.text === '5' && r.approximate ? true
+        : `got "${r.text}" approximate=${r.approximate}`;
+    });
+    check('to taste is never multiplied', () =>
+      eq(at({ unit: 'to taste' }, 3).text, 'to taste', 'to taste'));
+    check('pinch is never multiplied', () =>
+      eq(at({ unit: 'pinch' }, 3).text, 'pinch', 'pinch'));
+    check('no quantity stays absent, not zero', () =>
+      at({}, 2) === null ? true : `expected null, got ${JSON.stringify(at({}, 2))}`);
+    check('ml promotes to l', () =>
+      eq(at({ amount: 600, unit: 'ml' }, 2).text, '1.2 l', 'ml → l'));
+    check('a yield-only recipe offers no scaling', () => {
+      const opts = A.servingOptions(null);
+      return opts.length === 0 ? true : `expected no options, got ${JSON.stringify(opts)}`;
+    });
+    check('a portioned recipe does offer scaling', () =>
+      A.servingOptions(6).length > 1 ? true : 'expected several serving options');
+    check('scaleFactor is 1 when there is no base', () =>
+      eq(A.scaleFactor(12, null), 1, 'factor'));
+  }
+
   /* ---------- the run ---------- */
 
   function tally() {
@@ -268,6 +308,7 @@
     layout();
     splash();
     parser();
+    scaling();
 
     const t = tally();
     window.__selftest = { ...t, results, version: document.body.dataset.version || null };

@@ -16,10 +16,16 @@ export default function SelfTest() {
 
     let cancelled = false;
     (async () => {
-      // Dynamic import so the parser is not pulled into the normal client bundle.
-      const parse = await import('@/lib/recipeParse.mjs');
+      // Dynamic imports so neither module is pulled into the normal client bundle.
+      const [parse, scale] = await Promise.all([
+        import('@/lib/recipeParse.mjs'),
+        import('@/lib/scale'),
+      ]);
       if (cancelled) return;
       (window as unknown as { Aviente: unknown }).Aviente = {
+        scaleAmount: scale.scaleAmount,
+        servingOptions: scale.servingOptions,
+        scaleFactor: scale.scaleFactor,
         parseIngredientLine: parse.parseIngredientLine,
         normalizeIngredient: parse.normalizeIngredient,
         normalizeStep: parse.normalizeStep,

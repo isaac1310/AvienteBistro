@@ -21,7 +21,11 @@
   font-size: 1rem;
   color: var(--ink-soft);
 }
-.greeting .eyebrow {
+/* :global() is required. CSS Modules hashes EVERY class in a selector, so a bare
+   `.greeting .eyebrow` compiles to `.greeting_hash .eyebrow_hash` and never
+   matches the global `.eyebrow` from globals.css — the eyebrow stayed inline and
+   ran into the sentence after it. */
+.greeting :global(.eyebrow) {
   display: block;
   font-style: normal;
   margin-bottom: var(--sp-1);

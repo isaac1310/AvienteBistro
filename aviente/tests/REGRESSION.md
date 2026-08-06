@@ -24,11 +24,14 @@ pass afterwards, on the Ultra (§9.5 of the build spec).
 ## Setup, once
 
 ```bash
-cp .env.example .env.local     # point at the DEV Supabase project, never production
-# NEXT_PUBLIC_E2E=1 must be set — magic links cannot be automated, so the two
-# seeded test users sign in with a password behind this flag.
-npx playwright install chromium
+cp .env.example .env.local
+# NEXT_PUBLIC_E2E=1 must be set. It does two things: exposes password sign-in for
+# the two test users (magic links cannot be automated — there is no inbox to poll),
+# and attaches the pure parser to window.Aviente so the selftest exercises the real
+# implementation rather than a copy of it.
 ```
+
+Nothing else to install. There is no test runner — see "Running it" below.
 
 ## The database — read this before writing a test
 

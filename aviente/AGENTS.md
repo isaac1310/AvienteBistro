@@ -10,30 +10,37 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Aviente — before you open a PR
 
-Read `tests/REGRESSION.md` first; this is the short version.
+Full detail in `tests/REGRESSION.md`. This is the short version.
 
 ```bash
-npm run prepr        # typecheck + build + sanity suite
+npm run prepr                                  # typecheck + build
+npm run dev && open 'http://localhost:3000/?selftest=1'   # then read window.__selftest
 ```
+
+**There is no test runner, on purpose.** The suite is `public/selftest.js`, running
+inside the app in a real browser — TravelHub's model. Playwright was tried and
+removed: it downloaded a 95MB browser and created a second place for assertions to
+live, and you already drive a real browser.
 
 **Rules, in order of how much trouble ignoring them causes:**
 
 1. **Red means no PR.** Report the failures and stop. Never open a PR "with a note
    about" a failing check.
 2. **An unexplained skip is a failure.** A check that cannot run must say why —
-   `test.skip(cond, 'reason')`. Never let a check pass by exercising nothing.
-3. **Never call a run green when checks skipped.** Say "10 passed, 4 skipped
-   (auth not wired)". Not "all passed".
-4. **Tests point at the DEV Supabase project, never production.** That project is
-   the family archive; `npm run test:reset` deletes rows and guards on the project
-   ref for exactly this reason.
-5. **Assert the app, not the harness.** The first run of the tap-target check
-   failed on the Next.js dev-overlay button. Scope selectors to
-   `header, main, footer`.
-6. Write the run to `tests/reports/<branch>-<n>.md` and paste the summary table
-   into the PR description.
+   `return skip('reason')`, never `return true`. Never let a check pass by
+   exercising nothing.
+3. **Never call a run green when checks skipped.** Say "24 passed, 1 skipped (no
+   controls on the page yet)". Not "all passed".
+4. **There is only ONE database, and it holds the family's only copy of these
+   recipes.** The selftest is read-only by construction — never add a check that
+   writes. Anything needing writes goes in `tools/db-check.mjs`, tags its fixtures
+   with `__test__`, and cleans up via `npm run test:clean`. Never truncate.
+5. **Assert the app, not the harness.** An early tap-target check failed on the
+   Next.js dev-overlay button. Scope selectors to `header, main, footer`.
+6. **Run it at 412px and 1280px.** Several checks skip themselves outside phone
+   width; they must be seen to skip, not assumed to pass.
 
-**Release candidates** additionally run `npm run test:regression`, then Itzik does
-the manual pass from `tests/TEST-PLAN-v<version>.md` on the Ultra. Bump
-`APP_VERSION` in `lib/version.ts` first — the footer is what proves the manual
-pass was not performed against a cached build.
+**Release candidates:** also run `node tools/db-check.mjs`, then Itzik does the
+manual pass from `tests/TEST-PLAN-v<version>.md` on the Ultra. Bump `APP_VERSION`
+in `lib/version.ts` first — `window.__selftest.version` and the footer are what
+prove the pass was not performed against a cached build.

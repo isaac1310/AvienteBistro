@@ -2,6 +2,24 @@
 
 Dashboard clicks, accounts, and secrets. Everything else is in `CHECKLIST.md`.
 
+**What is actually required, and what is a choice.** Only one item here is
+unavoidable:
+
+| Item | Why | Skippable? |
+|---|---|---|
+| **5 · keys** | the app cannot find the database without its address | **No.** ~3 min, and nothing works before it |
+| 1, 3, 4 · auth | stops strangers writing in the cookbook | Only by dropping accounts entirely — see below |
+| 6 · verify | confirms the seed landed | Yes, but it's four copy-pastes |
+| 7 · dev project | so tests never delete real recipes | Only if you drop the pre-PR regression suite |
+| 8, 9, 10 · deploy | so Moran can open it on her phone | Yes, until you want that |
+
+If the auth steps feel like too much ceremony for two people, **TravelHub's model
+is still available**: no accounts at all, one secret link, which deletes items 1,
+3, 4 and most of 8 permanently. The cost is photos — with nobody logged in,
+Supabase Storage can't tell family from stranger, so the photo bucket goes public
+or needs a proxy route written. Say the word and it's an hour's change, cleanest
+before any real recipes are photographed.
+
 - [x] **1 · Public signup OFF** — Auth → Sign In / Providers → Email.
 - [x] **2 · Four SQL files run** — `0001`, `0002`, `0003`, `seed.sql`.
 - [x] **3 · Two users created** — you and Moran, both Auto Confirm.
@@ -60,29 +78,35 @@ This does **not** need the Vercel domain. Do it now.
 
 ### 5b · Copy the address
 
-Look for **Project URL**. It looks like:
+Supabase has renamed this more than once. Any of these labels is the same thing:
 
-```
-https://abcdefghijklm.supabase.co
-```
+- **API URL** — "RESTful endpoint for querying and managing your database" ← current
+- **Project URL** — older wording
 
-Click the copy button next to it. Paste it somewhere you can get it back — a
-Notes window is fine.
+It looks like `https://abcdefghijklm.supabase.co`. Copy it somewhere you can get
+it back — a Notes window is fine.
 
 ### 5c · Copy the doorbell
 
-Same page, find the key labelled **`anon`** — it may also say **public** or
-**publishable**. It's a long string starting `eyJ...`.
+The key names changed too, so match on the **column heading**, not on how the key
+looks:
 
-Copy it too.
+| Label on the page | Starts with | Use it? | Goes in |
+|---|---|---|---|
+| **Publishable key** *(current)* | `sb_publishable_` | ✅ | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| **`anon` / public** *(older)* | `eyJ` | ✅ | same line |
+| **Secret key** *(current)* | `sb_secret_` | ❌ | nowhere |
+| **`service_role`** *(older)* | `eyJ` | ❌ | nowhere |
 
-> ⚠️ There is a **second** key on this page called **`service_role`** or
-> **secret**. **Do not copy that one.** It ignores every security rule in the
-> database. It doesn't belong in this file, doesn't belong in Vercel, and don't
-> paste it into a chat with me.
+Newer projects have no `eyJ...` key at all, so don't go looking for one.
+
+> ⚠️ **Never copy the Secret / `service_role` key into this file.** It ignores
+> every security rule in the database — every policy we installed, bypassed. It
+> doesn't belong here, doesn't belong in Vercel, and don't paste it into a chat
+> with me.
 >
-> How to tell them apart: the one you want says **anon**. If it says **secret** or
-> **service_role**, it's the wrong one.
+> The test-database key in step 7 is the one exception, and it's a *different*
+> project holding throwaway data.
 
 ### 5d · Make the file
 

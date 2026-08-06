@@ -30,30 +30,70 @@ cp .env.example .env.local     # point at the DEV Supabase project, never produc
 npx playwright install chromium
 ```
 
-**The database.** Tests delete things, so they must never touch the production
-project — that is the family archive. This machine has no Docker, so there is no
-local Postgres; use a **second free Supabase project** as `aviente-dev`, seeded
-from `supabase/seed.sql`. `npm run test:reset` truncates and re-seeds it.
+## The database — read this before writing a test
 
-## Running it
+There is **one** Supabase project, by decision: no local Postgres (no Docker on
+this machine) and no separate dev project. The suite therefore runs against the
+database holding the family's only copy of these recipes.
+
+That moves isolation from the database to the tests, and the rules are not
+negotiable:
+
+1. **Never mutate a row you did not create.** The 13 seeded recipes are read-only
+   fixtures. Assert against them; never edit, delete or rename them.
+2. **Tag everything you create** with `FIXTURE_TAG` (`__test__`) in
+   `external_ref`, and in `title` for menus. `npm run test:clean` deletes only
+   tagged rows, and refuses outright if an untagged row ever matches.
+3. **Clean up in `afterAll`**, even on failure. A leaked fixture shows up in the
+   real cookbook.
+4. **Never truncate.** The earlier `test:reset` script has been deleted for this
+   reason — against the only copy of the recipes, a truncate is not a reset.
+
+Six regression checks were written assuming a disposable database and are now
+**fixture-scoped**: soft delete (2.9), revisions (2.10), kids uniqueness (2.11),
+concurrency (2.12), share revocation (2.4) and photo replace (2.14). Each must
+create its own recipe or menu, act on that, and remove it. If a check cannot be
+done that way, it is **dropped and listed here as not covered** — never quietly
+pointed at real data.
+
+The honest cost of dropping the second project: destructive behaviour is tested
+against fixtures rather than in a clean-slate database, so a bug that only appears
+on an empty or freshly-migrated database will not be caught here. Worth revisiting
+if Docker ever gets installed.
+
+## Running it — there is no test framework, on purpose
+
+TravelHub has no `package.json` at all, and its testing works. Aviente follows it:
+the suite is **`public/selftest.js`**, it runs **inside the app** in a real browser,
+and it needs no runner, no config and no browser download.
 
 ```bash
-npm run test:sanity        # layer ① — every PR
-npm run test:regression    # layer ② — release candidates
+npm run dev
+open 'http://localhost:3000/?selftest=1'
 ```
 
-Playwright starts the dev server itself (`webServer` in `playwright.config.ts`),
-so there is no separate `npm run dev` to manage.
+A panel appears with every check, colour-coded, and the same run lands on
+`window.__selftest` as `{ pass, skipped, fail, version, results }` so an agent can
+read it without re-implementing anything.
+
+A Playwright layer was written and then **deleted**. It downloaded a 95MB browser
+and gave a second place for assertions to live, which is how suites rot — and the
+agent already drives a real browser, so it added nothing but machinery. If a
+headless CI gate is ever wanted, it is a thirty-line file that loads
+`?selftest=1` and reads `window.__selftest`; write it then.
 
 ## The agent's steps
 
-1. `npm run test:reset` — deterministic data, or half these assertions are noise.
-2. `npm run build` — must be clean: **zero** TypeScript errors.
-3. `npm run test:sanity`, plus `npm run test:regression` on a release branch.
-4. Write `tests/reports/<branch>-<n>.md` — counts, every failure with its
-   assertion and screenshot, every skip with its reason.
-5. Green → open the PR with the summary table in the description.
-   Red → report and stop.
+1. `npm run prepr` — typecheck and build. Must be clean: **zero** TS errors.
+2. `npm run dev`, then open `/?selftest=1` in the browser and read
+   `window.__selftest`.
+3. Repeat at **412px and 1280px** — several checks skip themselves outside phone
+   width and must be seen to skip, not assumed to pass.
+4. `node tools/db-check.mjs` for the security and constraint checks, which need a
+   database rather than a DOM.
+5. Report counts, every failure with its detail, and **every skip with its
+   reason**.
+6. Green → open the PR with the summary. Red → report and stop.
 
 ---
 

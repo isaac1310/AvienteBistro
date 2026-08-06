@@ -16,12 +16,17 @@
   --ink:            #2a2417;
   --ink-soft:       #5c5442;
   /* Gold is SPLIT on purpose. --gold is decorative only: rules, diamonds,
-     fleurons. --gold-ink is the only gold allowed to carry text -- it measures
-     4.37:1 on the cream page where --gold measures 2.02:1 and fails WCAG AA.
-     Using --gold for a label is an accessibility regression; §9.3 asserts it. */
+     fleurons. --gold-ink is the only gold allowed to carry text.
+       --gold      #c9a961 → 2.02:1 on cream. Fails AA badly.
+       #8a6d2f                4.37:1. Close, but still SHORT of the 4.5 minimum --
+                              these labels are 10-11px, so the large-text
+                              allowance does not apply. The selftest caught this.
+       --gold-ink  #856828 → 4.69:1 on cream, 4.63:1 on the burgundy page. Passes.
+     Using --gold for a label is an accessibility regression; the selftest asserts
+     the computed value numerically, because the eye cannot see this. */
   --gold:           #c9a961;
   --gold-deep:      #b08d3e;
-  --gold-ink:       #8a6d2f;
+  --gold-ink:       #856828;
 
   /* ── type ─────────────────────────────────────────────────────────────── */
   /* Families are injected by next/font in layout.tsx. Hebrew faces are part of

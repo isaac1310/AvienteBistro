@@ -1,0 +1,329 @@
+/* Aviente smoke test — run with ?selftest=1
+ *
+ * Modelled directly on TravelHub's tests/selftest.js, which works well: no build
+ * step, no dependencies, results on window.__selftest so a browser agent or CI can
+ * assert without re-implementing anything, and a visible panel so a human can read
+ * the same run.
+ *
+ * Two rules carried over verbatim, both learned the hard way over there:
+ *
+ *   1. A check that cannot run must SKIP with a reason, never `return true`. Two
+ *      TravelHub checks once passed at desktop width while exercising nothing.
+ *   2. Assertion helpers return a description on failure rather than throwing, so
+ *      one bad check cannot abort the run and skip the cleanup.
+ *
+ * The bias is the same too: most assertions cover bugs that actually shipped —
+ * see the git log for the RTL flip, the Times fallback and the XML comment. A
+ * suite that only tests what was never broken is decoration.
+ */
+(function () {
+  'use strict';
+
+  const results = [];
+  let currentGroup = '';
+  const group = (name) => { currentGroup = name; };
+
+  const SKIP = Symbol('skip');
+  const skip = (reason) => ({ [SKIP]: true, reason: reason || 'not applicable here' });
+  const isSkip = (r) => Boolean(r && typeof r === 'object' && r[SKIP]);
+
+  function check(name, fn) {
+    let ok = false, skipped = false, detail = '';
+    try {
+      const r = fn();
+      if (isSkip(r)) { skipped = true; ok = true; detail = r.reason; }
+      else { ok = r === true || r === undefined; if (!ok) detail = String(r); }
+    } catch (err) {
+      ok = false;
+      detail = (err && err.message) || String(err);
+    }
+    results.push({ group: currentGroup, name, ok, skipped, detail });
+    return ok;
+  }
+
+  /* Helpers return a description on failure instead of throwing. */
+  const eq = (actual, expected, label) => actual === expected ? true
+    : `${label || 'value'}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`;
+  const near = (actual, expected, tol, label) =>
+    Math.abs(actual - expected) <= (tol == null ? 0.01 : tol) ? true
+    : `${label || 'value'}: expected ~${expected}, got ${actual}`;
+  const truthy = (v, label) => v ? true
+    : `${label || 'value'}: expected truthy, got ${JSON.stringify(v)}`;
+
+  /* ---------- helpers ---------- */
+
+  const css = (el, prop) => getComputedStyle(el).getPropertyValue(prop).trim();
+  const token = (name) => css(document.documentElement, name);
+
+  /** Relative luminance / contrast, so the gold rule can be asserted numerically. */
+  function contrast(a, b) {
+    const lum = (c) => {
+      const [r, g, bl] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number)
+        .map((v) => v / 255)
+        .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+    };
+    const [x, y] = [lum(a), lum(b)];
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+
+  /** True when `text` actually rendered in `family`, rather than a silent fallback.
+      Measuring width against a known-different fallback is the only reliable way. */
+  function rendersIn(text, family) {
+    const measure = (f) => {
+      const s = document.createElement('span');
+      s.style.cssText = `position:absolute;visibility:hidden;font:40px ${f};white-space:pre`;
+      s.textContent = text;
+      document.body.appendChild(s);
+      const w = s.getBoundingClientRect().width;
+      s.remove();
+      return w;
+    };
+    return Math.abs(measure(`"${family}"`) - measure('monospace')) > 0.5;
+  }
+
+  /* ---------- groups ---------- */
+
+  function designTokens() {
+    group('tokens');
+
+    check('the split gold exists', () =>
+      truthy(token('--gold') && token('--gold-ink'), 'both gold tokens'));
+
+    check('gold text colour clears WCAG AA on cream', () => {
+      const probe = document.createElement('p');
+      probe.className = 'eyebrow';
+      document.body.appendChild(probe);
+      const fg = css(probe, 'color');
+      const bg = css(document.body, 'background-color');
+      probe.remove();
+      const ratio = contrast(fg, bg);
+      // --gold (#c9a961) measures 2.02:1 here and fails; --gold-ink (#8a6d2f) is
+      // 4.37:1. A regression to the decorative gold is invisible to the eye.
+      return ratio >= 4.5 ? true
+        : `letterspaced label contrast is ${ratio.toFixed(2)}:1, needs 4.5 — is it using --gold instead of --gold-ink?`;
+    });
+
+    check('theme switch changes the primary', () => {
+      const html = document.documentElement;
+      const before = token('--primary');
+      const had = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', 'burgundy');
+      const after = token('--primary');
+      had ? html.setAttribute('data-theme', had) : html.removeAttribute('data-theme');
+      return before !== after ? true : `--primary did not change: still ${after}`;
+    });
+  }
+
+  function typography() {
+    group('type');
+
+    check('the serif stack resolves, not Times', () => {
+      const h1 = document.querySelector('header h1');
+      if (!h1) return skip('no header wordmark on this page');
+      const fam = css(h1, 'font-family');
+      // The bug this exists for: next/font classes on <body> left --font-* undefined
+      // at :root, --ser collapsed, and every heading silently became Times.
+      return /Cormorant/i.test(fam) ? true
+        : `wordmark font-family is "${fam}" — the token stack has collapsed`;
+    });
+
+    check('Cormorant Garamond actually rendered', () =>
+      rendersIn('Aviente', 'Cormorant Garamond') ? true
+        : 'Cormorant measured the same as monospace — the face did not load');
+
+    check('the Hebrew face actually rendered', () =>
+      rendersIn('חלה לשבת', 'Frank Ruhl Libre') ? true
+        : 'Frank Ruhl Libre did not load — Hebrew is falling back to a system font');
+
+    check('Hebrew content is RTL and the chrome is not', () => {
+      const he = document.querySelector('[lang="he"]');
+      if (!he) return skip('no Hebrew content on this page');
+      const bad = css(document.documentElement, 'direction');
+      // The bug: [lang='he'] matched <html>, flipping the whole app -- the category
+      // grid reversed and counts read "RECETTES 5".
+      if (bad !== 'ltr') return `<html> direction is ${bad}; the whole app is flipped`;
+      return eq(css(he, 'direction'), 'rtl', 'Hebrew block direction');
+    });
+  }
+
+  function layout() {
+    group('layout');
+
+    check('the page does not scroll sideways', () => {
+      const over = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      return over <= 0 ? true : `page scrolls sideways by ${over}px at ${innerWidth}px wide`;
+    });
+
+    check('tap targets are at least 44px', () => {
+      if (innerWidth > 500) return skip('phone-width concern only');
+      const controls = document.querySelectorAll(
+        ':is(header, main, footer) :is(button, a[href], input, select)');
+      if (!controls.length) return skip('no interactive controls on this page yet');
+      for (const c of controls) {
+        const h = c.getBoundingClientRect().height;
+        if (h && h < 44) return `"${(c.textContent || c.tagName).trim().slice(0, 24)}" is ${h.toFixed(0)}px tall`;
+      }
+      return true;
+    });
+
+    check('the gold rule carries its diamond', () => {
+      const rule = document.querySelector('.rule');
+      if (!rule) return skip('no divider on this page');
+      return truthy(getComputedStyle(rule, '::after').content !== 'none',
+        'the ::after diamond');
+    });
+  }
+
+  function splash() {
+    group('splash');
+
+    check('it is gone, or held on purpose', () => {
+      const held = new URLSearchParams(location.search).get('splash') === 'hold';
+      const el = document.querySelector('[role="status"][aria-label="Aviente"]');
+      if (held) return truthy(el, 'held splash should be present');
+      // Not merely transparent: an opaque overlay is still hit-testable while
+      // fading, which is how a splash swallows the first tap.
+      return el ? 'the splash is still in the DOM and can still eat a tap' : true;
+    });
+  }
+
+  function parser() {
+    group('parser');
+    const A = window.Aviente;
+    if (!A?.parseIngredientLine) {
+      check('parser exposed', () => skip('window.Aviente not attached — is NEXT_PUBLIC_E2E set?'));
+      return;
+    }
+
+    const line = (s) => A.parseIngredientLine(s);
+
+    check('grams', () => {
+      const r = line('500 גרם קמח לבן');
+      return eq(r.amount, 500, 'amount') === true
+        ? eq(r.unit, 'g', 'unit') : eq(r.amount, 500, 'amount');
+    });
+    check('a range keeps both ends', () => {
+      const r = line("400-500 גרם ג'ינג'ר טרי");
+      if (r.amount !== 400) return `low end: got ${r.amount}`;
+      return eq(r.amountMax, 500, 'high end');
+    });
+    check('כוס maps to cup', () => eq(line('2.5 כוסות אורז').unit, 'cup', 'unit'));
+    check('קורט maps to pinch', () => eq(line('קורט פלפל שחור').unit, 'pinch', 'unit'));
+    check('a bare measure word means one', () => {
+      const r = line('כף שמיר');
+      return r.amount === 1 && r.unit === 'tbsp' ? true
+        : `got ${r.amount} ${r.unit}`;
+    });
+    check('a counted noun becomes pcs', () => {
+      const r = line('4 ביצים');
+      return r.amount === 4 && r.unit === 'pcs' ? true : `got ${r.amount} ${r.unit}`;
+    });
+    check('no quantity is preserved, not invented', () => {
+      const r = line('בצל ירוק');
+      if (r.amount !== null) return `invented an amount: ${r.amount}`;
+      if (r.unit === 'to taste') return "coerced to 'to taste', which says something different";
+      return eq(r.name, 'בצל ירוק', 'name');
+    });
+    check('a parenthetical becomes a note', () =>
+      eq(line('250 מ"ל מים פושרים (לפי הצורך)').note, 'לפי הצורך', 'note'));
+    check('half a teaspoon', () => near(line('½ כפית מלח').amount, 0.5, 0.001, 'amount'));
+    check('a Latin parenthetical splits into title_en', () =>
+      eq(A.splitTitle('גזלמה תרד וגבינות (Gözleme)').titleEn, 'Gözleme', 'titleEn'));
+    check('Hebrew parentheses do NOT split', () =>
+      eq(A.splitTitle('תמצית ג\'ינג\'ר (להקפאה)').titleEn, null, 'titleEn'));
+    check('breads absorbs the baked goods', () =>
+      eq(A.mapCategory('מאפים מסורתיים').category, 'breads', 'category'));
+    check('an unknown schemaVersion is refused, not guessed', () => {
+      const out = A.normalizeDocument({ schemaVersion: 99, recipes: [] });
+      return out.errors.length ? true : 'accepted an unknown schemaVersion';
+    });
+    check('stray prose around the JSON is tolerated', () => {
+      const out = A.parsePastedJson('Sure! ```json\n{"title":"x"}\n``` hope that helps');
+      return out.data?.title === 'x' ? true : `failed: ${out.error}`;
+    });
+  }
+
+  /* ---------- the run ---------- */
+
+  function tally() {
+    return {
+      pass: results.filter((r) => r.ok && !r.skipped).length,
+      skipped: results.filter((r) => r.skipped).length,
+      fail: results.filter((r) => !r.ok).length,
+    };
+  }
+  const verdict = (r) => (r.skipped ? 'SKIP' : r.ok ? 'pass' : 'FAIL');
+
+  function run() {
+    /* TravelHub refuses outright when joined to a shared room, because its suite
+       mutates real trip data. Aviente's equivalent hazard: there is only ONE
+       Supabase project, holding the family's only copy of these recipes. So this
+       suite is READ-ONLY by construction -- it touches the DOM, the tokens and the
+       pure parser, and never writes to the database. Any check that needs to write
+       belongs in the Playwright regression suite, which tags and cleans its own
+       fixtures. If you are tempted to add a write here, don't. */
+    designTokens();
+    typography();
+    layout();
+    splash();
+    parser();
+
+    const t = tally();
+    window.__selftest = { ...t, results, version: document.body.dataset.version || null };
+    const line = `selftest — ${t.pass} passed, ${t.skipped} skipped, ${t.fail} failed`;
+    (t.fail ? console.error : console.log)(line);
+    renderPanel();
+  }
+
+  function renderPanel() {
+    document.getElementById('selftest-panel')?.remove();
+    const panel = document.createElement('div');
+    panel.id = 'selftest-panel';
+    panel.style.cssText = [
+      'position:fixed', 'inset:auto 12px 12px 12px', 'z-index:100000',
+      'max-height:60vh', 'overflow:auto', 'background:#fff', 'color:#222',
+      'border-radius:2px', 'box-shadow:0 8px 40px rgba(0,0,0,.3)',
+      'font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace', 'padding:14px 16px',
+    ].join(';');
+
+    const { pass, skipped, fail } = tally();
+    const colour = (r) => (r.skipped ? '#b7791f' : r.ok ? '#1e8449' : '#c0392b');
+    const rows = results.map((r) =>
+      `<tr><td style="padding:2px 8px 2px 0;color:${colour(r)}">${verdict(r)}</td>` +
+      `<td style="padding:2px 8px 2px 0;color:#888">${r.group}</td>` +
+      `<td style="padding:2px 0">${r.name}` +
+      `${r.detail ? `<div style="color:${colour(r)}">${r.detail}</div>` : ''}</td></tr>`
+    ).join('');
+
+    panel.innerHTML =
+      `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+         <strong style="color:${fail ? '#c0392b' : skipped ? '#b7791f' : '#1e8449'}">
+           selftest — ${pass} passed${skipped ? `, ${skipped} skipped` : ''}, ${fail} failed
+         </strong>
+         <button type="button" onclick="this.closest('#selftest-panel').remove()"
+           style="border:0;background:#eee;border-radius:2px;padding:4px 10px;cursor:pointer">close</button>
+       </div><table style="border-collapse:collapse">${rows}</table>`;
+    document.body.appendChild(panel);
+  }
+
+  /* Wait until the app is actually ready before asserting anything, or the suite
+     reports false failures about its own timing:
+       — fonts, because font-dependent measurements taken too early look like a
+         failed load;
+       — the splash, because the app is not ready while the cover is still up, and
+         the first run of this suite failed on exactly that race.
+     Both are raced against a ceiling so a genuine hang still produces a report. */
+  function whenReady(done) {
+    const held = new URLSearchParams(location.search).get('splash') === 'hold';
+    const deadline = Date.now() + 6000;
+    const splashGone = () => held
+      || !document.querySelector('[role="status"][aria-label="Aviente"]')
+      || Date.now() > deadline;
+    const poll = () => (splashGone() ? done() : setTimeout(poll, 100));
+    const fonts = document.fonts?.ready ?? Promise.resolve();
+    Promise.race([fonts, new Promise((r) => setTimeout(r, 3000))]).then(poll, poll);
+  }
+
+  whenReady(() => setTimeout(run, 0));
+})();

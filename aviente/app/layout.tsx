@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Jost, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
+import SelfTest from '@/components/SelfTest';
+import { APP_VERSION } from '@/lib/version';
 import './globals.css';
 
 /* Five faces, each with a job (§1):
@@ -70,7 +72,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // every heading silently rendered in Times -- including the Hebrew, which was
     // the one thing the font stack existed to fix.
     <html lang="en" dir="ltr" data-theme="green" className={fonts}>
-      <body>{children}</body>
+      {/* data-version lets the selftest report which build it ran against, so a
+          result can never be misattributed to a cached page. */}
+      <body data-version={APP_VERSION}>
+        {children}
+        <SelfTest />
+      </body>
     </html>
   );
 }

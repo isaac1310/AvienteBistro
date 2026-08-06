@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:sanity": "playwright test --project=sanity --project=sanity-desktop",
+    "test:regression": "playwright test --project=regression",
+    "test:reset": "node tools/reset-dev-db.mjs",
+    "seed:build": "node tools/seed-from-source.mjs --commit",
+    "prepr": "npm run typecheck && npm run build && npm run test:sanity"
   },
   "dependencies": {
     "@hebcal/core": "^6.9.1",

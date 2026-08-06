@@ -20,8 +20,18 @@ const sources = [
 ];
 
 const commit = process.argv.includes('--commit');
-const q = (v) => (v == null ? 'null' : `'${String(v).replace(/'/g, "''")}'`);
-const n = (v) => (v == null ? 'null' : Number(v));
+
+/* Nulls inside a VALUES list MUST be cast.
+ *
+ * Postgres infers a VALUES column's type from its rows, and a bare NULL is taken
+ * as `text`. Every ingredient row here has a null `amount_max`, so the column came
+ * out as text and the insert failed with "column amount_max is of type numeric but
+ * expression is of type text". The whole file is one transaction, so that single
+ * error silently rolled back all 13 recipes AND the family members -- the symptom
+ * was an empty database with a green-looking run. */
+const q = (v) => (v == null ? 'null::text' : `'${String(v).replace(/'/g, "''")}'`);
+const n = (v) => (v == null ? 'null::numeric' : Number(v));
+const i = (v) => (v == null ? 'null::int' : Number(v));
 
 /* ── read + normalize ──────────────────────────────────────────────────────── */
 
@@ -102,8 +112,8 @@ for (const r of all) {
                        serving_suggestions, prep_minutes, cook_minutes,
                        servings, yield_text, external_ref)
   values (${q(r.title)}, ${q(r.titleEn)}, ${q(r.category)}, ${q(r.descriptionHe)},
-          ${q(r.story)}, ${q(r.servingSuggestions)}, ${n(r.prepMinutes)}, ${n(r.cookMinutes)},
-          ${n(r.servings)}, ${q(r.yieldText)}, ${q(ref)})
+          ${q(r.story)}, ${q(r.servingSuggestions)}, ${i(r.prepMinutes)}, ${i(r.cookMinutes)},
+          ${i(r.servings)}, ${q(r.yieldText)}, ${q(ref)})
   returning id
 )
 `;
@@ -111,14 +121,14 @@ for (const r of all) {
     sql += `, ing as (
   insert into ingredients (recipe_id, position, name, amount, amount_max, unit, note)
   select r.id, v.* from r, (values
-${r.ingredients.map((i) => `    (${i.position}, ${q(i.name)}, ${n(i.amount)}, ${n(i.amountMax)}, ${q(i.unit)}, ${q(i.note)})`).join(',\n')}
+${r.ingredients.map((i) => `    (${i.position}::int, ${q(i.name)}, ${n(i.amount)}, ${n(i.amountMax)}, ${q(i.unit)}, ${q(i.note)})`).join(',\n')}
   ) as v(position, name, amount, amount_max, unit, note)
 )
 `;
   }
   sql += `insert into steps (recipe_id, position, heading, body)
 select r.id, v.* from r, (values
-${r.steps.map((s) => `  (${s.position}, ${q(s.heading)}, ${q(s.body)})`).join(',\n')}
+${r.steps.map((s) => `  (${s.position}::int, ${q(s.heading)}, ${q(s.body)})`).join(',\n')}
 ) as v(position, heading, body);
 
 `;

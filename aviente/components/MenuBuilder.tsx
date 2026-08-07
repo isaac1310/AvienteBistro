@@ -12,20 +12,24 @@ import styles from './MenuBuilder.module.css';
 type Row = { key: string; recipe: RecipeSummary; course: CourseKey };
 
 export default function MenuBuilder({
-  recipes, initial, occasionTitle,
+  recipes, initial, occasion,
 }: {
   recipes: RecipeSummary[];
   initial: {
-    id?: string; date: string; title: string | null;
+    id?: string; date: string; meal_time: 'evening' | 'day'; title: string | null;
     language: 'en' | 'he'; chef_notes: string | null;
     items: { recipe_id: string; course: CourseKey }[];
   };
-  occasionTitle: string | null;
+  /* The occasion for this date, resolved BOTH ways on the server. A Jewish day
+     begins at sundown, so the same Friday is Shabbat in the evening and an ordinary
+     Friday at lunch — two different answers for one date. */
+  occasion: { evening: string | null; day: string | null };
 }) {
   const router = useRouter();
   const byId = useMemo(() => new Map(recipes.map((r) => [r.id, r])), [recipes]);
 
   const [date, setDate] = useState(initial.date);
+  const [mealTime, setMealTime] = useState<'evening' | 'day'>(initial.meal_time);
   const [title, setTitle] = useState(initial.title ?? '');
   const [language, setLanguage] = useState<'en' | 'he'>(initial.language);
   const [notes, setNotes] = useState(initial.chef_notes ?? '');
@@ -43,9 +47,14 @@ export default function MenuBuilder({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* The suggestion follows the date, so changing it to a Friday shows the Shabbat
-     title in the preview immediately rather than only after saving. */
-  const suggested = occasionTitle;
+  /* The suggestion follows the lunch/dinner toggle with no round trip, because both
+     answers were resolved on the server.
+     It does NOT follow the date field: that would need the rules re-resolved for the
+     new date, which only the server can do. Changing the date and saving picks up the
+     right occasion; the preview catches up then. Worth knowing rather than pretending
+     otherwise — an earlier comment here claimed it tracked the date, and it never
+     did. */
+  const suggested = mealTime === 'day' ? occasion.day : occasion.evening;
 
   /* What the printed card will actually say. Save falls back to the occasion when
      the field is blank, so the preview has to apply the SAME fallback — otherwise
@@ -106,6 +115,7 @@ export default function MenuBuilder({
       const id = await saveMenu({
         id: initial.id,
         date,
+        meal_time: mealTime,
         title: title.trim() || suggested,
         language,
         chef_notes: notes,
@@ -149,7 +159,12 @@ export default function MenuBuilder({
             ? `${rows.length} ${rows.length === 1 ? 'dish' : 'dishes'}`
             : suggested
               ? `Untitled — the card will use “${suggested}”, from the date`
-              : 'Untitled — give it a name above'}
+              /* Naming the reason matters here. A Friday EVENING is Shabbat and a
+                 Friday lunch is not, so "no occasion" on a Friday looks like a bug
+                 unless the screen says which meal it is talking about. */
+              : mealTime === 'day' && occasion.evening
+                ? `Untitled — no occasion at lunch. This evening it would be “${occasion.evening}”.`
+                : 'Untitled — give it a name above'}
         </p>
       </div>
 
@@ -159,6 +174,20 @@ export default function MenuBuilder({
           <input type="date" className={styles.input} value={date}
             onChange={(e) => setDate(e.target.value)} />
         </label>
+        {/* Beside the date, because it is part of WHEN the meal is — and because
+            without it nobody could tell why a Friday lunch got no candles. */}
+        <div className={styles.field}>
+          <span className={styles.label}>Eaten</span>
+          <div className={styles.seg} role="group" aria-label="Time of day">
+            <button type="button" onClick={() => setMealTime('day')}
+              aria-pressed={mealTime === 'day'}
+              className={mealTime === 'day' ? styles.segOn : styles.segOff}>Daytime</button>
+            <button type="button" onClick={() => setMealTime('evening')}
+              aria-pressed={mealTime === 'evening'}
+              className={mealTime === 'evening' ? styles.segOn : styles.segOff}>Evening</button>
+          </div>
+        </div>
+
         <label className={styles.field}>
           <span className={styles.label}>Title</span>
           {/* Left blank on purpose. The placeholder shows what the date suggests

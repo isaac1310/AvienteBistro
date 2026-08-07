@@ -24,6 +24,7 @@ const newSecret = () =>
 export async function saveMenu(input: {
   id?: string;
   date: string;
+  meal_time: 'evening' | 'day';
   title: string | null;
   language: 'en' | 'he';
   chef_notes: string | null;
@@ -34,6 +35,7 @@ export async function saveMenu(input: {
 
   const fields = {
     date: input.date,
+    meal_time: input.meal_time,
     title: input.title?.trim() || null,
     language: input.language,
     chef_notes: input.chef_notes?.trim() || null,

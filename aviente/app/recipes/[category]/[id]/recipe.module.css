@@ -1,24 +1,20 @@
 .page { position: relative; padding-bottom: var(--sp-8); }
 
 .hero,
-.heroBlueprint {
+.heroPlate {
   display: block;
   width: 100%;
   height: min(42vh, 320px);
   object-fit: cover;
 }
 
-.heroBlueprint {
-  display: grid;
-  place-items: center;
-  font-size: 3rem;
-  background-color: var(--primary);
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent, transparent 8px,
-    rgba(201, 169, 97, 0.14) 8px, rgba(201, 169, 97, 0.14) 16px
-  );
-}
+/* The photo-less hero is a blueprint plate now, and a link to the edit form: the
+   caption ends "NO PHOTO YET", so the placeholder asks for the thing it is missing.
+   It replaced a gold-striped block with the category emoji in it — CategoryPlate
+   brings its own ground, border and grid, so there is nothing to style here beyond
+   making the link fill the slot. */
+.heroPlate { text-decoration: none; }
+.heroPlate > * { height: 100%; }
 
 .overlay {
   position: absolute;
@@ -158,7 +154,7 @@
 }
 
 @media (min-width: 768px) {
-  .hero, .heroBlueprint { height: min(46vh, 400px); }
+  .hero, .heroPlate { height: min(46vh, 400px); }
   .body { max-width: 68ch; margin: 0 auto; }
 }
 

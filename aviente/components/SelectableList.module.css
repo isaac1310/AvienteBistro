@@ -46,3 +46,15 @@
   background: var(--gold); border: 0; border-radius: var(--radius);
   color: var(--primary-deep); cursor: pointer; font-weight: 500;
 }
+
+/* "3 here · keep going in another category" under the total. Without it a count of
+   five in a category showing three ticks reads as a bug. */
+.across {
+  display: block;
+  font-family: var(--ser);
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-small);
+  opacity: 0.8;
+}

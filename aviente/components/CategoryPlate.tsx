@@ -1,110 +1,81 @@
+import { BLUEPRINTS } from '@/lib/blueprints.generated';
 import type { CategoryKey } from '@/lib/constants';
 import styles from './CategoryPlate.module.css';
 
 /**
- * The stand-in for a recipe with no photograph: an engraved plate for its category.
+ * The stand-in for a recipe with no photograph: a plate from the blueprint set.
  *
- * Replaces a striped ground with the category emoji. An emoji is somebody else's
- * artwork rendered in somebody else's font, so a wall of them looked like a
- * placeholder in a way that read as unfinished — and most of this book has no
- * photograph, so the fallback IS the look of the app, not an edge case.
+ * Most of this book has no photograph, so this is the app's ordinary look rather
+ * than an edge case — which is why it is a designed plate and not a grey box with an
+ * emoji in it (the first version was exactly that).
  *
- * Drawn INLINE rather than loaded as an image file so `currentColor` resolves
- * against the host and the plate follows the theme's gold. The same trick used as a
- * background-image silently renders black — see app/page.module.css.
+ * The drawings live in design/blueprints/*.svg and are inlined by
+ * tools/build-blueprints.mjs. Inline is not a preference: they are stroked with
+ * `currentColor`, and an SVG loaded as an <img> or a background-image renders in
+ * isolation, where currentColor resolves to black instead of the theme's ink.
  *
- * Stroke-only at one weight, on the cover's engraving vocabulary: nine motifs that
- * sit together as a set rather than nine illustrations that happen to be adjacent.
+ * `inner` is generated from files in this repo, never from user input, so it is not
+ * a dangerouslySetInnerHTML risk — nothing that reaches it comes from the database
+ * or a request.
  */
 
-const MOTIFS: Record<CategoryKey, React.ReactNode> = {
-  /* An olive sprig — the thing that arrives before the meal. */
-  entrees: (
-    <>
-      <path d="M14 46 C24 30 38 22 52 20" />
-      <path d="M26 36 c-4-6-2-12 4-14 3 5 2 11-4 14z" />
-      <path d="M36 28 c-3-6 0-12 6-13 2 6 0 11-6 13z" />
-      <path d="M20 42 c-5-4-5-11 0-14 4 4 4 11 0 14z" />
-    </>
-  ),
-  /* A bowl with steam. */
-  soups: (
-    <>
-      <path d="M10 30 h44 a22 22 0 0 1-44 0z" />
-      <path d="M6 30 h52" />
-      <path d="M26 16 c-4-4 4-6 0-10" />
-      <path d="M38 16 c-4-4 4-6 0-10" />
-    </>
-  ),
-  /* A leaf, veined. */
-  salads: (
-    <>
-      <path d="M32 8 C50 18 50 40 32 54 C14 40 14 18 32 8z" />
-      <path d="M32 12 v40" />
-      <path d="M32 24 l10-6M32 24 l-10-6M32 36 l10-6M32 36 l-10-6" />
-    </>
-  ),
-  /* A cloche — the main event, under a dome. */
-  mains: (
-    <>
-      <path d="M8 44 h48" />
-      <path d="M12 44 a20 20 0 0 1 40 0" />
-      <path d="M32 24 v-6" />
-      <circle cx="32" cy="14" r="3" />
-    </>
-  ),
-  /* A small pan, seen from the side. */
-  sides: (
-    <>
-      <path d="M10 26 h30 v12 a10 10 0 0 1-10 10 h-10 a10 10 0 0 1-10-10z" />
-      <path d="M40 30 h14" />
-      <path d="M10 26 h30" />
-    </>
-  ),
-  /* A loaf, scored. */
-  breads: (
-    <>
-      <path d="M10 40 c0-14 10-22 22-22 s22 8 22 22z" />
-      <path d="M8 40 h48 v6 H8z" />
-      <path d="M22 26 l-4 10M32 24 l-4 12M42 26 l-4 10" />
-    </>
-  ),
-  /* A slice of cake with a candle. */
-  desserts: (
-    <>
-      <path d="M14 48 h36 l-6-20 H20z" />
-      <path d="M20 28 h24" />
-      <path d="M32 28 v-8" />
-      <path d="M32 20 c-3-3 3-5 0-7" />
-    </>
-  ),
-  /* A star — the kids' shelf, and the only motif allowed to be cheerful. */
-  kids: (
-    <>
-      <path d="M32 10 l7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" />
-    </>
-  ),
-  /* A jar with a label: what goes in the pantry and defies categories. */
-  other: (
-    <>
-      <path d="M20 16 h24 v6 a8 8 0 0 1 4 7 v19 a4 4 0 0 1-4 4 H20 a4 4 0 0 1-4-4 V29 a8 8 0 0 1 4-7z" />
-      <path d="M16 32 h32" />
-      <path d="M16 42 h32" />
-    </>
-  ),
+/* The plate numbers from the blueprint README — the printed-book conceit that makes
+   the set read as one series. breads was absent from the delivered set, so it takes
+   the next number rather than renumbering the eight that were specified. */
+const PLATES: Record<CategoryKey, string> = {
+  entrees:  "PL. I — HORS-D'ŒUVRE",
+  soups:    'PL. II — POTAGES',
+  salads:   'PL. III — SALADES',
+  mains:    'PL. IV — PLATS',
+  sides:    'PL. V — ACCOMPAGNEMENTS',
+  desserts: 'PL. VI — DESSERTS',
+  kids:     'PL. VII — LES PETITS',
+  other:    'PL. VIII — DIVERS',
+  breads:   'PL. IX — PAINS',
 };
 
 export default function CategoryPlate({
-  category, size = 'thumb',
-}: { category: CategoryKey; size?: 'thumb' | 'hero' }) {
+  category, size = 'thumb', caption,
+}: {
+  category: CategoryKey;
+  size?: 'thumb' | 'hero';
+  /** The category name under the drawing. Hero only — a 92px column has no room. */
+  caption?: string;
+}) {
+  const plate = BLUEPRINTS[category] ?? BLUEPRINTS.other;
+  const kid = category === 'kids';
+
+  /* The drawings sit inside a 110×90 frame with generous air around them, which is
+     right at 130px and wrong at 92px: the air ate most of the box and the drawing
+     came out a third of the size it should be. Cropping to where the ink actually is
+     gives the thumbnail its size back without touching the files. */
+  const viewBox = size === 'thumb' ? '18 20 78 62' : plate.viewBox;
+
   return (
-    <span className={`${styles.plate} ${styles[size]}`} aria-hidden="true">
-      <svg viewBox="0 0 64 64" className={styles.art} role="presentation">
-        <g fill="none" stroke="currentColor" strokeWidth="2.4"
-           strokeLinecap="round" strokeLinejoin="round">
-          {MOTIFS[category] ?? MOTIFS.other}
-        </g>
-      </svg>
+    <span
+      className={`${styles.plate} ${styles[size]} ${kid ? styles.kid : ''}`}
+      /* The drawing is decoration; the recipe's name is right beside it. A caption,
+         when there is one, is real text and stays readable. */
+      aria-hidden={caption ? undefined : true}
+    >
+      <svg
+        viewBox={viewBox}
+        className={styles.art}
+        fill="none"
+        stroke="currentColor"
+        /* Heavier at thumbnail size, as the blueprint README asks: 1.4 disappears
+           when the drawing is 44px wide. */
+        strokeWidth={size === 'thumb' ? 2.4 : 1.4}
+        strokeLinecap="round"
+        role="presentation"
+        dangerouslySetInnerHTML={{ __html: plate.inner }}
+      />
+      {size === 'hero' && caption && (
+        <span className={styles.caption}>
+          <span className={styles.captionName}>{caption}</span>
+          <span className={styles.captionPlate}>{PLATES[category]} · NO PHOTO YET</span>
+        </span>
+      )}
     </span>
   );
 }

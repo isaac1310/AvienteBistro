@@ -86,24 +86,41 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
   if (sent) {
     return (
       <form className={styles.form} onSubmit={verifyCode}>
+        {/* The link is how everyone actually gets in, so the screen says so and
+            stops. It used to present a six-digit code field as the next step, which
+            read as an instruction: people sat waiting to be given a code while the
+            link sat unopened in the email. The code is now behind a disclosure,
+            where it belongs — it exists for one case, opening the email on a
+            different device. */}
         <div className={styles.sent}>
-          <p><strong>Check your email.</strong> There is a link in it — tap that on
-            this device and you are in.</p>
-          <p>Opening it somewhere else? Use the six-digit code from the same email
-            instead. A link only works in the browser that asked for it.</p>
+          <p><strong>Check your email.</strong> Tap the link in it on this device and
+            you are in — nothing more to do here.</p>
         </div>
 
-        <label className={styles.label} htmlFor="code">Six-digit code</label>
-        <input
-          id="code" className={`${styles.field} ${styles.code}`}
-          value={code} onChange={(e) => setCode(e.target.value)}
-          inputMode="numeric" autoComplete="one-time-code"
-          maxLength={6} placeholder="······" required
-        />
+        <details className={styles.fallback}>
+          <summary>Reading the email somewhere else?</summary>
+          <div className={styles.fallbackBody}>
+            <p className={styles.hint}>
+              A link only signs in the browser that asked for it. The same email also
+              carries a six-digit code, which works anywhere.
+            </p>
+            <label className={styles.label} htmlFor="code">Six-digit code</label>
+            <input
+              id="code" className={`${styles.field} ${styles.code}`}
+              value={code} onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric" autoComplete="one-time-code"
+              maxLength={6} placeholder="······"
+              /* Not `required`: the form is submitted only from inside this
+                 disclosure, and a required field in a closed <details> blocks
+                 submission with a validation bubble pointing at nothing visible. */
+            />
+            <button className="btn" type="submit" disabled={busy || code.length < 6}>
+              {busy ? 'Checking…' : 'Enter'}
+            </button>
+          </div>
+        </details>
+
         {error && <p className={styles.error}>{error}</p>}
-        <button className="btn" type="submit" disabled={busy || code.length < 6}>
-          {busy ? 'Checking…' : 'Enter'}
-        </button>
         <button type="button" className={styles.linkish}
           onClick={() => { setSent(false); setCode(''); setError(null); }}>
           Use a different email

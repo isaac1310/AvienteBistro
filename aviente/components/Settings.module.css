@@ -62,3 +62,21 @@
   font-size: var(--t-small);
   color: #8c2b2b;
 }
+
+/* Saved on blur rather than behind a Save button: it is one field, and a button
+   beside it would be the only one in the panel — the colour and language controls
+   commit on tap. */
+.field {
+  font: inherit;
+  font-family: var(--ser);
+  font-size: 1rem;
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  min-width: 9rem;
+  background: var(--page);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.field:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 1px; }
+.field[disabled] { opacity: 0.6; }

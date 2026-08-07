@@ -41,3 +41,20 @@
   opacity: 0.75;
   font-variant-numeric: tabular-nums;
 }
+
+.aside {
+  margin: 0;
+  text-align: center;
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: var(--t-small);
+}
+/* A 44px target. The homepage had an inline link inside a sentence and the selftest
+   caught it at 16px tall; the same mistake was one line from being repeated here. */
+.aside a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--sp-2);
+  color: var(--gold-ink);
+}

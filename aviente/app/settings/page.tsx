@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import Settings from '@/components/Settings';
@@ -30,6 +31,7 @@ export default async function SettingsPage() {
           <Settings
             theme={(member?.theme as 'green' | 'burgundy') ?? 'green'}
             cardLanguage={(member?.card_language as 'en' | 'he') ?? 'he'}
+            displayName={member?.display_name ?? member?.name ?? ''}
           />
 
           <section className={styles.block} aria-labelledby="backup-h">
@@ -45,6 +47,12 @@ export default async function SettingsPage() {
               </p>
             </div>
           </section>
+
+          {/* A working sheet, not a feature — but findable, because the plates are
+              what most of this book looks like. */}
+          <p className={styles.aside}>
+            <Link href="/brand">The no-photo plate blueprints</Link>
+          </p>
 
           <p className={styles.build}>{BUILD_LABEL}</p>
         </main>

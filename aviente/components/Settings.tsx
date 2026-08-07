@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setTheme, setCardLanguage } from '@/lib/mutations';
+import { setTheme, setCardLanguage, setDisplayName } from '@/lib/mutations';
 import styles from './Settings.module.css';
 
 /**
@@ -16,11 +16,13 @@ import styles from './Settings.module.css';
  * the write fails, so the screen never shows a setting the database disagrees with.
  */
 export default function Settings({
-  theme, cardLanguage,
-}: { theme: 'green' | 'burgundy'; cardLanguage: 'en' | 'he' }) {
+  theme, cardLanguage, displayName,
+}: { theme: 'green' | 'burgundy'; cardLanguage: 'en' | 'he'; displayName: string }) {
   const router = useRouter();
   const [colour, setColour] = useState(theme);
   const [lang, setLang] = useState(cardLanguage);
+  const [name, setName] = useState(displayName);
+  const [savedName, setSavedName] = useState(displayName);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,11 +56,48 @@ export default function Settings({
     } finally { setBusy(false); }
   }
 
+  async function saveName() {
+    const next = name.trim();
+    if (!next || next === savedName) { setName(savedName); return; }
+    setBusy(true); setError(null);
+    try {
+      await setDisplayName(next);
+      setSavedName(next);
+      router.refresh();
+    } catch (e) {
+      setName(savedName);
+      setError(e instanceof Error ? e.message : 'Could not save that name.');
+    } finally { setBusy(false); }
+  }
+
   return (
     /* No heading of its own: the only page that renders this is /settings, whose
        own eyebrow already says "Settings" — two in a row read as a bug. */
     <section className={styles.wrap} aria-label="Preferences">
       <div className={`card ${styles.panel}`}>
+        {/* Each person sets their own, so Moran is greeted as Mama without anyone
+            editing a row in the Supabase dashboard. It changes the greeting only —
+            recipe and menu attribution runs off `name`, which is why "Savta's
+            recipe" cannot be broken from here. */}
+        <div className={styles.row}>
+          <div className={styles.text}>
+            <span className={styles.name}>What the app calls you</span>
+            <span className={styles.hint}>Used in the greeting on the homepage.</span>
+          </div>
+          <input
+            className={styles.field}
+            value={name}
+            disabled={busy}
+            maxLength={40}
+            aria-label="What the app calls you"
+            onChange={(e) => setName(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          />
+        </div>
+
+        <hr className={styles.divider} />
+
         <div className={styles.row}>
           <div className={styles.text}>
             <span className={styles.name}>Colour</span>

@@ -65,8 +65,145 @@ function guessCategory(title) {
 function cells(line) {
   if (!line.trim().startsWith('|')) return null;
   const parts = line.split('|').slice(1, -1).map((c) => c.trim());
-  if (parts.every((c) => /^-*$/.test(c))) return null;   // |---|---|---|
+  /* Alignment colons count. The old test was /^-*$/, which matched `|---|---|` but
+     not `| :---: | :---: |` — so a centred table's alignment row arrived as an
+     ingredient literally named ":---:". Requiring at least one dash also stops an
+     all-empty row being read as a separator. */
+  if (parts.every((c) => /^:?-+:?$/.test(c))) return null;
   return parts;
+}
+
+/* ── repeated ingredient tables ────────────────────────────────────────────
+ * מתכונים.md re-prints ingredient tables under the wrong headings, in both
+ * directions and at both ends:
+ *   `# סלט בורגול`   own table FIRST,  then copies of סלמון and רוטב בוטנים
+ *   `# מרק כתום`     a copy of פירה's FIRST, own table SECOND
+ *   `# אסאדו ביין`   a copy of סופריטו, which appears 68 lines LATER
+ *   `# עוף באורז`    its own table, twice
+ * so neither "the first table is the real one" nor "later tables are repeats"
+ * holds. Both were tried; the first silently cut מרק כתום from 15 ingredients to 4.
+ *
+ * What decides ownership instead is corroboration. A recipe's own steps talk about
+ * its own ingredients: סלט בורגול's method mentions בורגול, מרק כתום's mentions
+ * דלעת. So a table printed under several headings is awarded to the recipe whose
+ * title and method mention the most of it, and dropped from the others.
+ *
+ * A table that appears under exactly one heading is never touched, and one that no
+ * candidate corroborates is kept everywhere and flagged. Nothing is deleted on a
+ * guess — the failure mode has to be a warning, because there is one database and it
+ * holds the family's only copy of these recipes.
+ */
+
+const signature = (rows) => rows.map((r) => r.name).join('|');
+
+const tablesOf = (ingredients) => {
+  const by = new Map();
+  for (const i of ingredients) {
+    if (!by.has(i._table)) by.set(i._table, []);
+    by.get(i._table).push(i);
+  }
+  return [...by.entries()].sort((a, b) => a[0] - b[0]);
+};
+
+/* Hebrew has no stemming worth the name here, so match on the longest word of each
+   ingredient and allow the one-letter prefixes that turn a noun into "the/with/from
+   the noun" — בורגול / הבורגול / לבורגול all have to count. */
+const keyword = (name) => name.replace(/[^\u0590-\u05FF\s]/g, ' ').trim()
+  .split(/\s+/).sort((a, b) => b.length - a.length)[0] ?? '';
+
+function corroboration(rows, recipe) {
+  const steps = recipe.steps.map((s) => `${s.heading ?? ''} ${s.body}`).join(' ');
+  let hits = 0;
+  for (const r of rows) {
+    const k = keyword(r.name);
+    if (k.length < 3) continue;
+    const re = new RegExp(`[\\u0590-\\u05FF]?${k}`);
+    /* The title counts for three. "רוטב בוטנים" naming its own peanut butter is far
+       stronger evidence than another recipe's method happening to say "אורז" — and
+       weighting them equally handed the peanut sauce to the rice dish on 2 hits
+       against 1. */
+    if (re.test(recipe.title)) hits += 3;
+    if (re.test(steps)) hits += 1;
+  }
+  return hits;
+}
+
+function reconcileTables(recipes) {
+  /* Who prints each table, and how convincingly. */
+  const holders = new Map();   // signature → [{ recipe, index, rows }]
+  for (const recipe of recipes) {
+    for (const [index, rows] of tablesOf(recipe.ingredients)) {
+      const sig = signature(rows);
+      if (!holders.has(sig)) holders.set(sig, []);
+      holders.get(sig).push({ recipe, index, rows });
+    }
+  }
+
+  const drop = new Set();      // `${title}#${tableIndex}`
+  for (const [sig, claims] of holders) {
+    if (claims.length < 2) continue;
+
+    /* The same table twice under one heading is a straight repeat: keep the first. */
+    const byRecipe = new Map();
+    for (const c of claims) {
+      if (byRecipe.has(c.recipe.title)) {
+        drop.add(`${c.recipe.title}#${c.index}`);
+        c.recipe.warnings.push(`dropped ingredient table ${c.index}: it repeats this `
+          + `recipe's own table (${c.rows.length} rows)`);
+      } else byRecipe.set(c.recipe.title, c);
+    }
+
+    const contenders = [...byRecipe.values()];
+    if (contenders.length < 2) continue;
+
+    const scored = contenders.map((c) => ({ ...c, score: corroboration(c.rows, c.recipe) }));
+    const best = Math.max(...scored.map((c) => c.score));
+    const winners = scored.filter((c) => c.score === best);
+
+    if (best === 0 || winners.length > 1) {
+      for (const c of scored) {
+        c.recipe.warnings.push(`ingredient table ${c.index} (${c.rows.length} rows) also `
+          + `appears under ${scored.filter((o) => o !== c).map((o) => `"${o.recipe.title}"`).join(', ')}`
+          + ` and the method does not settle which — kept, needs a look`);
+      }
+      continue;
+    }
+
+    const owner = winners[0];
+    const tableCount = new Map(recipes.map((r) => [r.title, tablesOf(r.ingredients).length]));
+    for (const c of scored) {
+      if (c === owner) continue;
+      /* Never take a recipe's only table. Scoring is a heuristic over short Hebrew
+         methods, and it got this wrong: it awarded רוטב בוטנים's eleven rows — the
+         whole of a recipe literally called "peanut sauce" — to a rice dish, leaving
+         the sauce with nothing. A recipe printing one table is printing its own. */
+      if ((tableCount.get(c.recipe.title) ?? 1) < 2) {
+        c.recipe.warnings.push(`ingredient table ${c.index} also appears under `
+          + `"${owner.recipe.title}", but it is this recipe's only table — kept`);
+        continue;
+      }
+      drop.add(`${c.recipe.title}#${c.index}`);
+      c.recipe.warnings.push(`dropped ingredient table ${c.index}: ${c.rows.length} rows that `
+        + `belong to "${owner.recipe.title}", whose method mentions ${owner.score} of them `
+        + `against ${c.score} here`);
+    }
+  }
+
+  for (const recipe of recipes) {
+    const kept = [];
+    let n = 0;
+    for (const [index, rows] of tablesOf(recipe.ingredients)) {
+      if (drop.has(`${recipe.title}#${index}`)) continue;
+      n += 1;
+      /* Only label an extra table once it is certain it is being kept — labelling
+         during the scan named groups that were then thrown away. */
+      if (n > 1) rows.forEach((r) => { r.group = r.group ?? `טבלה ${n}`; });
+      kept.push(...rows);
+    }
+    recipe.ingredients = kept;
+    for (const r of kept) delete r._table;
+  }
+  return recipes;
 }
 
 function parseRecipe(block) {
@@ -80,6 +217,7 @@ function parseRecipe(block) {
   const noteLines = [];
   let section = null;
   let group = null;          // the current sub-group label
+  let tables = 0;            // ingredient tables seen under this one title
   let yieldText = null;
   const warnings = [];
 
@@ -99,7 +237,14 @@ function parseRecipe(block) {
       const c = cells(line);
       if (!c) continue;
       const [name, amount, note] = [c[0] ?? '', c[1] ?? '', c[2] ?? ''];
-      if (compact(name) === 'רכיב') continue;             // the header row
+      if (compact(name) === 'רכיב') {
+        /* A second header row means a second table under the same title, with no
+           label between them. Judged after the whole recipe is read — see
+           dropDuplicateTables. */
+        tables += 1;
+        group = null;
+        continue;
+      }
 
       /* Sub-group headings. Bold is the reliable signal; the book also writes
          some plainly ("| מילוי |  |  |").
@@ -132,6 +277,7 @@ function parseRecipe(block) {
            ("נטו", "או תפח״א 1") is appended rather than dropped. */
         note: [note, q.note].filter(Boolean).join(' · ') || null,
         group: group || null,
+        _table: tables,
       });
       continue;
     }
@@ -139,6 +285,9 @@ function parseRecipe(block) {
     if (section === 'steps') { stepLines.push(line); continue; }
     if (section === 'notes') { noteLines.push(bare); continue; }
   }
+
+  /* Extra unlabelled tables are judged in a second pass — see reconcileTables.
+     Each row still carries _table until then. */
 
   /* Steps: a bold lead-in starts a new step with a heading; otherwise each
      non-empty line is its own step. Markdown line-break spaces are stripped. */
@@ -191,11 +340,22 @@ function parseRecipe(block) {
 const text = readFileSync(SOURCE, 'utf8');
 const blocks = text.split(/\n(?=#\s)/).filter((b) => b.trim().startsWith('#'));
 
-const recipes = blocks
-  .map(parseRecipe)
-  // The document opens with a blank template ("שם מתכון") — skip anything with
-  // no ingredients AND no steps rather than importing an empty shell.
-  .filter((r) => r.title && r.title !== 'שם מתכון' && (r.ingredients.length || r.steps.length));
+const recipes = reconcileTables(
+  blocks
+    .map(parseRecipe)
+    // The document opens with a blank template ("שם מתכון") — skip anything with
+    // no ingredients AND no steps rather than importing an empty shell.
+    .filter((r) => r.title && r.title !== 'שם מתכון' && (r.ingredients.length || r.steps.length)),
+);
+
+/* Only the recipes a repair changed. The whole book cannot be re-imported with
+   Replace without also overwriting categories and titles fixed by hand since the
+   first import, so this narrows it to the ones with a dropped table. */
+if (process.argv.includes('--json-repairs')) {
+  const repaired = recipes.filter((r) => r.warnings.some((w) => w.startsWith('dropped ingredient table')));
+  console.log(JSON.stringify({ schemaVersion: SCHEMA_VERSION, recipes: repaired }, null, 2));
+  process.exit(0);
+}
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ schemaVersion: SCHEMA_VERSION, recipes }, null, 2));

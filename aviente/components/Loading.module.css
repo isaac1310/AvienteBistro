@@ -1,0 +1,52 @@
+.wrap {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-6);
+  padding: var(--sp-8) var(--sp-4);
+  min-height: 40dvh;
+  align-content: start;
+}
+
+/* The app's divider diamond, breathing. Not a spinner: a rotating circle says
+   "generic web app", the diamond says this one. */
+.diamond {
+  width: 13px;
+  height: 13px;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .diamond { animation: breathe 1.4s ease-in-out infinite; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.25; transform: rotate(45deg) scale(0.82); }
+  50%      { opacity: 1;    transform: rotate(45deg) scale(1); }
+}
+
+/* Skeleton rows in the real card geometry, so nothing jumps when content lands. */
+.skeletons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: var(--shell);
+  display: grid;
+  gap: var(--sp-3);
+}
+@media (min-width: 768px)  { .skeletons { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1280px) { .skeletons { grid-template-columns: repeat(3, 1fr); } }
+
+.row {
+  min-height: 92px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .row { animation: settle 1.6s ease-in-out infinite; }
+}
+@keyframes settle {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.7; }
+}

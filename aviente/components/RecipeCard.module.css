@@ -9,27 +9,17 @@
   min-height: 92px;
 }
 
-.thumb,
-.blueprint {
+.thumb {
   flex: 0 0 92px;
   width: 92px;
   object-fit: cover;
   align-self: stretch;
 }
 
-/* Diagonal cream stripes — the "blueprint" placeholder from §3.2. */
-.blueprint {
-  display: grid;
-  place-items: center;
-  background-color: var(--page);
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent, transparent 6px,
-    rgba(30, 58, 47, 0.06) 6px, rgba(30, 58, 47, 0.06) 12px
-  );
-  border-right: 1px solid var(--card-border);
-}
-.blueprintEmoji { font-size: 1.5rem; opacity: 0.75; }
+/* The photo-less case is handled by CategoryPlate, which brings its own sizing.
+   The striped "blueprint" ground with a category emoji that used to live here is
+   gone: most of this book has no photograph, so a placeholder look was the app's
+   look, and an emoji is somebody else's artwork in somebody else's font. */
 
 .body {
   display: flex;

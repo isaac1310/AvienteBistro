@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { safeNext } from '@/lib/safeNext';
 import styles from './login.module.css';
 
 /* Magic link, with a 6-digit code beside it.
@@ -18,7 +19,8 @@ import styles from './login.module.css';
  */
 export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
   const router = useRouter();
-  const next = useSearchParams().get('next') || '/';
+  /* Validated, not trusted — see lib/safeNext.ts. */
+  const next = safeNext(useSearchParams().get('next'));
 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');

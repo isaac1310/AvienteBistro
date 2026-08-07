@@ -26,11 +26,6 @@
 .area { min-height: 0; line-height: 1.6; resize: vertical; }
 .input:focus, .area:focus { border-color: var(--gold-deep); outline: none; }
 
-.badge { margin: 0; padding: var(--sp-2) var(--sp-3); background: var(--card);
-  border: 1px solid var(--card-border); border-left: 2px solid var(--gold);
-  border-radius: var(--radius); font-family: var(--ser); font-style: italic;
-  font-size: var(--t-small); color: var(--ink-soft); }
-
 .langRow { display: flex; align-items: center; justify-content: space-between;
   gap: var(--sp-3); flex-wrap: wrap; }
 .seg { display: flex; }
@@ -88,3 +83,26 @@
 .pickMeta { font-family: var(--san); font-size: 0.625rem; letter-spacing: 1.5px;
   text-transform: uppercase; color: var(--gold-ink); flex: 0 0 auto; }
 .pickEmpty { padding: var(--sp-4); font-size: var(--t-small); color: var(--ink-soft); }
+
+.barActions { display: flex; align-items: center; gap: var(--sp-2); }
+
+/* ── live card preview ─────────────────────────────────────────────────────
+   Not the real MenuCard: that one is a printed artefact with its own scale and
+   would dominate the form. This is the card's HEAD in the card's own type, which
+   is the part the title question is actually about. */
+.preview { padding: var(--sp-4); background: var(--card);
+  border: 1px solid var(--card-border); border-top: 2px solid var(--gold);
+  border-radius: var(--radius); text-align: center; }
+
+.previewTag { display: block; font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold-ink); }
+
+.previewDate { margin: var(--sp-3) 0 0; font-family: var(--san);
+  font-size: var(--t-label); letter-spacing: 2px; color: var(--ink-soft); }
+
+.previewTitle { margin: var(--sp-1) 0 0; font-family: var(--ser);
+  font-size: var(--t-h2); line-height: 1.1; color: var(--primary);
+  text-wrap: balance; }
+
+.previewNote { margin: var(--sp-2) 0 0; font-family: var(--ser); font-style: italic;
+  font-size: var(--t-small); color: var(--ink-soft); }

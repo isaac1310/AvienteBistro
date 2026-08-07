@@ -1,0 +1,64 @@
+.wrap { display: grid; gap: var(--sp-3); }
+
+.h2 {
+  margin: 0;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  text-align: center;
+}
+
+.panel { padding: var(--sp-4); display: grid; gap: var(--sp-3); }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.text { display: grid; gap: 2px; min-width: 12rem; flex: 1 1 14rem; }
+
+.name { font-family: var(--ser); font-size: var(--t-title); color: var(--primary); }
+.hint { font-size: 0.78rem; line-height: 1.4; color: var(--ink-soft); }
+
+.divider { height: 1px; border: 0; margin: 0; background: var(--card-border); }
+
+.seg { display: flex; }
+
+.on, .off {
+  font: inherit;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  /* 44px so it is a real target on the Ultra. */
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.on:first-child, .off:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.on:last-child,  .off:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+.on + .on, .on + .off, .off + .on, .off + .off { border-left: 0; }
+
+.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.off:hover { color: var(--primary); }
+.on[disabled], .off[disabled] { opacity: 0.6; cursor: default; }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.green    { background: #1e3a2f; }
+.burgundy { background: #5b1a26; }
+
+.error {
+  margin: 0;
+  font-size: var(--t-small);
+  color: #8c2b2b;
+}

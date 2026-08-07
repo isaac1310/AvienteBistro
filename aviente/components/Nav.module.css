@@ -19,6 +19,8 @@
 }
 
 .link {
+  /* Anchors .pending, which is positioned against this item. */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,4 +63,24 @@
     padding: var(--sp-3) var(--sp-5);
   }
   .label { font-size: var(--t-label); }
+}
+
+/* Acknowledges the tap while the next page is still coming. A hairline under the
+   item, not a spinner: the nav is small and a spinner in it reads as an error. */
+.pending {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 4px;
+  height: 2px;
+  background: var(--gold);
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pending { animation: navPending 900ms ease-in-out infinite; }
+}
+@keyframes navPending {
+  0%   { transform: scaleX(0.1); opacity: 0.5; }
+  50%  { transform: scaleX(1);   opacity: 1; }
+  100% { transform: scaleX(0.1); opacity: 0.5; }
 }

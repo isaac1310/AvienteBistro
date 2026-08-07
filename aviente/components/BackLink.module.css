@@ -1,0 +1,16 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  /* Padded to a 44px target without looking like a button — the Ultra is a big
+     phone and this is the control people reach for most. */
+  min-height: 44px;
+  padding: var(--sp-2) 0;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  text-decoration: none;
+}
+.back:hover { color: var(--primary); }

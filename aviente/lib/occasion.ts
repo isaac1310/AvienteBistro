@@ -46,6 +46,41 @@ function eventsOn(date: Date): string[] {
   return events.map((e) => e.getDesc());
 }
 
+/**
+ * Does this hebcal description name this holiday?
+ *
+ * NOT a substring test. "Erev Rosh Hashana" contains "Rosh Hashana", so `includes`
+ * treated the eve and the day as the same occasion — a menu on the eve of Rosh
+ * Hashana got the Rosh Hashana title, and the upcoming-occasions list kept the
+ * earlier false match and discarded the real one.
+ *
+ * Hebcal descriptions come in a small number of shapes:
+ *   "Rosh Hashana 5787"        the day itself
+ *   "Erev Rosh Hashana"        the eve — a DIFFERENT occasion
+ *   "Chanukah: 1 Candle"       a numbered day of a multi-day festival
+ *   "Sukkot I", "Pesach VII"   a roman-numbered day
+ * so the name is compared after stripping a trailing year, a ": …" suffix and a
+ * roman numeral, and an "Erev " prefix disqualifies the match outright.
+ */
+function matchesHoliday(desc: string, key: string): boolean {
+  const d = desc.trim();
+
+  // The eve is its own thing. A rule wanting it must say "Erev …" explicitly.
+  const wantsErev = /^erev\s/i.test(key.trim());
+  const isErev = /^erev\s/i.test(d);
+  if (isErev !== wantsErev) return false;
+
+  const normalise = (v: string) =>
+    v.replace(/^erev\s+/i, '')
+      .replace(/:.*$/, '')            // "Chanukah: 1 Candle"
+      .replace(/\s+\d{4}$/, '')       // trailing Hebrew year
+      .replace(/\s+[IVX]+$/, '')      // "Sukkot III"
+      .trim()
+      .toLowerCase();
+
+  return normalise(d) === normalise(key);
+}
+
 const addDays = (date: Date, n: number) => {
   const d = new Date(date);
   d.setDate(d.getDate() + n);
@@ -83,7 +118,7 @@ export function resolveOccasion(
       // otherwise (break-fast looks at the day the fast ends, not begins).
       const lookAt = addDays(date, mealTime === 'evening' && !offset ? 1 : offset);
       const descs = eventsOn(lookAt);
-      if (descs.some((d) => d.toLowerCase().includes(rule.match.hebcal!.toLowerCase()))) {
+      if (descs.some((d) => matchesHoliday(d, rule.match.hebcal!))) {
         matches.push(rule);
       }
     }

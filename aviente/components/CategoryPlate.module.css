@@ -1,0 +1,46 @@
+/* A framed cream plate with the motif engraved in gold. Two rules inset from the
+   edge, the way a plate in an old cookery book is framed — that framing, not the
+   drawing, is what makes a photo-less card look finished. */
+.plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--page) 82%, #fff);
+  color: var(--gold-deep);
+  overflow: hidden;
+}
+
+.plate::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--gold);
+  opacity: 0.55;
+}
+.plate::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border: 1px solid var(--gold);
+  opacity: 0.3;
+}
+
+.art { position: relative; width: 46%; height: 46%; }
+
+/* Sized to match the photograph it stands in for: a fixed 92px column beside the
+   text, stretched to the card's height. It has to carry its own flex sizing — it IS
+   the flex child, so leaving the width to the parent made the plate expand to fill
+   the whole card. */
+.thumb {
+  flex: 0 0 92px;
+  width: 92px;
+  align-self: stretch;
+  min-height: 92px;
+  border-right: 1px solid var(--card-border);
+}
+
+/* The recipe page's wide slot, where there is room for the frame to breathe. */
+.hero { width: 100%; aspect-ratio: 3 / 2; }
+.hero .art { width: 30%; height: 30%; }
+.hero::before { inset: 12px; }
+.hero::after  { inset: 17px; }

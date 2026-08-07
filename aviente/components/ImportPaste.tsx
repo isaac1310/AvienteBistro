@@ -57,6 +57,14 @@ export default function ImportPaste({
     return { error: null as string | null, ...normalizeDocument(got.data) };
   }, [text]);
 
+  /* Match a name carried in the payload to a family member. Unknown names fall
+     through to the batch choice rather than being invented. */
+  const memberIdFor = (name?: string | null) => {
+    if (!name) return null;
+    const hit = members.find((m) => m.name.trim() === String(name).trim());
+    return hit?.id ?? null;
+  };
+
   async function onImport() {
     if (!parsed?.recipes.length) return;
     setBusy(true);
@@ -74,7 +82,10 @@ export default function ImportPaste({
         cook_minutes: r.cookMinutes,
         servings: r.servings,
         yield_text: r.yieldText,
-        source_member_id: source || null,
+        /* A per-recipe `source` in the payload wins over the batch dropdown.
+           Applying one source to every recipe destroyed attribution on a backup
+           restore — every dish came back as the same person's. */
+        source_member_id: memberIdFor(r.source) ?? (source || null),
         photo_url: null,
         /* recipeParse.mjs is plain JavaScript, so its output arrives loosely
            typed. Normalise at this boundary rather than asserting it is already

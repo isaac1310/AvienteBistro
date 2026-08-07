@@ -283,6 +283,23 @@ export async function setTheme(theme: 'green' | 'burgundy') {
 }
 
 /**
+ * Which language a NEW menu card starts in, per person.
+ *
+ * Narrow on purpose: this is not a UI language switch. The interface is English
+ * only, and pretending otherwise with a half-translated app would be worse than
+ * not offering it. What it does control is the one place the app really is
+ * bilingual — the descriptions on a menu card.
+ */
+export async function setCardLanguage(language: 'en' | 'he') {
+  const member = await requireMember();
+  const db = await supabaseServer();
+  const { error } = await db
+    .from('family_members').update({ card_language: language }).eq('id', member.id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/', 'layout');
+}
+
+/**
  * Fill in any menu-card description that is still empty.
  *
  * Replaces a .sql file that could not be pasted reliably: Hebrew interleaved with

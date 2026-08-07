@@ -35,11 +35,28 @@ export async function currentMember() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return null;
 
-  const { data } = await db
+  const { data, error } = await db
     .from('family_members')
-    .select('id, name, display_name, theme')
+    .select('id, name, display_name, theme, card_language')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  return data ?? null;
+  if (data) return data;
+
+  /* card_language arrives in migration 0007. Until it is applied, asking for it
+     makes Postgres reject the whole SELECT — and because this function only
+     returned `data ?? null`, the result was indistinguishable from "not a family
+     member": the greeting disappeared and every page treated the owner as a guest.
+     A missing column is a deployment lag, not a failed login, so fall back to the
+     columns that certainly exist and default the new one. */
+  if (error?.code === '42703') {
+    const { data: legacy } = await db
+      .from('family_members')
+      .select('id, name, display_name, theme')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    return legacy ? { ...legacy, card_language: 'he' } : null;
+  }
+
+  return null;
 }

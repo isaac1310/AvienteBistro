@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import NavPending from './NavPending';
 import styles from './Nav.module.css';
 
 /* Bottom bar on phone, sidebar from 1024px (§0). One component, two layouts —
@@ -26,6 +27,8 @@ export default function Nav({ current }: { current?: string }) {
               >
                 <span className={styles.icon} aria-hidden="true">{l.icon}</span>
                 <span className={styles.label}>{l.label}</span>
+                {/* Must be inside the Link — useLinkStatus reads the enclosing one. */}
+                <NavPending />
               </Link>
             </li>
           );

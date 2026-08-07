@@ -271,6 +271,11 @@ export function normalizeIngredient(input) {
 
   return {
     name, amount, amountMax, unit, note,
+    /* The sub-group label must survive normalisation. It did not: the markdown
+       converter emitted `group` on every row and this function rebuilt the object
+       without it, so 23 ingredients imported correctly and every "לרוטב" heading
+       vanished between the file and the database. */
+    group: nonEmpty(pick(input, 'group', 'group_label', 'groupLabel')),
     raw: [rawAmount, rawUnit, name].filter(Boolean).join(' '),
   };
 }

@@ -15,8 +15,8 @@ function nextFriday(): string {
 
 export default async function NewMenuPage({
   searchParams,
-}: { searchParams: Promise<{ dish?: string; date?: string }> }) {
-  const { dish, date } = await searchParams;
+}: { searchParams: Promise<{ dish?: string; date?: string; meal?: string }> }) {
+  const { dish, date, meal } = await searchParams;
   const when = date ?? nextFriday();
 
   const db = await supabaseServer();
@@ -34,16 +34,27 @@ export default async function NewMenuPage({
     return { ...rest, source_name: source?.name ?? null };
   });
 
-  // A menu with a main course is an evening meal, and that is what decides
-  // whether the Shabbat rule fires at all.
-  const occasion = resolveOccasion(new Date(`${when}T18:00:00`), 'evening', rules);
+  /* A new menu starts as an evening meal, because that is what a menu here almost
+     always is. The builder can move it to a daytime meal, which is what decides
+     whether the Shabbat and festival rules fire at all. */
+  const mealTime = meal === 'day' ? 'day' as const : 'evening' as const;
+
+  /* BOTH variants, resolved here and handed to the builder together.
+     The alternative was a round trip on every flick of the toggle, or hebcal in the
+     client bundle to work it out there. Two cheap calls on the server beat both, and
+     the toggle becomes instant. */
+  const occasion = {
+    evening: resolveOccasion(new Date(`${when}T18:00:00`), 'evening', rules)?.title ?? null,
+    day: resolveOccasion(new Date(`${when}T12:00:00`), 'day', rules)?.title ?? null,
+  };
 
   return (
     <MenuBuilder
       recipes={list}
-      occasionTitle={occasion?.title ?? null}
+      occasion={occasion}
       initial={{
         date: when,
+        meal_time: mealTime,
         title: null,
         language: 'he',
         chef_notes: null,

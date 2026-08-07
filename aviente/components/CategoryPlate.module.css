@@ -1,0 +1,74 @@
+/* Container from the blueprint README: warm ground, hairline border, and a faint
+   14px grid so the plate reads as a technical drawing rather than an empty slot. */
+.plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background-color: #fbf7ec;
+  background-image:
+    linear-gradient(rgba(30, 58, 47, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 47, 0.05) 1px, transparent 1px);
+  background-size: 14px 14px;
+  border: 1px solid #ded5c2;
+  /* currentColor is what the drawings are stroked with, so the ink is set here and
+     the whole plate follows the theme. */
+  color: var(--primary);
+  overflow: hidden;
+}
+
+/* The kids' plate is theme-exempt, per the README: it stays pink whichever colour
+   the rest of the app is wearing. */
+.kid {
+  color: #c2417e;
+  border-color: #f0c8d8;
+  background-image:
+    linear-gradient(rgba(194, 65, 126, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 65, 126, 0.07) 1px, transparent 1px);
+}
+
+/* Sized to match the photograph it stands in for: a fixed 92px column beside the
+   text, stretched to the card's height. It carries its own flex sizing because it IS
+   the flex child — leaving the width to the parent let the plate fill the card. */
+.thumb {
+  flex: 0 0 92px;
+  width: 92px;
+  align-self: stretch;
+  min-height: 92px;
+  border: 0;
+  border-right: 1px solid var(--card-border);
+}
+.thumb .art { width: 78px; height: 62px; }
+
+/* The recipe page's wide slot, where the drawing gets its intended size and the
+   caption has room. */
+.hero {
+  width: 100%;
+  padding: var(--sp-5) var(--sp-4) var(--sp-4);
+  border-radius: var(--radius);
+  gap: var(--sp-3);
+  align-content: center;
+}
+.hero .art { width: 130px; height: 106px; }
+
+.caption { display: grid; gap: 4px; text-align: center; }
+
+.captionName {
+  font-family: var(--ser);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+.kid .captionName {
+  font-family: var(--kid);
+  font-style: normal;
+  font-weight: 800;
+  color: #c2417e;
+}
+
+.captionPlate {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #9a8c7c;
+}

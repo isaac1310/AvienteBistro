@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
@@ -26,6 +27,7 @@ export default async function MenusPage({
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
+            <BackLink href="/" label="Home" />
             <p className="eyebrow">Menus</p>
             <h1 className={styles.h1}>Menu history</h1>
             <Link href="/menus/new" className="btn">＋ New menu</Link>

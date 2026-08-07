@@ -27,17 +27,41 @@
   content: '';
   position: absolute;
   inset: 0;
+  z-index: -2;
+  /* The drawing is used as a MASK, not as a background-image, and the gold is
+     painted through it.
+     This matters: `currentColor` inside an SVG loaded as a background-image does
+     NOT resolve against the host element — an SVG used as a CSS image is rendered
+     in isolation, so it fell back to black. The field was therefore black line art
+     at 18% opacity under a mask that faded its middle away, which came out as
+     nothing at all. As a mask, the ink is whatever we paint behind it, so the
+     pattern genuinely follows the theme AND is actually visible. */
+  background: var(--gold-deep);
+  mask-image: url('/brand/pattern-utensils.svg');
+  /* A larger tile with heavier strokes: fewer, bigger implements read as an
+     engraved endpaper, where the small dense tile read as wallpaper. */
+  mask-size: 232px;
+  mask-repeat: repeat;
+  -webkit-mask-image: url('/brand/pattern-utensils.svg');
+  -webkit-mask-size: 232px;
+  -webkit-mask-repeat: repeat;
+  /* Bolder lines need less of them: the weight now carries the texture, so the
+     field can sit back and let the title card lead. */
+  opacity: 0.32;
+}
+
+/* The fade toward the title card, as its own layer.
+   It was a second mask on ::before, which needs mask-composite to combine with
+   the pattern mask — patchy across browsers. A wash of page colour over the
+   middle needs nothing special and is easier to reason about. */
+.header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   z-index: -1;
-  background-image: url('/brand/pattern-utensils.svg');
-  background-repeat: repeat;
-  background-size: 168px;
-  /* currentColor inside the SVG resolves against this element, so the whole
-     field takes the theme's gold and changes with it. */
-  color: var(--gold-deep);
-  opacity: 0.18;
-  /* Fade it out toward the panel so the wordmark never fights the drawing. */
-  mask-image: radial-gradient(ellipse 78% 72% at 50% 46%, transparent 38%, #000 78%);
-  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 50% 46%, transparent 38%, #000 78%);
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 66% at 50% 46%,
+    var(--page) 30%, color-mix(in srgb, var(--page) 55%, transparent) 62%, transparent 80%);
 }
 
 /* The cover's framed title card, in our vocabulary: cream panel, gold hairline,
@@ -55,11 +79,16 @@
 
 @media (max-width: 600px) {
   .header { padding: var(--sp-5) 0 var(--sp-4); }
-  .header::before { background-size: 132px; }
+  /* Smaller tile on a phone. At 168px the implements were so large relative to a
+     412px viewport that each one arrived cropped, and the field read as fragments
+     rather than a pattern. */
+  .header::before { mask-size: 128px; -webkit-mask-size: 128px; }
   .plate { padding: var(--sp-2) var(--sp-4); }
 }
 
-.main { padding-top: var(--sp-5); }
+/* The page is a stack of blocks separated by gold rules; the gap keeps each block
+   off its neighbouring rule rather than every block setting its own margins. */
+.main { padding-top: var(--sp-5); display: grid; gap: var(--sp-5); }
 
 .greeting {
   text-align: center;
@@ -112,7 +141,7 @@
   border-color: #f3cfe0;
 }
 .kids .catName { font-family: var(--kid); font-weight: 600; color: #2f6b52; }
-.kids .count { color: #7a5f8f; }
+.kids .count { color: #5e4770; }
 
 .emoji { font-size: 1.5rem; line-height: 1; }
 
@@ -135,8 +164,117 @@
 }
 
 .footer {
-  text-align: center;
+  /* The type styling moved to .build. It used to live here, and now that the footer
+     also holds the settings drawer it would have shrunk a whole panel of controls to
+     10px at 75% opacity. */
   padding: var(--sp-6) var(--sp-4) var(--sp-4);
+  text-align: center;
+}
+
+/* ── quick actions ─────────────────────────────────────────────────────────
+   Three tiles above the categories. One column on a phone so each is a full,
+   thumb-sized target on the Ultra; three across from tablet up. */
+.actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.action {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  text-decoration: none;
+  min-height: 44px;
+}
+.actionIcon {
+  grid-row: 1 / span 2;
+}
+.actionName {
+  font-family: var(--ser);
+  /* Smaller than a category tile's name: these are verbs, not destinations, and at
+     --t-title they wrapped inside their own box. */
+  font-size: 1.15rem;
+  color: var(--primary);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.actionHint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+
+/* The kids' action carries the same pastel signature as its category tile, so the
+   two read as the same part of the app. */
+.kidAction {
+  background: linear-gradient(160deg, #fde7f0 0%, #e7f2fd 100%);
+  border-color: #f3cfe0;
+}
+.kidAction .actionName { font-family: var(--kid); font-weight: 600; color: #2f6b52; }
+/* Was #7a5f8f — about 3.4:1 on the pastel gradient at 0.8rem, which fails AA for
+   text this size. Darkened until it clears; the tile still reads as the pastel one. */
+.kidAction .actionHint { color: #5e4770; }
+
+/* The one thing on this page that is not a navigation choice: the export. Stated as
+   a quiet line rather than a button, because it is reassurance more than a feature —
+   the free Supabase tier takes no automated backups and these recipes exist nowhere
+   else. */
+.backup {
+  margin: 0;
+  text-align: center;
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: var(--t-small);
+}
+.backup a { color: var(--gold-ink); }
+
+/* ── footer drawer ─────────────────────────────────────────────────────────── */
+.drawer {
+  max-width: 34rem;
+  margin: 0 auto;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.summary {
+  /* 44px, and centred: this is the only control in the footer and it should read
+     as a quiet line of type rather than a button. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  list-style: none;
+}
+.summary::-webkit-details-marker { display: none; }
+.summary::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.drawer[open] .summary::after { transform: translateY(2px) rotate(225deg); }
+
+.drawerBody { display: grid; gap: var(--sp-4); padding: var(--sp-4) 0 var(--sp-5); }
+
+.build {
+  margin: var(--sp-4) 0 0;
+  text-align: center;
+  font-family: var(--san);
   font-size: 0.625rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -144,3 +282,31 @@
   opacity: 0.75;
   font-variant-numeric: tabular-nums;
 }
+
+
+/* Four cards, not three: two-up on a phone so all four are above the fold on the
+   Ultra, four across on a desktop. */
+@media (min-width: 480px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .actions { grid-template-columns: repeat(4, 1fr); } }
+
+/* The search row. Deliberately quiet: it is the first thing you can DO on this
+   screen, but the four cards are what the screen is for. */
+.search { display: block; }
+
+.searchField {
+  font: inherit;
+  font-family: var(--ser);
+  font-size: 1rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--sp-4);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.searchField::placeholder { color: var(--ink-soft); font-style: italic; }
+.searchField:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 1px; }
+
+/* The icons are drawn now, so the box is fixed rather than following a font size. */
+.actionIcon { display: block; }

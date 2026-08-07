@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import CategoryPlate from '@/components/CategoryPlate';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import RecipeHistory from '@/components/RecipeHistory';
+import type { CategoryKey } from '@/lib/constants';
 import { categoryLabel, getRecipe } from '@/lib/queries';
 import styles from './recipe.module.css';
 
@@ -52,9 +54,17 @@ export default async function RecipePage({ params }: Params) {
         // eslint-disable-next-line @next/next/no-img-element -- signed Storage URLs
         <img src={recipe.photo_url} alt="" className={styles.hero} />
       ) : (
-        <div className={styles.heroBlueprint} aria-hidden="true">
-          <span>{cat.emoji}</span>
-        </div>
+        /* The blueprint plate for this category, at hero size, with its caption.
+           This slot still had the old emoji-on-a-tinted-block placeholder: the new
+           plates reached the list cards and stopped there, so the one screen with
+           room for the drawing was the one screen not showing it.
+           The caption ends "NO PHOTO YET" and the whole plate is a link to the edit
+           form, which turns the commonest state in this book into the one action it
+           is asking for. */
+        <Link href={`/recipes/${category}/${id}/edit`} className={styles.heroPlate}>
+          <CategoryPlate category={recipe.category as CategoryKey} size="hero"
+            caption={cat.en} />
+        </Link>
       )}
 
       <div className={styles.overlay}>

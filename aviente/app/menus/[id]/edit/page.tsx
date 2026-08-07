@@ -31,15 +31,21 @@ export default async function EditMenuPage({ params }: { params: Promise<{ id: s
     return { ...rest, source_name: source?.name ?? null };
   });
 
-  const occasion = resolveOccasion(new Date(`${menu.date}T18:00:00`), 'evening', rules);
+  /* Both variants, so the lunch/dinner toggle does not need a round trip. */
+  const occasion = {
+    evening: resolveOccasion(new Date(`${menu.date}T18:00:00`), 'evening', rules)?.title ?? null,
+    day: resolveOccasion(new Date(`${menu.date}T12:00:00`), 'day', rules)?.title ?? null,
+  };
+
 
   return (
     <MenuBuilder
       recipes={list}
-      occasionTitle={occasion?.title ?? null}
+      occasion={occasion}
       initial={{
         id: menu.id,
         date: menu.date,
+        meal_time: menu.meal_time,
         title: menu.title,
         language: menu.language,
         chef_notes: menu.chef_notes,

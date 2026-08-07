@@ -1,5 +1,5 @@
 import { supabaseServer } from './supabase/server';
-import type { OccasionRule } from './occasion';
+import type { MealTime, OccasionRule } from './occasion';
 
 /* Menu reads. The course order is fixed by the card, not by the database — a
  * dessert row must never print above the main. */
@@ -28,6 +28,9 @@ export type MenuItem = {
 export type Menu = {
   id: string;
   date: string;
+  /* Whether the meal is after sundown. Not cosmetic: it decides whether the Shabbat
+     and festival rules apply at all — see lib/occasion.ts. */
+  meal_time: MealTime;
   title: string | null;
   language: 'en' | 'he';
   chef_notes: string | null;
@@ -44,7 +47,7 @@ export async function occasionRules(): Promise<OccasionRule[]> {
 }
 
 const MENU_COLUMNS =
-  `id, date, title, language, chef_notes, saved, share_id, share_secret,
+  `id, date, meal_time, title, language, chef_notes, saved, share_id, share_secret,
    items:menu_items(id, recipe_id, course, position, dish_title, dish_title_en,
                     dish_description_en, dish_description_he, credit_name)`;
 
@@ -84,7 +87,7 @@ export async function fetchSharedMenu(id: string, secret: string) {
   const { data, error } = await db.rpc('fetch_shared_menu', { p_id: id, p_secret: secret });
   if (error) throw new Error(`fetch_shared_menu: ${error.message}`);
   return data as null | {
-    date: string; title: string | null; language: 'en' | 'he';
+    date: string; meal_time: MealTime; title: string | null; language: 'en' | 'he';
     chef_notes: string | null;
     items: {
       course: CourseKey; position: number;

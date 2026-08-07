@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
 import { COURSES, categoryLabel, type CourseKey, type RecipeSummary } from '@/lib/constants';
+import { cardDate } from '@/lib/occasion';
 import styles from './MenuBuilder.module.css';
 
 /* §3.5 — the menu builder. */
@@ -11,20 +12,24 @@ import styles from './MenuBuilder.module.css';
 type Row = { key: string; recipe: RecipeSummary; course: CourseKey };
 
 export default function MenuBuilder({
-  recipes, initial, occasionTitle,
+  recipes, initial, occasion,
 }: {
   recipes: RecipeSummary[];
   initial: {
-    id?: string; date: string; title: string | null;
+    id?: string; date: string; meal_time: 'evening' | 'day'; title: string | null;
     language: 'en' | 'he'; chef_notes: string | null;
     items: { recipe_id: string; course: CourseKey }[];
   };
-  occasionTitle: string | null;
+  /* The occasion for this date, resolved BOTH ways on the server. A Jewish day
+     begins at sundown, so the same Friday is Shabbat in the evening and an ordinary
+     Friday at lunch — two different answers for one date. */
+  occasion: { evening: string | null; day: string | null };
 }) {
   const router = useRouter();
   const byId = useMemo(() => new Map(recipes.map((r) => [r.id, r])), [recipes]);
 
   const [date, setDate] = useState(initial.date);
+  const [mealTime, setMealTime] = useState<'evening' | 'day'>(initial.meal_time);
   const [title, setTitle] = useState(initial.title ?? '');
   const [language, setLanguage] = useState<'en' | 'he'>(initial.language);
   const [notes, setNotes] = useState(initial.chef_notes ?? '');
@@ -42,9 +47,39 @@ export default function MenuBuilder({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* The occasion badge follows the date, so changing it to a Friday shows the
-     Shabbat title immediately rather than only after saving. */
-  const suggested = occasionTitle;
+  /* The suggestion follows the lunch/dinner toggle with no round trip, because both
+     answers were resolved on the server.
+     It does NOT follow the date field: that would need the rules re-resolved for the
+     new date, which only the server can do. Changing the date and saving picks up the
+     right occasion; the preview catches up then. Worth knowing rather than pretending
+     otherwise — an earlier comment here claimed it tracked the date, and it never
+     did. */
+  const suggested = mealTime === 'day' ? occasion.day : occasion.evening;
+
+  /* What the printed card will actually say. Save falls back to the occasion when
+     the field is blank, so the preview has to apply the SAME fallback — otherwise
+     the preview and the card disagree, which is worse than having no preview. */
+  const effectiveTitle = title.trim() || suggested || 'Menu';
+
+  /* Has anything been touched? Compared against the props we were handed, so
+     opening an existing menu and pressing Cancel is silent, while abandoning ten
+     minutes of work asks first. */
+  const dirty =
+    date !== initial.date
+    || title !== (initial.title ?? '')
+    || language !== initial.language
+    || notes !== (initial.chef_notes ?? '')
+    || rows.length !== initial.items.length
+    || rows.some((r, i) => r.recipe.id !== initial.items[i]?.recipe_id
+      || r.course !== initial.items[i]?.course);
+
+  function onCancel() {
+    if (dirty && !confirm('Leave without saving? The dishes you picked will be lost.')) return;
+    /* Back to the menu being edited, or to the list for a new one. history.back()
+       is wrong here: arriving from a recipe page's "add to a menu" link would send
+       you back into that recipe. */
+    router.push(initial.id ? `/menus/${initial.id}` : '/menus');
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -80,6 +115,7 @@ export default function MenuBuilder({
       const id = await saveMenu({
         id: initial.id,
         date,
+        meal_time: mealTime,
         title: title.trim() || suggested,
         language,
         chef_notes: notes,
@@ -96,13 +132,41 @@ export default function MenuBuilder({
   return (
     <div className={styles.wrap}>
       <header className={styles.bar}>
-        <span className={styles.editing}>Build a menu</span>
-        <button className="btn" onClick={onSave} disabled={busy}>
-          {busy ? 'Saving…' : 'Save menu'}
-        </button>
+        <span className={styles.editing}>{initial.id ? 'Edit menu' : 'Build a menu'}</span>
+        <div className={styles.barActions}>
+          {/* Cancel first, Save last: the destructive one must not sit where the
+              thumb lands on the Ultra. */}
+          <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+          <button className="btn" onClick={onSave} disabled={busy}>
+            {busy ? 'Saving…' : 'Save menu'}
+          </button>
+        </div>
       </header>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
+
+      {/* Live preview of the card's head. The title field used to be typed blind:
+          nothing on this screen showed what the card would be called, and a blank
+          field quietly became the occasion name on save. */}
+      <div className={styles.preview} aria-live="polite">
+        <span className={styles.previewTag}>On the card</span>
+        <p className={styles.previewDate}>{cardDate(new Date(`${date}T18:00:00`))}</p>
+        <p className={styles.previewTitle}>{effectiveTitle}</p>
+        <p className={styles.previewNote}>
+          {title.trim()
+            ? `${rows.length} ${rows.length === 1 ? 'dish' : 'dishes'}`
+            : suggested
+              ? `Untitled — the card will use “${suggested}”, from the date`
+              /* Naming the reason matters here. A Friday EVENING is Shabbat and a
+                 Friday lunch is not, so "no occasion" on a Friday looks like a bug
+                 unless the screen says which meal it is talking about. */
+              : mealTime === 'day' && occasion.evening
+                ? `Untitled — no occasion at lunch. This evening it would be “${occasion.evening}”.`
+                : 'Untitled — give it a name above'}
+        </p>
+      </div>
 
       <div className={styles.pair}>
         <label className={styles.field}>
@@ -110,16 +174,29 @@ export default function MenuBuilder({
           <input type="date" className={styles.input} value={date}
             onChange={(e) => setDate(e.target.value)} />
         </label>
+        {/* Beside the date, because it is part of WHEN the meal is — and because
+            without it nobody could tell why a Friday lunch got no candles. */}
+        <div className={styles.field}>
+          <span className={styles.label}>Eaten</span>
+          <div className={styles.seg} role="group" aria-label="Time of day">
+            <button type="button" onClick={() => setMealTime('day')}
+              aria-pressed={mealTime === 'day'}
+              className={mealTime === 'day' ? styles.segOn : styles.segOff}>Daytime</button>
+            <button type="button" onClick={() => setMealTime('evening')}
+              aria-pressed={mealTime === 'evening'}
+              className={mealTime === 'evening' ? styles.segOn : styles.segOff}>Evening</button>
+          </div>
+        </div>
+
         <label className={styles.field}>
           <span className={styles.label}>Title</span>
-          <input className={styles.input} value={title} placeholder={suggested ?? 'Menu'}
+          {/* Left blank on purpose. The placeholder shows what the date suggests
+              without putting that text in the field, so a title is only ever
+              stored because someone typed it. */}
+          <input className={styles.input} value={title} placeholder={suggested ?? 'Untitled'}
             onChange={(e) => setTitle(e.target.value)} />
         </label>
       </div>
-
-      {suggested && !title.trim() && (
-        <p className={styles.badge}>🕯 {suggested} — from the date</p>
-      )}
 
       {/* Language affects the card's DESCRIPTIONS only; course names stay French. */}
       <div className={styles.langRow}>

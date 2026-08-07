@@ -19,6 +19,8 @@
 }
 
 .link {
+  /* Anchors .pending, which is positioned against this item. */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,17 +32,37 @@
   color: var(--ink-soft);
 }
 
-.icon { font-size: 1.125rem; line-height: 1; }
+/* A drawn SVG now, so it needs no font sizing — just a stable box so the label sits
+   at the same height whatever the glyph. */
+.icon { display: block; }
 
 .label {
   font-family: var(--san);
-  font-size: 0.5625rem;
-  letter-spacing: 2px;
+  /* Was 0.5625rem — 9px, on the primary navigation, with 2px of tracking on top.
+     Below comfortable reading even for four known words, and this is the one control
+     that has to work at arm's length in a kitchen. The bar had the room. */
+  font-size: var(--t-label);
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 .active { color: var(--primary); }
 .active .label { color: var(--gold-ink); }
+
+/* Desktop sidebar: the active item gets the app's gold hairline, not colour alone.
+   Colour-only state is invisible to a colour-blind reader, and at 210px there is
+   room for the same signature the .pending indicator uses. */
+@media (min-width: 1024px) {
+  .active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--gold);
+  }
+}
 
 @media (min-width: 1024px) {
   .nav {
@@ -61,4 +83,24 @@
     padding: var(--sp-3) var(--sp-5);
   }
   .label { font-size: var(--t-label); }
+}
+
+/* Acknowledges the tap while the next page is still coming. A hairline under the
+   item, not a spinner: the nav is small and a spinner in it reads as an error. */
+.pending {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 4px;
+  height: 2px;
+  background: var(--gold);
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pending { animation: navPending 900ms ease-in-out infinite; }
+}
+@keyframes navPending {
+  0%   { transform: scaleX(0.1); opacity: 0.5; }
+  50%  { transform: scaleX(1);   opacity: 1; }
+  100% { transform: scaleX(0.1); opacity: 0.5; }
 }

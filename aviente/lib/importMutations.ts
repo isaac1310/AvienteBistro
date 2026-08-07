@@ -66,7 +66,13 @@ export async function importRecipes(
           cook_minutes: input.cook_minutes,
           servings: input.servings,
           yield_text: input.servings ? null : (input.yield_text || '—'),
-          source_member_id: input.source_member_id,
+          /* Only written when the import actually names someone.
+             An import document usually has no attribution — the markdown converter
+             emits none — so passing it straight through erased "Savta's" from every
+             recipe a re-import touched. Replace exists to fix ingredients and steps;
+             silently dropping who the recipe came from is not part of that deal.
+             (The edit form had the same bug, for the same reason.) */
+          ...(input.source_member_id ? { source_member_id: input.source_member_id } : {}),
           updated_by: member.id,
           updated_at: new Date().toISOString(),
           import_batch_id: batchId,

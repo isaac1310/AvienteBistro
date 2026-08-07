@@ -283,6 +283,42 @@ export async function setTheme(theme: 'green' | 'burgundy') {
 }
 
 /**
+ * What the app calls you.
+ *
+ * `name` is left alone: it is what recipes and menus are attributed to, so editing
+ * it would silently rewrite "Savta's recipe". `display_name` is only ever used to
+ * greet you, which is why it is the one that is safe to change.
+ */
+export async function setDisplayName(displayName: string) {
+  const member = await requireMember();
+  const trimmed = displayName.trim();
+  if (!trimmed) throw new Error('A name cannot be blank.');
+  if (trimmed.length > 40) throw new Error('That is too long for a greeting.');
+  const db = await supabaseServer();
+  const { error } = await db
+    .from('family_members').update({ display_name: trimmed }).eq('id', member.id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/', 'layout');
+}
+
+/**
+ * Which language a NEW menu card starts in, per person.
+ *
+ * Narrow on purpose: this is not a UI language switch. The interface is English
+ * only, and pretending otherwise with a half-translated app would be worse than
+ * not offering it. What it does control is the one place the app really is
+ * bilingual — the descriptions on a menu card.
+ */
+export async function setCardLanguage(language: 'en' | 'he') {
+  const member = await requireMember();
+  const db = await supabaseServer();
+  const { error } = await db
+    .from('family_members').update({ card_language: language }).eq('id', member.id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/', 'layout');
+}
+
+/**
  * Fill in any menu-card description that is still empty.
  *
  * Replaces a .sql file that could not be pasted reliably: Hebrew interleaved with

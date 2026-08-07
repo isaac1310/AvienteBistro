@@ -84,9 +84,26 @@ export async function GET(request: NextRequest) {
       return true;
     });
 
+    /* Wait for the faces THIS page actually uses, not just the serif.
+       The check was hardcoded to Cormorant Garamond, which is right for a menu card
+       and wrong for the kids' fridge sheet: that one is set in Baloo 2 throughout, so
+       the snapshot could be taken while the only face that matters was still loading
+       — and the failure is silent, because Chromium happily renders the fallback. */
+    /* One family per page, and only the one that page is actually set in.
+       `document.fonts.check()` answers "would this face be used for this text at this
+       size and weight", not "is this family loaded" — on the kids sheet Cormorant is
+       loaded and check() still returns false, because the sheet never asks for it at
+       16px regular. So the old hardcoded check did not merely fail to cover Baloo: it
+       failed OUTRIGHT on every kids PDF, burned the full five-second timeout, and
+       then fell through with no font guarantee at all. */
+    const families = path.startsWith('/print/kids')
+      ? ['Baloo 2']
+      : ['Cormorant Garamond'];
+
     await page.waitForFunction(
-      () => document.fonts.check('16px "Cormorant Garamond"'),
+      (names: string[]) => names.every((n) => document.fonts.check(`16px "${n}"`)),
       { timeout: 5000 },
+      families,
     ).catch(() => { /* fall through: a fallback face beats no PDF at all */ });
 
     /* ?debug=shot returns what Chromium actually sees, as a PNG. Kept because

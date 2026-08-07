@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import RecipeForm from '@/components/RecipeForm';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -25,6 +26,7 @@ export default async function AddPage({
       <Nav current="/add" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
+          <BackLink href="/" label="Home" />
           <p className="eyebrow">Add</p>
           <h1 className={styles.h1}>A new recipe</h1>
 

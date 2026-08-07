@@ -353,6 +353,56 @@
       eq(A.addWeeks('2026-08-03', 2), '2026-08-17', 'two weeks on'));
   }
 
+  function redirects() {
+    group('auth');
+    const A = window.Aviente;
+    if (!A?.safeNext) { check('safeNext exposed', () => skip('not attached')); return; }
+
+    /* ?next= reaches router.replace and the auth callback. Unvalidated it turns a
+       login link into a phishing hop, and the client had no check at all. */
+    const bad = ['https://evil.example', '//evil.example', '%2f%2fevil.example',
+                 '\\\\evil.example', '/https:/evil', 'javascript:alert(1)', ''];
+    check('hostile next values all become /', () => {
+      for (const v of bad) {
+        const got = A.safeNext(v);
+        if (got !== '/') return `safeNext(${JSON.stringify(v)}) returned ${JSON.stringify(got)}`;
+      }
+      return true;
+    });
+    check('an internal path survives', () =>
+      eq(A.safeNext('/menus/new?date=2026-08-07'), '/menus/new?date=2026-08-07', 'path'));
+  }
+
+  function backupRoundTrip() {
+    group('backup');
+    const A = window.Aviente;
+    if (!A?.normalizeDocument) { check('parser exposed', () => skip('not attached')); return; }
+
+    /* Export → import must not change a recipe. Ranges, groups, per-recipe source
+       and titleEn were all being dropped here, silently. */
+    const doc = { schemaVersion: 1, recipes: [{
+      title: 'קציצות', titleEn: 'Patties', category: 'mains', servings: 6,
+      source: 'Savta', externalRef: 'x#y',
+      ingredients: [
+        { name: 'דג', amount: 400, amountMax: 500, unit: 'g', note: 'נטו', group: 'לקציצות' },
+        { name: 'בצל ירוק' },
+      ],
+      steps: [{ heading: 'בצק', body: 'ללוש' }],
+    }] };
+    const r = A.normalizeDocument(doc).recipes[0];
+
+    check('an amount RANGE survives a round trip', () =>
+      r.ingredients[0].amountMax === 500 ? true
+        : `amountMax came back as ${JSON.stringify(r.ingredients[0].amountMax)}`);
+    check('an ingredient GROUP survives', () =>
+      eq(r.ingredients[0].group, 'לקציצות', 'group'));
+    check('per-recipe SOURCE survives', () => eq(r.source, 'Savta', 'source'));
+    check('an explicit titleEn is not overwritten', () => eq(r.titleEn, 'Patties', 'titleEn'));
+    check('externalRef survives', () => eq(r.externalRef, 'x#y', 'externalRef'));
+    check('an ingredient with no quantity is kept', () =>
+      r.ingredients.length === 2 ? true : `expected 2 ingredients, got ${r.ingredients.length}`);
+  }
+
   /* ---------- the run ---------- */
 
   function tally() {
@@ -380,6 +430,8 @@
     scaling();
     occasions();
     kidsWeek();
+    redirects();
+    backupRoundTrip();
 
     const t = tally();
     window.__selftest = { ...t, results, version: document.body.dataset.version || null };

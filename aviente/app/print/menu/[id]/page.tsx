@@ -29,7 +29,8 @@ export default async function PrintMenu({
 
   const menu = shared
     ? {
-        date: shared.date, title: shared.title, language: shared.language,
+        date: shared.date, meal_time: shared.meal_time,
+        title: shared.title, language: shared.language,
         chef_notes: shared.chef_notes,
         items: shared.items.map((i) => ({
           course: i.course,
@@ -40,7 +41,8 @@ export default async function PrintMenu({
       }
     : owned
       ? {
-          date: owned.date, title: owned.title, language: owned.language,
+          date: owned.date, meal_time: owned.meal_time,
+          title: owned.title, language: owned.language,
           chef_notes: owned.chef_notes,
           items: owned.items.map((i) => ({
             course: i.course,
@@ -54,7 +56,14 @@ export default async function PrintMenu({
   if (!menu) return <main className="printPage"><p>Menu not available.</p></main>;
 
   const rules = await occasionRules();
-  const occasion = resolveOccasion(new Date(`${menu.date}T18:00:00`), 'evening', rules);
+  const occasion = resolveOccasion(
+    /* Noon for a daytime meal, 18:00 for an evening one. The clock time is not
+       what decides anything — mealTime is — but a Date is still needed and
+       midnight would land the wrong side of a day boundary. */
+    new Date(`${menu.date}T${menu.meal_time === 'day' ? '12' : '18'}:00:00`),
+    menu.meal_time,
+    rules,
+  );
 
   return (
     <main className="printPage">

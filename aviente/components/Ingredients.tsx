@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Ingredient } from '@/lib/queries';
+import type { Ingredient } from '@/lib/constants';
 import { scaleAmount, scaleFactor, servingOptions } from '@/lib/scale';
 import styles from './Ingredients.module.css';
 

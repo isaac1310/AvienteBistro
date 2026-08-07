@@ -1,4 +1,4 @@
-import type { Ingredient, Unit } from './queries';
+import type { Ingredient, Unit } from './constants';
 
 /* Serving scaling, per §5.2. Every rule here exists because the naive version is
  * wrong in a way that would mislead someone cooking. */

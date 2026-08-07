@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { categoryLabel, type RecipeSummary } from '@/lib/queries';
+import { categoryLabel, type RecipeSummary } from '@/lib/constants';
 import styles from './RecipeCard.module.css';
 
 /* One recipe in a list. The attribution line reads "Savta's · serves 8", falling

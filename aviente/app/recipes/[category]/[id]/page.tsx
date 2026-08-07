@@ -98,7 +98,7 @@ export default async function RecipePage({ params }: Params) {
             <h2 className={styles.h2}>Pour Servir</h2>
             {/* Stored as newline-joined text; each line is its own suggestion. */}
             <ul className={styles.serveList}>
-              {recipe.serving_suggestions.split('\n').filter(Boolean).map((line, i) => (
+              {recipe.serving_suggestions.split('\n').filter(Boolean).map((line: string, i: number) => (
                 <li key={i} lang="he">{line}</li>
               ))}
             </ul>

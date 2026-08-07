@@ -1,0 +1,23 @@
+.frame { padding-bottom: calc(var(--tap) + var(--sp-6)); }
+@media (min-width: 1024px) { .frame { padding-bottom: var(--sp-6); padding-left: 210px; } }
+
+.main { padding-top: var(--sp-7); text-align: center; }
+.h1 { font-size: var(--t-display); color: var(--primary); margin: var(--sp-1) 0 var(--sp-6); }
+
+.choices { display: grid; gap: var(--sp-4); }
+@media (min-width: 768px) { .choices { grid-template-columns: 1fr 1fr; } }
+
+.choice {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-6) var(--sp-5);
+  text-decoration: none;
+  color: inherit;
+  text-align: center;
+  align-content: start;
+}
+@media (hover: hover) { .choice:hover { border-color: var(--gold-deep); } }
+
+.emoji { font-size: 1.75rem; }
+.choiceName { font-family: var(--ser); font-size: var(--t-title); color: var(--primary); }
+.choiceBody { font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }

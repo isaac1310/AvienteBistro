@@ -31,13 +31,13 @@ export default function RecipeForm({
   const [title, setTitle] = useState(recipe?.title ?? '');
   const [titleEn, setTitleEn] = useState(recipe?.title_en ?? '');
   const [category, setCategory] = useState(recipe?.category ?? 'mains');
-  const [mealType, setMealType] = useState('');
+  const [mealType, setMealType] = useState(recipe?.meal_type ?? '');
   const [photo, setPhoto] = useState<string | null>(recipe?.photo_url ?? null);
   const [servings, setServings] = useState(recipe?.servings ? String(recipe.servings) : '');
   const [yieldText, setYieldText] = useState(recipe?.yield_text ?? '');
   const [prep, setPrep] = useState(recipe?.prep_minutes ? String(recipe.prep_minutes) : '');
   const [cook, setCook] = useState(recipe?.cook_minutes ? String(recipe.cook_minutes) : '');
-  const [source, setSource] = useState('');
+  const [source, setSource] = useState(recipe?.source_member_id ?? '');
   const [story, setStory] = useState(recipe?.story ?? '');
   const [serveWith, setServeWith] = useState(recipe?.serving_suggestions ?? '');
   const [descHe, setDescHe] = useState(recipe?.description_he ?? '');

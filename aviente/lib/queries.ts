@@ -62,7 +62,8 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
   const { data, error } = await db
     .from('recipes')
     .select(
-      `${SUMMARY_COLUMNS}, description_en, description_he, story, serving_suggestions,
+      `${SUMMARY_COLUMNS}, source_member_id, meal_type,
+       description_en, description_he, story, serving_suggestions,
        updated_at,
        editor:family_members!recipes_updated_by_fkey(name),
        ingredients(id, position, name, amount, amount_max, unit, note),
@@ -76,6 +77,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
   if (!data) return null;
 
   const row = data as unknown as SummaryRow & {
+    source_member_id: string | null; meal_type: string | null;
     description_en: string | null; description_he: string | null;
     story: string | null; serving_suggestions: string | null;
     updated_at: string; editor: { name: string } | null;
@@ -84,6 +86,8 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
 
   return {
     ...flatten(row),
+    source_member_id: row.source_member_id,
+    meal_type: row.meal_type,
     description_en: row.description_en,
     description_he: row.description_he,
     story: row.story,

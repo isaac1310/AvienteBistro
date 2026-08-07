@@ -42,6 +42,10 @@ export type RecipeSummary = {
 };
 
 export type Recipe = RecipeSummary & {
+  /* The edit form must round-trip these, not just display their names. Loading
+     only source_name meant saving silently wiped "Savta's recipe". */
+  source_member_id: string | null;
+  meal_type: string | null;
   description_en: string | null; description_he: string | null;
   story: string | null; serving_suggestions: string | null;
   updated_at: string; updated_by_name: string | null;

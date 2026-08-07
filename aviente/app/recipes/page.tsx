@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import FillDescriptions from '@/components/FillDescriptions';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import { CATEGORIES, categoryCounts } from '@/lib/queries';
 import { currentMember } from '@/lib/supabase/server';
@@ -50,6 +51,7 @@ export default async function RecipesIndex() {
               nowhere else, so the export is a first-class link, not a setting. */}
           <div className={styles.settings}>
             <ThemeSwitch current={(member?.theme as 'green' | 'burgundy') ?? 'green'} />
+            <FillDescriptions />
           </div>
 
           <p className={styles.backup}>

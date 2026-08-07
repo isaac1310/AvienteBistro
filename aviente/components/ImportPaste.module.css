@@ -53,3 +53,7 @@
   letter-spacing: 1.5px; text-transform: uppercase; }
 
 .actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+.fileRow { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.fileName { font-family: var(--ser); font-style: italic; font-size: var(--t-small);
+  color: var(--ink-soft); }

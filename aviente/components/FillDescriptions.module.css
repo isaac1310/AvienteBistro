@@ -1,0 +1,11 @@
+.wrap { display: grid; gap: var(--sp-2); justify-items: center; }
+.button {
+  font: inherit; font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase;
+  min-height: var(--tap); padding: 0 var(--sp-5);
+  background: transparent; border: 1px dashed var(--card-border);
+  border-radius: var(--radius); color: var(--primary); cursor: pointer;
+}
+@media (hover: hover) { .button:hover:not(:disabled) { border-color: var(--gold-deep); } }
+.result { margin: 0; font-family: var(--ser); font-style: italic;
+  font-size: var(--t-small); color: var(--ink-soft); }

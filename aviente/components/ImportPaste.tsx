@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { importRecipes, undoImport, type ImportResult } from '@/lib/importMutations';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
@@ -45,6 +45,8 @@ export default function ImportPaste({
   const [source, setSource] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const file = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   /* Parsed live as you type, so mistakes show before anything is written. */
   const parsed = useMemo(() => {
@@ -158,10 +160,33 @@ export default function ImportPaste({
       </section>
 
       <section className={styles.step}>
-        <h2 className={styles.h2}>2 · Paste the answer here</h2>
+        <h2 className={styles.h2}>2 · Paste the answer, or open a file</h2>
+
+        {/* A file picker, because asking someone to run `cat … | pbcopy` to move a
+            file three inches is absurd. It also means a backup from /api/backup
+            can be restored by choosing it — the export and the import finally
+            speak the same format in both directions. */}
+        <div className={styles.fileRow}>
+          <button type="button" className={styles.copy} onClick={() => file.current?.click()}>
+            📂 Choose a .json file
+          </button>
+          {fileName && <span className={styles.fileName}>{fileName}</span>}
+        </div>
+        <input
+          ref={file} type="file" accept=".json,application/json" hidden
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setFileName(f.name);
+            // Straight into the same box, so what the file contains is visible and
+            // editable before anything is written.
+            setText(await f.text());
+          }}
+        />
+
         <textarea className={styles.paste} rows={8} value={text} lang="he"
           placeholder={'{"schemaVersion":1,"title":"…"}'}
-          onChange={(e) => setText(e.target.value)} />
+          onChange={(e) => { setText(e.target.value); setFileName(null); }} />
       </section>
 
       {parsed?.error && <p className={styles.error}>{parsed.error}</p>}

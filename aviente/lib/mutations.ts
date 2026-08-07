@@ -281,3 +281,45 @@ export async function setTheme(theme: 'green' | 'burgundy') {
   if (error) throw new Error(error.message);
   revalidatePath('/', 'layout');
 }
+
+/**
+ * Fill in any menu-card description that is still empty.
+ *
+ * Replaces a .sql file that could not be pasted reliably: Hebrew interleaved with
+ * SQL quotes gets reordered by the editor's bidirectional handling and arrives
+ * truncated. Running it through the app means the text is never re-parsed.
+ *
+ * Only fills BLANKS — anything written by hand is left exactly as it is, so this
+ * is safe to press twice.
+ */
+export async function applySampleDescriptions(): Promise<{ filled: number; skipped: number; missing: string[] }> {
+  await requireMember();
+  const db = await supabaseServer();
+  const { SAMPLE_DESCRIPTIONS } = await import('./sampleDescriptions');
+
+  const { data: rows, error } = await db
+    .from('recipes')
+    .select('id, title, description_he, description_en')
+    .is('deleted_at', null);
+  if (error) throw new Error(error.message);
+
+  const byTitle = new Map((rows ?? []).map((r) => [r.title.trim(), r]));
+  let filled = 0, skipped = 0;
+  const missing: string[] = [];
+
+  for (const s of SAMPLE_DESCRIPTIONS) {
+    const row = byTitle.get(s.title.trim());
+    if (!row) { missing.push(s.title); continue; }
+    if (row.description_he && row.description_en) { skipped++; continue; }
+
+    const { error: upErr } = await db.from('recipes').update({
+      description_he: row.description_he ?? s.he,
+      description_en: row.description_en ?? s.en,
+    }).eq('id', row.id);
+    if (upErr) throw new Error(upErr.message);
+    filled++;
+  }
+
+  revalidatePath('/', 'layout');
+  return { filled, skipped, missing };
+}

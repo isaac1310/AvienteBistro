@@ -44,7 +44,7 @@
 .courseName { font-family: var(--ser); font-style: italic; font-size: 1rem;
   color: var(--gold-ink); margin: 0 0 var(--sp-1); }
 
-.row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3);
+.row { display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--sp-2);
   align-items: center; padding: var(--sp-3); }
 .rowBody { min-width: 0; }
 .dish { margin: 0; font-family: var(--ser); font-size: 1.125rem; color: var(--primary); }
@@ -54,6 +54,8 @@
 .move { font: inherit; min-width: 30px; min-height: 30px; background: transparent;
   border: 1px solid var(--card-border); border-radius: var(--radius);
   color: var(--ink-soft); cursor: pointer; }
+.swap { font: inherit; min-width: var(--tap); min-height: var(--tap); background: none;
+  border: 0; color: var(--gold-ink); cursor: pointer; }
 .del { font: inherit; min-width: var(--tap); min-height: var(--tap); background: none;
   border: 0; color: #8c2b2b; cursor: pointer; }
 

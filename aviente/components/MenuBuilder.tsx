@@ -34,6 +34,10 @@ export default function MenuBuilder({
       .filter((r) => r.recipe),
   );
   const [picking, setPicking] = useState<CourseKey | null>(null);
+  /* When set, the picker REPLACES this row instead of appending. Changing a dish
+     is the commonest edit — 'remove, then find the add button, then search
+     again' is three steps for what should be one. */
+  const [swapping, setSwapping] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +54,12 @@ export default function MenuBuilder({
   }, [recipes, query]);
 
   function add(recipe: RecipeSummary, course: CourseKey) {
-    setRows([...rows, { key: crypto.randomUUID(), recipe, course }]);
+    if (swapping) {
+      setRows(rows.map((r) => (r.key === swapping ? { ...r, recipe } : r)));
+      setSwapping(null);
+    } else {
+      setRows([...rows, { key: crypto.randomUUID(), recipe, course }]);
+    }
     setPicking(null);
     setQuery('');
   }
@@ -145,6 +154,8 @@ export default function MenuBuilder({
                       {row.recipe.source_name && ` · ${row.recipe.source_name}`}
                     </p>
                   </div>
+                  <button type="button" aria-label="Change this dish" className={styles.swap}
+                    onClick={() => { setSwapping(row.key); setPicking(row.course); }}>↻</button>
                   <button type="button" aria-label="Remove dish" className={styles.del}
                     onClick={() => setRows(rows.filter((r) => r.key !== row.key))}>✕</button>
                 </div>
@@ -168,8 +179,11 @@ export default function MenuBuilder({
       {picking && (
         <div className={styles.sheet} role="dialog" aria-label="Choose a dish">
           <div className={styles.sheetHead}>
-            <span className={styles.label}>Add to {COURSES.find((c) => c.key === picking)?.fr}</span>
-            <button type="button" className={styles.close} onClick={() => setPicking(null)}>Close</button>
+            <span className={styles.label}>
+              {swapping ? 'Change this dish' : `Add to ${COURSES.find((c) => c.key === picking)?.fr}`}
+            </span>
+            <button type="button" className={styles.close}
+              onClick={() => { setPicking(null); setSwapping(null); }}>Close</button>
           </div>
           <input className={styles.input} placeholder="Search…" value={query} autoFocus
             onChange={(e) => setQuery(e.target.value)} />

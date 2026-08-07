@@ -63,6 +63,8 @@ export default function MenuActions({
           Duplicate
         </button>
 
+        <a className="btn btn--ghost" href={`/menus/${id}/edit`}>Edit dishes</a>
+
         <a className="btn btn--ghost" href={`/print/menu/${id}`}>Print</a>
 
         <a className="btn" href={`/api/pdf?path=${encodeURIComponent(`/print/menu/${id}`)}&name=aviente-menu-${date}`}>

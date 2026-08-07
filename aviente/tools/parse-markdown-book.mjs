@@ -21,9 +21,24 @@ const SOURCE = resolve(root, '../מתכונים.md');
 /* The document spaces out its section headers (ר כ י ב י ם), so they are matched
    with the spaces stripped rather than literally. */
 const compact = (s) => s.replace(/\s+/g, '');
-const isIngredientsHeader = (l) => compact(l) === 'רכיבים';
-const isStepsHeader = (l) => compact(l) === 'הוראותהכנה';
-const isNotesHeader = (l) => compact(l) === 'הערות';
+/* Prefix, not equality: one header reads "ר כ י ב י ם (30 יח)" and an exact match
+   silently dropped all ten of that recipe's ingredients — the section never
+   switched, so every table row was skipped. Found by the agent test pass. */
+const isIngredientsHeader = (l) => compact(l).startsWith('רכיבים');
+const isStepsHeader = (l) => compact(l).startsWith('הוראותהכנה');
+const isNotesHeader = (l) => compact(l).startsWith('הערות');
+
+/* Words the book uses as ingredient-section labels, with or without the optional
+   leading ל ("for the…"). Deliberately a closed list: guessing from shape alone
+   cost 116 real ingredients. */
+const SECTION_WORDS =
+  /^ל?(מילוי|רוטב|בצק|ציפוי|בלילה|קרם|תערובת|קציצות|סירופ|זיגוג|תבלינים|הגשה|קישוט)$/;
+
+/** "(30 יח)" after the ingredients header is a yield, worth keeping. */
+const yieldFromHeader = (l) => {
+  const m = l.match(/\(([^)]+)\)/);
+  return m ? m[1].trim() : null;
+};
 
 /* A light guess at the category from the dish name, falling back to `other`.
  *
@@ -64,14 +79,19 @@ function parseRecipe(block) {
   const stepLines = [];
   const noteLines = [];
   let section = null;
-  let group = null;          // the current **sub-group** label
+  let group = null;          // the current sub-group label
+  let yieldText = null;
   const warnings = [];
 
   for (const line of lines.slice(1)) {
     const bare = line.trim();
     if (!bare || bare === '---') continue;
 
-    if (isIngredientsHeader(bare)) { section = 'ing'; continue; }
+    if (isIngredientsHeader(bare)) {
+      section = 'ing';
+      yieldText = yieldText ?? yieldFromHeader(bare);
+      continue;
+    }
     if (isStepsHeader(bare)) { section = 'steps'; continue; }
     if (isNotesHeader(bare)) { section = 'notes'; continue; }
 
@@ -81,10 +101,19 @@ function parseRecipe(block) {
       const [name, amount, note] = [c[0] ?? '', c[1] ?? '', c[2] ?? ''];
       if (compact(name) === 'רכיב') continue;             // the header row
 
-      /* A bold name with empty amount and note is a sub-group heading, not an
-         ingredient: | **לרוטב** |  |  | */
+      /* Sub-group headings. Bold is the reliable signal; the book also writes
+         some plainly ("| מילוי |  |  |").
+         But "empty amount and note" alone is NOT enough — plenty of real
+         ingredients have no quantity ("עגבניות שרי", "פלפל שחור"), and treating
+         those as headings silently swallowed 116 of 348 ingredients. So a plain
+         row must ALSO be one of the words the book actually uses as a section. */
       const bold = name.match(/^\*\*(.+?)\*\*$/);
-      if (bold && !amount && !note) { group = bold[1].trim(); continue; }
+      const plain = name.trim();
+      const looksLikeSection = SECTION_WORDS.test(plain);
+      if (!amount && !note && (bold || looksLikeSection)) {
+        group = (bold ? bold[1] : plain).trim();
+        continue;
+      }
       if (!name) continue;
 
       /* The table already separates quantity from name, so parse the amount cell
@@ -143,7 +172,7 @@ function parseRecipe(block) {
        screen shows a dropdown, so a guess is a starting point, not a decision. */
     category,
     servings: null,
-    yieldText: null,
+    yieldText,
     prepMinutes: null,
     cookMinutes: null,
     descriptionHe: null,

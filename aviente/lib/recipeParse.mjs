@@ -62,7 +62,7 @@ const UNIT_MAP = {
   'כף': 'tbsp', 'כפות': 'tbsp',
   'כפית': 'tsp', 'כפיות': 'tsp',
   'קורט': 'pinch',
-  'יחידה': 'pcs', 'יחידות': 'pcs', "יח'": 'pcs', 'יח': 'pcs',
+  'יחידה': 'pcs', 'יחידות': 'pcs', "יח'": 'pcs', 'יח': 'pcs', 'יח׳': 'pcs',
 };
 
 /* "לפי הטעם" and friends are a statement about seasoning, not a missing amount. */

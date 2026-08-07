@@ -1,0 +1,50 @@
+.sheet {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+  background: #fff;
+  color: var(--ink);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.head { text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 14px; }
+.eyebrow { margin: 0; font-family: var(--san); font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold-ink); }
+.title { font-family: var(--ser); font-size: 30px; margin: 6px 0 0; color: var(--primary); }
+.titleEn { margin: 2px 0 0; font-family: var(--san); font-size: 10px;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold-ink); }
+.credit { margin: 6px 0 0; font-family: var(--ser); font-style: italic;
+  font-size: 13px; color: var(--ink-soft); }
+.timing { margin: 8px 0 0; font-family: var(--san); font-size: 9.5px;
+  letter-spacing: 2px; color: var(--gold-ink); font-variant-numeric: tabular-nums; }
+
+/* Two columns on paper: ingredients read alongside the method rather than a
+   page away from it. */
+.cols { display: grid; grid-template-columns: 34% 1fr; gap: 26px; margin-top: 20px; }
+@media (max-width: 620px) { .cols { grid-template-columns: 1fr; } }
+
+.h2 { font-family: var(--san); font-size: 9.5px; font-weight: 500; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold-ink); margin: 0 0 8px; }
+
+.ingredients { list-style: none; margin: 0; padding: 0; font-size: 13px; line-height: 1.6; }
+.ingredients li { padding: 3px 0; border-bottom: 1px dotted #e0d9c7; }
+.group { display: block; margin-top: 10px; font-family: var(--san); font-size: 9px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-ink); }
+.amount { font-family: var(--san); font-size: 12px; color: var(--primary);
+  margin-inline-end: 6px; font-variant-numeric: tabular-nums; }
+.note { color: var(--ink-soft); font-size: 12px; }
+
+.steps { margin: 0; padding-inline-start: 18px; font-size: 13.5px; line-height: 1.75; }
+.steps li { margin-bottom: 9px; }
+
+.story { margin-top: 16px; padding: 8px 12px; border-inline-start: 2px solid var(--gold);
+  font-family: var(--ser); font-style: italic; font-size: 13px; color: var(--ink-soft); }
+
+@page { size: A4 portrait; margin: 14mm; }
+@media print {
+  .sheet { max-width: none; padding: 0; }
+  .cols { break-inside: avoid; }
+  .steps li, .ingredients li { break-inside: avoid; }
+  :global(nextjs-portal), :global([data-nextjs-toast]) { display: none !important; }
+}

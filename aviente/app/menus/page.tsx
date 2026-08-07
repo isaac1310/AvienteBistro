@@ -1,0 +1,122 @@
+import Link from 'next/link';
+import Nav from '@/components/Nav';
+import { occasionRules, savedMenus } from '@/lib/menus';
+import { cardDate, upcomingOccasions } from '@/lib/occasion';
+import styles from './menus.module.css';
+
+export const metadata = { title: 'Aviente — Nos Menus' };
+
+/* §3.7 — the keepers list, not a chronological log. Starred menus plus anything
+ * upcoming; everything else is behind "show all". */
+export default async function MenusPage({
+  searchParams,
+}: { searchParams: Promise<{ all?: string }> }) {
+  const { all } = await searchParams;
+  const showAll = all === '1';
+
+  const [menus, rules] = await Promise.all([savedMenus(showAll), occasionRules()]);
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = menus.filter((m) => m.date >= today);
+  const past = menus.filter((m) => m.date < today);
+  const suggestions = upcomingOccasions(rules, 75).slice(0, 4);
+
+  return (
+    <>
+      <Nav current="/menus" />
+      <div className={styles.frame}>
+        <header className={styles.head}>
+          <div className="shell">
+            <p className="eyebrow">Nos Menus</p>
+            <h1 className={styles.h1}>Menu History</h1>
+            <Link href="/menus/new" className="btn">＋ New menu</Link>
+          </div>
+        </header>
+
+        <main className="shell">
+          {menus.length === 0 && (
+            <div className={`card ${styles.empty}`}>
+              <p className={styles.emptyTitle}>No menus yet</p>
+              <p className={styles.emptyBody}>
+                Build one for this Friday and it will keep — starred menus stay here
+                so you can copy them onto a new date later.
+              </p>
+            </div>
+          )}
+
+          {upcoming.length > 0 && (
+            <section>
+              <h2 className={styles.h2}>À venir</h2>
+              <ul className={styles.list}>
+                {upcoming.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/menus/${m.id}`} className={`card ${styles.row} ${styles.next}`}>
+                      <span className={styles.when}>
+                        🕯 {cardDate(new Date(`${m.date}T12:00:00`))}
+                      </span>
+                      <span className={styles.name}>{m.title ?? 'Menu'}</span>
+                      <span className={styles.meta}>
+                        {m.items.length} {m.items.length === 1 ? 'plat' : 'plats'}
+                        {m.share_id && ' · partagé'}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {past.length > 0 && (
+            <section>
+              <h2 className={styles.h2}>{showAll ? 'Tous les menus' : '★ Gardés'}</h2>
+              <ul className={styles.list}>
+                {past.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/menus/${m.id}`} className={`card ${styles.row}`}>
+                      <span className={styles.when}>
+                        {m.saved ? '★ ' : ''}{cardDate(new Date(`${m.date}T12:00:00`))}
+                      </span>
+                      <span className={styles.name}>{m.title ?? 'Menu'}</span>
+                      <span className={styles.meta}>
+                        {m.items.length} {m.items.length === 1 ? 'plat' : 'plats'}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <p className={styles.toggle}>
+            <Link href={showAll ? '/menus' : '/menus?all=1'}>
+              {showAll ? 'show only the ones we kept' : 'show all menus'}
+            </Link>
+          </p>
+
+          {suggestions.length > 0 && (
+            <section>
+              <h2 className={styles.h2}>À planifier</h2>
+              <ul className={styles.list}>
+                {suggestions.map((s) => (
+                  <li key={s.occasion.title}>
+                    <Link
+                      href={`/menus/new?date=${s.date.toISOString().slice(0, 10)}`}
+                      className={`card ${styles.row} ${styles.suggestion}`}
+                    >
+                      <span className={styles.when}>
+                        {s.occasion.ornament === 'apple' ? '🍎'
+                          : s.occasion.ornament === 'candles' ? '🕯' : '✡'}{' '}
+                        {cardDate(s.date)}
+                      </span>
+                      <span className={styles.name}>{s.occasion.title}</span>
+                      <span className={styles.meta}>plan ahead</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </main>
+      </div>
+    </>
+  );
+}

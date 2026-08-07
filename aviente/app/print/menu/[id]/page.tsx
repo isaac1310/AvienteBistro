@@ -1,0 +1,68 @@
+import MenuCard from '@/components/MenuCard';
+import { fetchSharedMenu, getMenu, occasionRules } from '@/lib/menus';
+import { resolveOccasion } from '@/lib/occasion';
+import './print.css';
+
+export const metadata = { title: 'Aviente — Menu', robots: { index: false } };
+
+/* The print route (§4). Deliberately bare: no nav, no buttons, no app chrome —
+ * just the card on the page, styled by print.css for A4.
+ *
+ * It serves two callers. A signed-in family member gets it by menu id. A guest,
+ * or the PDF renderer, passes ?k= and it goes through the same secret-gated RPC
+ * as /m — so the PDF route needs no session and no service-role key. */
+export default async function PrintMenu({
+  params, searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ k?: string }>;
+}) {
+  const { id } = await params;
+  const { k } = await searchParams;
+
+  const shared = k ? await fetchSharedMenu(id, k) : null;
+  const owned = k ? null : await getMenu(id);
+
+  const menu = shared
+    ? {
+        date: shared.date, title: shared.title, language: shared.language,
+        chef_notes: shared.chef_notes,
+        items: shared.items.map((i) => ({
+          course: i.course,
+          dish_title: i.dish_title, dish_title_en: i.dish_title_en,
+          description_en: i.description_en, description_he: i.description_he,
+          credit_name: i.credit_name,
+        })),
+      }
+    : owned
+      ? {
+          date: owned.date, title: owned.title, language: owned.language,
+          chef_notes: owned.chef_notes,
+          items: owned.items.map((i) => ({
+            course: i.course,
+            dish_title: i.dish_title, dish_title_en: i.dish_title_en,
+            description_en: i.dish_description_en, description_he: i.dish_description_he,
+            credit_name: i.credit_name,
+          })),
+        }
+      : null;
+
+  if (!menu) return <main className="printPage"><p>Menu not available.</p></main>;
+
+  const rules = await occasionRules();
+  const occasion = resolveOccasion(new Date(`${menu.date}T18:00:00`), 'evening', rules);
+
+  return (
+    <main className="printPage">
+      <MenuCard
+        date={menu.date}
+        title={menu.title ?? occasion?.title ?? null}
+        subtitle={occasion?.subtitle}
+        ornament={occasion?.ornament}
+        language={menu.language}
+        chefNotes={menu.chef_notes}
+        items={menu.items}
+      />
+    </main>
+  );
+}

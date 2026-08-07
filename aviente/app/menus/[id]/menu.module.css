@@ -1,0 +1,11 @@
+.frame { padding-bottom: calc(var(--tap) + var(--sp-7)); }
+@media (min-width: 1024px) { .frame { padding-bottom: var(--sp-7); padding-left: 210px; } }
+
+.top { padding-top: var(--sp-3); }
+.back { display: inline-flex; align-items: center; min-height: var(--tap);
+  font-family: var(--san); font-size: var(--t-label); letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-ink); text-decoration: none; }
+
+/* The card keeps its fixed geometry and sits centred — it is a printed object,
+   not a responsive layout. */
+.cardWrap { display: grid; place-items: center; padding: var(--sp-4) var(--sp-4) var(--sp-6); }

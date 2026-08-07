@@ -4,21 +4,12 @@ import type { OccasionRule } from './occasion';
 /* Menu reads. The course order is fixed by the card, not by the database — a
  * dessert row must never print above the main. */
 
-export const COURSES = [
-  { key: 'aperitif', fr: 'Apéritif' },
-  { key: 'entree',   fr: 'Entrée' },
-  { key: 'main',     fr: 'Plat Principal' },
-  { key: 'sides',    fr: 'Accompagnements' },
-  { key: 'dessert',  fr: 'Dessert' },
-] as const;
-
-export type CourseKey = (typeof COURSES)[number]['key'];
-
-export const courseLabel = (key: string) =>
-  COURSES.find((c) => c.key === key)?.fr ?? key;
-
-export const courseIndex = (key: string) =>
-  COURSES.findIndex((c) => c.key === key);
+/* Course constants live in ./constants so client components (the builder) can
+   import them without dragging next/headers into the browser bundle. */
+export { COURSES, courseLabel, courseIndex } from './constants';
+export type { CourseKey } from './constants';
+import { courseIndex } from './constants';
+import type { CourseKey } from './constants';
 
 export type MenuItem = {
   id: string;

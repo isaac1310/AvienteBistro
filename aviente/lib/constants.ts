@@ -51,3 +51,24 @@ export type Recipe = RecipeSummary & {
   updated_at: string; updated_by_name: string | null;
   ingredients: Ingredient[]; steps: Step[];
 };
+
+/* ── menu courses ──────────────────────────────────────────────────────────
+   Course ORDER is defined here, not by the database: a dessert row must never
+   print above the main, whatever order the rows came back in. Lives in constants
+   for the same reason CATEGORIES does — the menu builder is a client component. */
+
+export const COURSES = [
+  { key: 'aperitif', fr: 'Apéritif' },
+  { key: 'entree',   fr: 'Entrée' },
+  { key: 'main',     fr: 'Plat Principal' },
+  { key: 'sides',    fr: 'Accompagnements' },
+  { key: 'dessert',  fr: 'Dessert' },
+] as const;
+
+export type CourseKey = (typeof COURSES)[number]['key'];
+
+export const courseLabel = (key: string) =>
+  COURSES.find((c) => c.key === key)?.fr ?? key;
+
+export const courseIndex = (key: string) =>
+  COURSES.findIndex((c) => c.key === key);

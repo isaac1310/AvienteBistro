@@ -1,0 +1,35 @@
+/* Print styling for the menu card (§4).
+ *
+ * `print-color-adjust: exact` is the load-bearing line. Browsers strip background
+ * colours when printing by default, which would render the beige card and its
+ * frames as black type on white paper — the artifact would simply not survive. */
+
+.printPage {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f2ece0;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 14mm;
+}
+
+@media print {
+  html, body, .printPage {
+    background: #fff;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* Nothing may split across pages: half a menu card is worse than a smaller one. */
+  .printPage > * { break-inside: avoid; page-break-inside: avoid; }
+  /* The dev overlay and anything else injected must never reach paper. */
+  nextjs-portal, [data-nextjs-toast] { display: none !important; }
+}

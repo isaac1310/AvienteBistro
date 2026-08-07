@@ -1,4 +1,4 @@
-import { COURSES, courseLabel } from '@/lib/menus';
+import { COURSES, courseLabel } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import styles from './MenuCard.module.css';
 

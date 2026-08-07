@@ -1,0 +1,122 @@
+/* The kids' section opts OUT of theming entirely (§1). Its own palette, its own
+   type, rounded corners where the rest of the app has none. */
+.garden {
+  --kidGreen: #2f6b52;
+  position: relative;
+  min-height: 100dvh;
+  padding: var(--sp-5) var(--sp-4) calc(var(--tap) + var(--sp-8));
+  background: linear-gradient(170deg, #d9f0e2 0%, #f0f9ef 55%, #fff9ec 100%);
+  font-family: var(--kid);
+  color: #2a3f36;
+  overflow-x: hidden;
+}
+
+.butterfly { position: absolute; font-size: 20px; opacity: 0.75; }
+.b1 { top: 8%; left: 6%; transform: rotate(-12deg); }
+.b2 { top: 22%; right: 8%; transform: rotate(14deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .butterfly { animation: flutter 6s ease-in-out infinite; }
+  .b2 { animation-delay: -2.5s; }
+}
+@keyframes flutter {
+  0%, 100% { transform: translateY(0) rotate(-10deg); }
+  50%      { transform: translateY(-10px) rotate(8deg); }
+}
+
+.banner {
+  position: relative;
+  background: #fff;
+  border: 2px solid var(--kidGreen);
+  border-radius: 999px;
+  box-shadow: 0 4px 0 rgba(47, 107, 82, 0.25);
+  padding: var(--sp-3) var(--sp-5);
+  max-width: 420px;
+  margin: 0 auto var(--sp-5);
+  text-align: center;
+}
+.title { font-family: var(--kid); font-weight: 700; font-size: 1.5rem;
+  color: var(--kidGreen); margin: 0; }
+
+.weekRow { display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.week { font-weight: 700; font-size: 1.0625rem; letter-spacing: 1px; color: var(--kidGreen); }
+.arrow { font: inherit; min-width: var(--tap); min-height: var(--tap);
+  background: #fff; border: 2px solid var(--kidGreen); border-radius: 50%;
+  color: var(--kidGreen); cursor: pointer; }
+
+.bubbles { display: flex; justify-content: center; gap: var(--sp-3);
+  flex-wrap: wrap; margin-bottom: var(--sp-4); }
+.bubble { width: 52px; height: 52px; border-radius: 50%; border: 0;
+  font-size: 24px; cursor: pointer; background: #fff; }
+.bubbleOff { background: transparent; border: 2px dashed rgba(47,107,82,0.45);
+  opacity: 0.6; box-shadow: none; }
+
+.trayRow { display: flex; gap: var(--sp-2); justify-content: center;
+  flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.pill { font: inherit; font-weight: 600; font-size: 0.875rem; min-height: var(--tap);
+  padding: 0 var(--sp-5); background: #fff; border: 2px solid var(--kidGreen);
+  border-radius: 16px; box-shadow: 0 3px 0 rgba(47,107,82,0.28);
+  color: var(--kidGreen); cursor: pointer; }
+.pill:disabled { opacity: 0.5; box-shadow: none; }
+
+.tray { list-style: none; margin: 0 0 var(--sp-4); padding: 0;
+  display: flex; flex-wrap: wrap; gap: var(--sp-2); justify-content: center; }
+.trayItem { display: flex; align-items: center; gap: var(--sp-2);
+  background: #fff; border: 1px solid rgba(47,107,82,0.3); border-radius: 12px;
+  padding: 4px var(--sp-3); font-size: 0.8125rem; }
+.trayItem button { border: 0; background: none; cursor: pointer; color: #8c2b2b;
+  min-width: 28px; min-height: 28px; }
+
+.day { max-width: 460px; margin: 0 auto var(--sp-5); }
+.dayName { font-family: var(--kid); font-weight: 700; font-size: 1.125rem;
+  color: var(--kidGreen); margin: 0 0 var(--sp-2); }
+
+.meal { background: #fff; border: 2px solid; border-radius: 12px;
+  padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2);
+  display: grid; gap: var(--sp-1); }
+.mealLabel { font-size: 0.6875rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #6b7f76; }
+.dish { font-size: 1.0625rem; font-weight: 600; color: #2a3f36; text-decoration: none; }
+.mealFoot { display: flex; align-items: center; gap: var(--sp-2); }
+.chef { font: inherit; font-size: 0.8125rem; flex: 1; min-height: 36px;
+  background: #f6fbf8; border: 1px solid rgba(47,107,82,0.25); border-radius: 10px;
+  color: #2a3f36; }
+.swap, .remove { font: inherit; min-width: 36px; min-height: 36px; background: #f6fbf8;
+  border: 1px solid rgba(47,107,82,0.25); border-radius: 10px; cursor: pointer; }
+.remove { color: #8c2b2b; }
+.empty { font: inherit; font-size: 0.875rem; min-height: var(--tap);
+  background: transparent; border: 2px dashed rgba(47,107,82,0.3);
+  border-radius: 10px; color: #6b7f76; cursor: pointer; }
+
+.footer { display: flex; gap: var(--sp-3); justify-content: center;
+  flex-wrap: wrap; margin-top: var(--sp-6); }
+.fridge { font-weight: 700; font-size: 0.9375rem; min-height: var(--tap);
+  display: inline-flex; align-items: center; padding: 0 var(--sp-5);
+  background: #f4c95d; border: 2px solid #d6a833; border-radius: 16px;
+  box-shadow: 0 3px 0 #b8901f; color: #4a3a10; text-decoration: none; }
+.clear { font: inherit; font-size: 0.875rem; min-height: var(--tap);
+  padding: 0 var(--sp-4); background: #fff; border: 2px solid rgba(140,43,43,0.35);
+  border-radius: 16px; color: #8c2b2b; cursor: pointer; }
+
+.sheet { position: fixed; inset: auto 0 0 0; z-index: 50; max-height: 74dvh;
+  display: grid; gap: var(--sp-3); grid-template-rows: auto 1fr;
+  padding: var(--sp-4); background: #fff; border-radius: 18px 18px 0 0;
+  box-shadow: 0 -12px 40px rgba(47,107,82,0.25); }
+@media (min-width: 768px) {
+  .sheet { inset: 50% auto auto 50%; transform: translate(-50%,-50%);
+    width: min(500px, 92vw); border-radius: 18px; }
+}
+.sheetHead { display: flex; align-items: center; justify-content: space-between;
+  color: var(--kidGreen); }
+.sheetHead button { font: inherit; background: none; border: 0; min-height: var(--tap);
+  color: var(--kidGreen); text-decoration: underline; cursor: pointer; }
+
+.picks { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+.pick { display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3); width: 100%; min-height: var(--tap); padding: var(--sp-2);
+  background: none; border: 0; border-bottom: 1px solid #e6f0ea;
+  font: inherit; font-size: 1rem; text-align: left; cursor: pointer; }
+.pickOn { background: #eaf7f0; }
+.pickTag { font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase;
+  color: #6b7f76; }
+.noKids { padding: var(--sp-5); font-size: 0.875rem; color: #6b7f76; text-align: center; }

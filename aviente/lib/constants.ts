@@ -72,3 +72,61 @@ export const courseLabel = (key: string) =>
 
 export const courseIndex = (key: string) =>
   COURSES.findIndex((c) => c.key === key);
+
+/* ── the kids' week ────────────────────────────────────────────────────────
+   Pure values and date helpers. The planner is a client component, so these
+   cannot live beside the Supabase queries — the third time this rule has come
+   up, and the reason lib/constants.ts exists at all. */
+
+export const ANIMALS = [
+  { weekday: 1, animal: '🧸', host: 'Teddy',   colour: '#f4a6c0', shadow: '#d97fa0' },
+  { weekday: 2, animal: '🐶', host: 'Buddy',   colour: '#f4c95d', shadow: '#d6a833' },
+  { weekday: 3, animal: '🐱', host: 'Mimi',    colour: '#8fb8e8', shadow: '#6b95c9' },
+  { weekday: 4, animal: '🐘', host: 'Ellie',   colour: '#a8d5ba', shadow: '#7bbf9e' },
+  { weekday: 5, animal: '🐰', host: 'Bunny',   colour: '#d6b8e8', shadow: '#b492cc' },
+] as const;
+
+export const MEALS = [
+  { key: 'breakfast', label: 'Breakfast', colour: '#f4c95d' },
+  { key: 'lunch',     label: 'Lunch',     colour: '#7bbf9e' },
+  { key: 'dinner',    label: 'Dinner',    colour: '#8fb8e8' },
+] as const;
+
+export type MealKey = (typeof MEALS)[number]['key'];
+
+export type KidsMeal = {
+  id: string;
+  weekday: number;
+  meal: MealKey;
+  recipe_id: string;
+  chef_member_id: string | null;
+  recipe: { id: string; title: string; title_en: string | null } | null;
+  chef: { name: string } | null;
+};
+
+
+/** The Monday of the week containing `date`. */
+export function mondayOf(date = new Date()): string {
+  const d = new Date(date);
+  // getDay(): 0 = Sunday. Sunday belongs to the week that STARTED six days ago,
+  // not the one about to begin — otherwise a Sunday plan lands on the wrong week.
+  const delta = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - delta);
+  return d.toISOString().slice(0, 10);
+}
+
+export function addWeeks(weekStart: string, n: number): string {
+  const d = new Date(`${weekStart}T12:00:00`);
+  d.setDate(d.getDate() + n * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Pretty week label, e.g. "10 – 14 AUG". */
+export function weekLabel(weekStart: string): string {
+  const start = new Date(`${weekStart}T12:00:00`);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 4);
+  const month = end.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+  return `${start.getDate()} – ${end.getDate()} ${month}`;
+}
+

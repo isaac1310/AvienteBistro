@@ -1,0 +1,72 @@
+.page {
+  font-family: var(--kid);
+  padding: 18px;
+  background: linear-gradient(170deg, #d9f0e2 0%, #f0f9ef 60%, #fff9ec 100%);
+  color: #2a3f36;
+  min-height: 100dvh;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2f6b52;
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+.grid { width: 100%; border-collapse: separate; border-spacing: 6px; }
+
+.corner { width: 74px; }
+
+.dayHead {
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+.animal { display: block; font-size: 20px; }
+.host { display: block; font-size: 0.75rem; font-weight: 700; }
+
+.mealHead {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: right;
+  padding-right: 8px;
+  border-right: 3px solid;
+  color: #6b7f76;
+}
+
+.cell {
+  background: #fff;
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 8px 6px;
+  text-align: center;
+  vertical-align: middle;
+  height: 62px;
+}
+.dish { display: block; font-size: 0.8125rem; font-weight: 600; line-height: 1.25; }
+.chef { display: block; font-size: 0.625rem; color: #6b7f76; margin-top: 2px; }
+.blank { color: #cfe0d6; }
+
+/* Five days across three meals needs the long edge of the paper. */
+@page { size: A4 landscape; margin: 10mm; }
+
+@media print {
+  .page {
+    min-height: 0;
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .grid { break-inside: avoid; }
+  /* :global() is required in a CSS Module — a selector with no local class is
+     rejected as "not pure". The menu print sheet is a plain .css file, which is
+     why the same rule needed no wrapper there. */
+  :global(nextjs-portal),
+  :global([data-nextjs-toast]) { display: none !important; }
+}

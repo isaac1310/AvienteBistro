@@ -39,7 +39,9 @@ export default async function Home() {
               return (
                 <li key={c.key}>
                   <Link
-                    href={`/recipes/${c.key}`}
+                    /* The Kids' Table leads to the planner, not to a list of
+                       recipes — the planner is what that section IS. */
+                    href={c.key === 'kids' ? '/kids' : `/recipes/${c.key}`}
                     className={`card ${styles.cat} ${c.key === 'kids' ? styles.kids : ''}`}
                   >
                     <span className={styles.emoji} aria-hidden="true">{c.emoji}</span>

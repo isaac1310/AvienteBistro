@@ -55,3 +55,6 @@
   color: var(--gold-ink);
   font-variant-numeric: tabular-nums;
 }
+
+.backup { text-align: center; margin: var(--sp-7) 0 0; font-size: var(--t-small); }
+.backup a { color: var(--gold-ink); text-underline-offset: 3px; }

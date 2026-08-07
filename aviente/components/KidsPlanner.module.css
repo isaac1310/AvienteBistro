@@ -11,9 +11,19 @@
   overflow-x: hidden;
 }
 
+/* Reserve the sidebar the way every other screen does, or the decoration drifts
+   over the navigation — a butterfly landed on "Menus" at desktop width. */
+@media (min-width: 1024px) {
+  .garden { padding-left: calc(210px + var(--sp-4)); }
+}
+
 .butterfly { position: absolute; font-size: 20px; opacity: 0.75; }
-.b1 { top: 8%; left: 6%; transform: rotate(-12deg); }
+/* Positioned inside the content column, not the viewport, for the same reason. */
+.b1 { top: 8%; left: max(6%, 24px); transform: rotate(-12deg); }
 .b2 { top: 22%; right: 8%; transform: rotate(14deg); }
+@media (min-width: 1024px) {
+  .b1 { left: calc(210px + 4%); }
+}
 @media (prefers-reduced-motion: no-preference) {
   .butterfly { animation: flutter 6s ease-in-out infinite; }
   .b2 { animation-delay: -2.5s; }

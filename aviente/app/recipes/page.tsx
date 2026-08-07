@@ -44,6 +44,11 @@ export default async function RecipesIndex() {
               );
             })}
           </ul>
+          {/* The free tier takes no automated backups and these recipes exist
+              nowhere else, so the export is a first-class link, not a setting. */}
+          <p className={styles.backup}>
+            <a href="/api/backup" download>⤓ Download a backup of everything</a>
+          </p>
         </main>
       </div>
     </>

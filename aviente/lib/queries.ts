@@ -66,7 +66,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
        description_en, description_he, story, serving_suggestions,
        updated_at,
        editor:family_members!recipes_updated_by_fkey(name),
-       ingredients(id, position, name, amount, amount_max, unit, note),
+       ingredients(id, position, name, amount, amount_max, unit, note, group_label),
        steps(id, position, heading, body)`,
     )
     .eq('id', id)

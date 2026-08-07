@@ -10,7 +10,7 @@ import styles from './ImportPaste.module.css';
 
 type ParsedIngredient = {
   name: string; amount?: number | null; amountMax?: number | null;
-  unit?: string | null; note?: string | null;
+  unit?: string | null; note?: string | null; group?: string | null;
 };
 type ParsedStep = { heading?: string | null; body?: string };
 
@@ -83,6 +83,7 @@ export default function ImportPaste({
           amount_max: i.amountMax ?? null,
           unit: (i.unit ?? null) as RecipeInput['ingredients'][number]['unit'],
           note: i.note ?? null,
+          group_label: i.group ?? null,
         })),
         steps: (r.steps as ParsedStep[]).map((s) => ({
           heading: s.heading ?? null,

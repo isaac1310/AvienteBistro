@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import MovePhoto from './MovePhoto';
 import PhotoField from './PhotoField';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
 import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
@@ -14,7 +15,7 @@ import styles from './RecipeForm.module.css';
 
 const UNITS: (Unit | '')[] = ['', 'g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'pcs', 'pinch', 'to taste'];
 
-type Row = { key: string; name: string; amount: string; amountMax: string; unit: string; note: string };
+type Row = { key: string; name: string; amount: string; amountMax: string; unit: string; note: string; group: string };
 type StepRow = { key: string; heading: string; body: string };
 
 const uid = () => crypto.randomUUID();
@@ -49,8 +50,8 @@ export default function RecipeForm({
       key: i.id, name: i.name,
       amount: i.amount == null ? '' : String(i.amount),
       amountMax: i.amount_max == null ? '' : String(i.amount_max),
-      unit: i.unit ?? '', note: i.note ?? '',
-    })) ?? [{ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '' }],
+      unit: i.unit ?? '', note: i.note ?? '', group: i.group_label ?? '',
+    })) ?? [{ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '', group: '' }],
   );
   const [steps, setSteps] = useState<StepRow[]>(
     recipe?.steps.map((s) => ({ key: s.id, heading: s.heading ?? '', body: s.body })) ??
@@ -102,6 +103,7 @@ export default function RecipeForm({
             amount_max: num(r.amountMax),
             unit: (r.unit || null) as Unit | null,
             note: r.note.trim() || null,
+            group_label: r.group.trim() || null,
           })),
         steps: steps
           .filter((s) => s.body.trim())
@@ -154,6 +156,10 @@ export default function RecipeForm({
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       <PhotoField value={photo} onChange={touch(setPhoto)} />
+
+      {/* Only offered once a photo exists and the recipe has been saved: moving
+          needs both an id to move from and something to move. */}
+      {recipe && photo && <MovePhoto recipeId={recipe.id} />}
 
       <label className={styles.field}>
         <span className={styles.label}>Name</span>
@@ -255,6 +261,10 @@ export default function RecipeForm({
                 </div>
                 <input className={styles.input} placeholder="note (optional)" value={r.note} lang="he"
                   onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, note: e.target.value } : x))} />
+                {/* The group heading this row sits under, e.g. לרוטב. Blank for
+                    most recipes; repeated on each row that belongs to a part. */}
+                <input className={styles.input} placeholder="part of… (e.g. לרוטב)" value={r.group} lang="he"
+                  onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, group: e.target.value } : x))} />
               </div>
               <button type="button" aria-label="Remove ingredient" className={styles.del}
                 onClick={() => touch(setRows)(rows.filter((x) => x.key !== r.key))}>✕</button>
@@ -262,7 +272,12 @@ export default function RecipeForm({
           ))}
         </ul>
         <button type="button" className={styles.add}
-          onClick={() => touch(setRows)([...rows, { key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '' }])}>
+          onClick={() => touch(setRows)([...rows, {
+            key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '',
+            // A new row inherits the previous row's group, since parts are
+            // entered consecutively and retyping "לרוטב" ten times is a chore.
+            group: rows[rows.length - 1]?.group ?? '',
+          }])}>
           ＋ Add ingredient
         </button>
       </section>

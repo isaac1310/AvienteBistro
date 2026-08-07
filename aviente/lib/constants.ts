@@ -29,6 +29,9 @@ export type Ingredient = {
   id: string; position: number; name: string;
   amount: number | null; amount_max: number | null;
   unit: Unit | null; note: string | null;
+  /* Optional sub-heading, e.g. "לרוטב". Consecutive rows sharing a label render
+     under one heading; null rows sit directly under the ingredients title. */
+  group_label: string | null;
 };
 
 export type Step = { id: string; position: number; heading: string | null; body: string };

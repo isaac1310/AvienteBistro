@@ -15,3 +15,6 @@ aviente/tests/reports/
 my_recipes*.json
 my_recipes*.md
 aviente/supabase/seed.sql
+
+# Generated import payloads — regenerate with tools/parse-markdown-book.mjs
+metakonim-import.json

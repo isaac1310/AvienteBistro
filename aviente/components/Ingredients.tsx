@@ -48,10 +48,17 @@ export default function Ingredients({
       </div>
 
       <ul className={styles.list}>
-        {ingredients.map((ing) => {
+        {ingredients.map((ing, i) => {
           const amount = scaleAmount(ing, factor);
+          /* A heading appears when the group CHANGES, so consecutive rows sharing
+             a label sit under one heading rather than repeating it per row. */
+          const newGroup = ing.group_label && ing.group_label !== ingredients[i - 1]?.group_label;
           return (
-            <li key={ing.id} className={styles.row}>
+            <li key={ing.id} className={styles.row}
+                data-group={newGroup ? ing.group_label : undefined}>
+              {newGroup && (
+                <span className={styles.groupHead} lang="he">{ing.group_label}</span>
+              )}
               <span className={styles.name} lang="he">
                 {ing.name}
                 {ing.note && <em className={styles.note} lang="he">{ing.note}</em>}

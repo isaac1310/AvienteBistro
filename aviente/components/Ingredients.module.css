@@ -56,6 +56,19 @@
   gap: var(--sp-2);
   padding: var(--sp-2) 0;
 }
+
+/* The sub-group heading spans the whole row and pushes the dotted rule down,
+   so "for the sauce" reads as a section rather than as an ingredient. */
+.groupHead {
+  grid-column: 1 / -1;
+  margin-top: var(--sp-3);
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.row:first-child .groupHead { margin-top: 0; }
 .row + .row { border-top: 1px solid rgba(222, 213, 194, 0.5); }
 
 .name { font-size: 1rem; min-width: 0; }

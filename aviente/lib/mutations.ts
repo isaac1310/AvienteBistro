@@ -19,6 +19,7 @@ export type IngredientInput = {
   amount_max: number | null;
   unit: Unit | null;
   note: string | null;
+  group_label: string | null;
 };
 
 export type StepInput = { heading: string | null; body: string };
@@ -161,4 +162,65 @@ export async function listRevisions(recipeId: string) {
     .order('created_at', { ascending: false })
     .limit(20);
   return data ?? [];
+}
+
+/**
+ * Move a photo from one recipe to another.
+ *
+ * A move, not a copy: the URL is written to the destination and cleared from the
+ * source in the same action, so a photograph is never claimed by two recipes at
+ * once. The Storage object itself is untouched — only which recipe points at it
+ * changes, which is why this is instant and cannot fail halfway into an upload.
+ *
+ * Chosen over drag-and-drop deliberately: dragging across a scrolling list on a
+ * phone is fiddly and undoable only by dragging back, whereas picking the
+ * destination from a list is one tap and reads the same on both devices.
+ */
+export async function movePhoto(fromRecipeId: string, toRecipeId: string) {
+  const member = await requireMember();
+  const db = await supabaseServer();
+
+  const { data: source } = await db
+    .from('recipes').select('photo_url').eq('id', fromRecipeId).maybeSingle();
+  if (!source?.photo_url) throw new Error('That recipe has no photo to move.');
+
+  const { data: target } = await db
+    .from('recipes').select('photo_url, title').eq('id', toRecipeId).maybeSingle();
+  if (!target) throw new Error('Could not find the recipe to move it to.');
+  if (target.photo_url) {
+    // Refuse rather than overwrite: silently replacing a photo someone chose is
+    // worse than making them clear it first.
+    throw new Error(`"${target.title}" already has a photo. Remove that one first.`);
+  }
+
+  await snapshot(fromRecipeId, member.id);
+  await snapshot(toRecipeId, member.id);
+
+  const { error: setErr } = await db
+    .from('recipes')
+    .update({ photo_url: source.photo_url, updated_by: member.id })
+    .eq('id', toRecipeId);
+  if (setErr) throw new Error(setErr.message);
+
+  const { error: clearErr } = await db
+    .from('recipes')
+    .update({ photo_url: null, updated_by: member.id })
+    .eq('id', fromRecipeId);
+  if (clearErr) throw new Error(clearErr.message);
+
+  revalidatePath('/', 'layout');
+}
+
+/** Recipes a photo could be moved to: everything without one of its own. */
+export async function recipesWithoutPhoto(excludeId: string) {
+  await requireMember();
+  const db = await supabaseServer();
+  const { data } = await db
+    .from('recipes')
+    .select('id, title, category')
+    .is('deleted_at', null)
+    .is('photo_url', null)
+    .neq('id', excludeId)
+    .order('title');
+  return (data ?? []) as { id: string; title: string; category: string }[];
 }

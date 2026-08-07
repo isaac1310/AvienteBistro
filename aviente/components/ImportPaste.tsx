@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { importRecipes, undoImport, type ImportResult } from '@/lib/importMutations';
+import { importRecipes, undoImport, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
@@ -43,6 +43,7 @@ export default function ImportPaste({
   const [copied, setCopied] = useState(false);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   const [source, setSource] = useState('');
+  const [onDuplicate, setOnDuplicate] = useState<OnDuplicate>('skip');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -92,7 +93,7 @@ export default function ImportPaste({
           body: s.body ?? '',
         })).filter((s) => s.body),
       }));
-      setResult(await importRecipes(inputs));
+      setResult(await importRecipes(inputs, { onDuplicate }));
       router.refresh();
     } finally {
       setBusy(false);
@@ -105,6 +106,7 @@ export default function ImportPaste({
         <h1 className={styles.h1}>Imported</h1>
         <p className={styles.summary}>
           {result.imported.length} added
+          {result.replaced.length > 0 && ` · ${result.replaced.length} replaced`}
           {result.skipped.length > 0 && ` · ${result.skipped.length} skipped`}
           {result.failed.length > 0 && ` · ${result.failed.length} failed`}
         </p>
@@ -118,6 +120,11 @@ export default function ImportPaste({
         )}
         {/* Skips and failures are listed individually. A count alone hides which
             recipe did not make it, which is the only thing worth knowing. */}
+        {result.replaced.map((r) => (
+          <p key={r.id} className={styles.line}>
+            <span className={styles.skip}>replaced</span> <span lang="he">{r.title}</span>
+          </p>
+        ))}
         {result.skipped.map((r) => (
           <p key={r.title} className={styles.line}>
             <span className={styles.skip}>skipped</span> <span lang="he">{r.title}</span> — {r.why}
@@ -134,8 +141,14 @@ export default function ImportPaste({
             Import more
           </button>
           <button className="btn btn--ghost" disabled={busy}
-            onClick={async () => { setBusy(true); await undoImport(result.batchId); setResult(null); setText(''); setBusy(false); router.refresh(); }}>
-            Undo this import
+            onClick={async () => {
+              setBusy(true);
+              await undoImport(result.imported.map((r) => r.id));
+              setResult(null); setText(''); setBusy(false); router.refresh();
+            }}>
+            {result.replaced.length > 0
+              ? `Undo — removes the ${result.imported.length} new ones`
+              : 'Undo this import'}
           </button>
         </div>
       </div>
@@ -196,6 +209,26 @@ export default function ImportPaste({
       {parsed && !parsed.error && parsed.recipes.length > 0 && (
         <section className={styles.step}>
           <h2 className={styles.h2}>3 · Check, then import</h2>
+
+          {/* What to do about a recipe already in the book. Skip is the default
+              because it is the only one that cannot lose anything. */}
+          <fieldset className={styles.dupes}>
+            <legend className={styles.label}>If a recipe is already in the book</legend>
+            {([
+              ['skip', 'Skip it', 'leave what is there untouched'],
+              ['replace', 'Replace it', 'overwrite it — the old version is kept under ⟲'],
+              ['add', 'Add anyway', 'end up with two of them'],
+            ] as const).map(([value, name, why]) => (
+              <label key={value} className={styles.dupe}>
+                <input
+                  type="radio" name="ondupe" value={value}
+                  checked={onDuplicate === value}
+                  onChange={() => setOnDuplicate(value)}
+                />
+                <span><strong>{name}</strong> — {why}</span>
+              </label>
+            ))}
+          </fieldset>
 
           <label className={styles.field}>
             <span className={styles.label}>Whose recipes are these?</span>

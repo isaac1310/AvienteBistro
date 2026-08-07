@@ -10,34 +10,82 @@ import type { RecipeInput } from './mutations';
 
 export type ImportResult = {
   imported: { title: string; id: string }[];
+  replaced: { title: string; id: string }[];
   skipped: { title: string; why: string }[];
   failed: { title: string; why: string }[];
   batchId: string;
 };
 
+export type OnDuplicate = 'skip' | 'replace' | 'add';
+
 export async function importRecipes(
   recipes: RecipeInput[],
-  options: { onDuplicate: 'skip' | 'add' } = { onDuplicate: 'skip' },
+  options: { onDuplicate: OnDuplicate } = { onDuplicate: 'skip' },
 ): Promise<ImportResult> {
   const member = await currentMember();
   if (!member) throw new Error('Not a family member.');
   const db = await supabaseServer();
 
   const batchId = crypto.randomUUID();
-  const result: ImportResult = { imported: [], skipped: [], failed: [], batchId };
+  const result: ImportResult = { imported: [], replaced: [], skipped: [], failed: [], batchId };
 
   // One lookup for the whole batch rather than one per recipe.
   const { data: existing } = await db
-    .from('recipes').select('title').is('deleted_at', null);
-  const titles = new Set((existing ?? []).map((r) => r.title.trim()));
+    .from('recipes').select('id, title').is('deleted_at', null);
+  const byTitle = new Map((existing ?? []).map((r) => [r.title.trim(), r.id as string]));
 
   for (const input of recipes) {
     const title = input.title.trim();
     try {
       if (!title) { result.failed.push({ title: '(untitled)', why: 'no name' }); continue; }
 
-      if (titles.has(title) && options.onDuplicate === 'skip') {
+      const existingId = byTitle.get(title);
+
+      if (existingId && options.onDuplicate === 'skip') {
         result.skipped.push({ title, why: 'already in the book' });
+        continue;
+      }
+
+      /* Replace IN PLACE rather than delete-and-insert. The id is what menu
+         snapshots, the kids' week and any share link point at — recreating the row
+         would quietly orphan all of them. A revision is written first, so a
+         replace is as undoable as any other save. */
+      if (existingId && options.onDuplicate === 'replace') {
+        await snapshotForReplace(existingId, member.id);
+
+        const { error: upErr } = await db.from('recipes').update({
+          title,
+          title_en: input.title_en,
+          category: input.category,
+          meal_type: input.category === 'kids' ? input.meal_type : null,
+          description_he: input.description_he,
+          description_en: input.description_en,
+          story: input.story,
+          serving_suggestions: input.serving_suggestions,
+          prep_minutes: input.prep_minutes,
+          cook_minutes: input.cook_minutes,
+          servings: input.servings,
+          yield_text: input.servings ? null : (input.yield_text || '—'),
+          source_member_id: input.source_member_id,
+          updated_by: member.id,
+          updated_at: new Date().toISOString(),
+          import_batch_id: batchId,
+        }).eq('id', existingId);
+        if (upErr) { result.failed.push({ title, why: upErr.message }); continue; }
+
+        await db.from('ingredients').delete().eq('recipe_id', existingId);
+        await db.from('steps').delete().eq('recipe_id', existingId);
+        if (input.ingredients.length) {
+          await db.from('ingredients').insert(
+            input.ingredients.map((i, position) => ({ ...i, recipe_id: existingId, position })),
+          );
+        }
+        if (input.steps.length) {
+          await db.from('steps').insert(
+            input.steps.map((st, position) => ({ ...st, recipe_id: existingId, position })),
+          );
+        }
+        result.replaced.push({ title, id: existingId });
         continue;
       }
 
@@ -74,7 +122,7 @@ export async function importRecipes(
         );
       }
 
-      titles.add(title);
+      byTitle.set(title, data.id as string);
       result.imported.push({ title, id: data.id as string });
     } catch (e) {
       // One bad row must never abort the batch — that is the difference between
@@ -87,15 +135,36 @@ export async function importRecipes(
   return result;
 }
 
-/** Undo a whole import in one go. */
-export async function undoImport(batchId: string) {
+/* A replace overwrites a recipe that already existed, so snapshot it first —
+   otherwise re-importing would be the one write in the app with no way back. */
+async function snapshotForReplace(recipeId: string, memberId: string) {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from('recipes').select('*, ingredients(*), steps(*)').eq('id', recipeId).maybeSingle();
+  if (!data) return;
+  await db.from('recipe_revisions').insert({
+    recipe_id: recipeId, snapshot: data, edited_by: memberId,
+  });
+}
+
+/**
+ * Undo an import — but only the recipes it CREATED.
+ *
+ * Takes explicit ids rather than the batch id. A replaced recipe carries the same
+ * import_batch_id as a new one, so undoing by batch would soft-delete a recipe
+ * that existed long before the import and that someone may have edited by hand.
+ * Its previous version is in recipe_revisions instead, reachable from
+ * ⟲ Earlier versions on the recipe itself.
+ */
+export async function undoImport(createdIds: string[]) {
   const member = await currentMember();
   if (!member) throw new Error('Not a family member.');
+  if (!createdIds.length) return;
   const db = await supabaseServer();
   const { error } = await db
     .from('recipes')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('import_batch_id', batchId);
+    .update({ deleted_at: new Date().toISOString(), updated_by: member.id })
+    .in('id', createdIds);
   if (error) throw new Error(error.message);
   revalidatePath('/', 'layout');
 }

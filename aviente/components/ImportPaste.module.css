@@ -57,3 +57,11 @@
 .fileRow { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
 .fileName { font-family: var(--ser); font-style: italic; font-size: var(--t-small);
   color: var(--ink-soft); }
+
+.dupes { display: grid; gap: var(--sp-2); margin: 0; padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--card-border); border-radius: var(--radius);
+  background: var(--card); }
+.dupes legend { padding: 0 var(--sp-2); }
+.dupe { display: flex; align-items: baseline; gap: var(--sp-3);
+  font-size: var(--t-small); line-height: 1.5; cursor: pointer; min-height: 32px; }
+.dupe input { accent-color: var(--primary); width: 18px; height: 18px; flex: 0 0 auto; }

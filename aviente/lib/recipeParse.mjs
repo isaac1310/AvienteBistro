@@ -45,10 +45,19 @@ const CATEGORY_MAP = {
 
 /* Hebrew measure words → unit enum. Plural and singular both appear. */
 const UNIT_MAP = {
-  'גרם': 'g', 'ג': 'g', 'גר': 'g',
-  'ק"ג': 'kg', 'קג': 'kg', 'קילו': 'kg', 'קילוגרם': 'kg',
-  'מ"ל': 'ml', 'מל': 'ml', 'מיליליטר': 'ml',
-  'ליטר': 'l',
+  /* The written book uses geresh/gershayim abbreviations (גר׳, ק״ג, מ״ל) that a
+     plain-word list misses entirely — 500 גר׳ was parsing as 500 PIECES of a
+     thing called "גר׳ נטו דג ים טחון". Both the straight and typographic marks
+     appear, sometimes in the same table. */
+  'גרם': 'g', 'ג': 'g', 'גר': 'g', 'גר׳': 'g', "גר'": 'g', 'ג׳': 'g',
+  'ק"ג': 'kg', 'ק״ג': 'kg', 'קג': 'kg', 'קילו': 'kg', 'קילוגרם': 'kg',
+  'מ"ל': 'ml', 'מ״ל': 'ml', 'מל': 'ml', 'מיליליטר': 'ml',
+  'ליטר': 'l', 'ל׳': 'l',
+  /* Countables the book uses as units. They are pieces of a thing, and `pcs`
+     is what the app already renders without a unit label. */
+  'שן': 'pcs', 'שיניים': 'pcs', 'שיני': 'pcs',
+  'קופסא': 'pcs', 'קופסה': 'pcs', 'חבילה': 'pcs', 'שקית': 'pcs',
+  'צרור': 'pcs', 'חופן': 'pcs', 'ראש': 'pcs',
   'כוס': 'cup', 'כוסות': 'cup',
   'כף': 'tbsp', 'כפות': 'tbsp',
   'כפית': 'tsp', 'כפיות': 'tsp',
@@ -58,6 +67,14 @@ const UNIT_MAP = {
 
 /* "לפי הטעם" and friends are a statement about seasoning, not a missing amount. */
 const TO_TASTE = ['לפי הטעם', 'לפי טעם', 'טעם', 'to taste'];
+
+/* Written-out fractions. "חצי כפית מלח" is a normal way to write a recipe and
+   was parsing to no quantity at all. */
+const WORD_NUMBERS = {
+  'חצי': 0.5, 'מחצית': 0.5,
+  'רבע': 0.25, 'שליש': 1 / 3, 'שלישית': 1 / 3,
+  'שלושת': 3, 'שני': 2, 'שתי': 2, 'אחד': 1, 'אחת': 1,
+};
 
 const FRACTIONS = {
   '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3,
@@ -81,6 +98,19 @@ export function parseNumber(raw) {
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
   let s = String(raw).trim().replace(/[־–—]/g, '-');
   if (!s) return null;
+
+  /* A leading Hebrew number word, e.g. "חצי כפית". */
+  const word = s.match(/^(\S+)/);
+  if (word && WORD_NUMBERS[word[1]] != null) return WORD_NUMBERS[word[1]];
+
+  /* A bare fraction like 1/4 must be read as a fraction, NOT as the integer 1
+     followed by unparsed junk — which is what happened, turning ¼ צרור into a
+     whole bunch. Checked before the leading-integer branch for that reason. */
+  const bare = s.match(/^(\d+)\s*\/\s*(\d+)(?!\d)/);
+  if (bare) {
+    const d = parseInt(bare[2], 10);
+    if (d) return Math.round((parseInt(bare[1], 10) / d) * 1000) / 1000;
+  }
 
   let total = 0, matched = false;
   // leading integer part
@@ -188,6 +218,39 @@ export function parseIngredientLine(line) {
   // and do not coerce to 'to taste', which says something different.
   out.name = body;
   return out;
+}
+
+/**
+ * Parse an amount cell that stands apart from the name — a table gives you the
+ * two separately, and joining them back into one string only to re-split it
+ * throws away the structure and mangles the name. Returns what the cell says
+ * about quantity and nothing about the ingredient.
+ */
+export function parseAmountCell(cell) {
+  const raw = clean(cell);
+  if (!raw) return { amount: null, amountMax: null, unit: null, note: null };
+
+  if (TO_TASTE.some((t) => raw.includes(t))) {
+    return { amount: null, amountMax: null, unit: 'to taste', note: null };
+  }
+
+  /* Anything after the quantity is a qualifier, not part of it: "500 גר׳ נטו",
+     "½ כוס או תפח״א 1". Keep it as a note rather than discarding it. */
+  const m = raw.match(/^([\d.,/½¼¾⅓⅔⅛⅜⅝⅞]+(?:\s*[-–—]\s*[\d.,/]+)?|\S+)\s*(\S+)?\s*(.*)$/);
+  if (!m) return { amount: null, amountMax: null, unit: null, note: raw };
+
+  const { amount, amountMax } = parseAmount(m[1]);
+  if (amount == null) {
+    // No number at all: a bare measure word still means one ("כף").
+    const unit = mapUnit(m[1]);
+    return unit
+      ? { amount: unit === 'pinch' ? null : 1, amountMax: null, unit, note: nonEmpty([m[2], m[3]].filter(Boolean).join(' ')) }
+      : { amount: null, amountMax: null, unit: null, note: raw };
+  }
+
+  const unit = mapUnit(m[2]);
+  const rest = [unit ? null : m[2], m[3]].filter(Boolean).join(' ').trim();
+  return { amount, amountMax, unit, note: nonEmpty(rest) };
 }
 
 /** Accepts either a structured object or a bare string. */

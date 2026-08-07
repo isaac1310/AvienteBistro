@@ -71,7 +71,7 @@ export default function Splash({ children }: { children: React.ReactNode }) {
           role="status"
           aria-label="Aviente"
         >
-          <Cachet variant="plaque" subtitle="Livre de Recettes de Famille" />
+          <Cachet variant="plaque" subtitle="The Family Recipe Book" />
           <p className={styles.foot}>Chez Nous</p>
         </div>
       )}

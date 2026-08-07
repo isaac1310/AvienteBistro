@@ -142,7 +142,7 @@ export default function ImportPaste({
 
   return (
     <div className={styles.wrap}>
-      <p className="eyebrow">Importer</p>
+      <p className="eyebrow">Import</p>
       <h1 className={styles.h1}>Paste from an AI</h1>
 
       <section className={styles.step}>
@@ -205,7 +205,7 @@ export default function ImportPaste({
                     onChange={(e) => setOverrides({ ...overrides, [i]: e.target.value })}
                   >
                     {CATEGORIES.map((c) => (
-                      <option key={c.key} value={c.key}>{categoryLabel(c.key).fr}</option>
+                      <option key={c.key} value={c.key}>{categoryLabel(c.key).en}</option>
                     ))}
                   </select>
                 </li>

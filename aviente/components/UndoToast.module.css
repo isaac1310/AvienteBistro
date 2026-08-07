@@ -1,0 +1,41 @@
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tap) + var(--sp-4));
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--primary);
+  color: var(--page);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px rgba(30, 58, 47, 0.28);
+  font-family: var(--san);
+  font-size: var(--t-small);
+}
+@media (min-width: 1024px) { .toast { bottom: var(--sp-5); } }
+
+.text { letter-spacing: 0.5px; }
+
+.undo {
+  font: inherit;
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-height: var(--tap);
+  padding: 0 var(--sp-3);
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  color: var(--gold);
+  cursor: pointer;
+}
+
+.count {
+  min-width: 1.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}

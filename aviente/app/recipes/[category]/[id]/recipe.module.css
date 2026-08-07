@@ -161,3 +161,5 @@
   .hero, .heroBlueprint { height: min(46vh, 400px); }
   .body { max-width: 68ch; margin: 0 auto; }
 }
+
+.history { margin-top: var(--sp-4); }

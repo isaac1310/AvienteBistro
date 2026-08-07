@@ -130,7 +130,8 @@ export default function RecipeForm({
     try {
       await softDeleteRecipe(recipe.id);
       setDirty(false);
-      router.push(`/recipes/${recipe.category}`);
+      // ?undo= is what raises the toast on the page we land on.
+      router.push(`/recipes/${recipe.category}?undo=${recipe.id}`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not delete.');
@@ -178,7 +179,7 @@ export default function RecipeForm({
           <span className={styles.label}>Category</span>
           <select className={styles.input} value={category}
             onChange={(e) => touch(setCategory)(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.fr}</option>)}
+            {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.en}</option>)}
           </select>
         </label>
 

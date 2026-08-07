@@ -85,7 +85,7 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
                 <button type="button" className={styles.pick} disabled={busy}
                   onClick={() => moveTo(o.id)}>
                   <span lang="he">{o.title}</span>
-                  <span className={styles.meta}>{categoryLabel(o.category).fr}</span>
+                  <span className={styles.meta}>{categoryLabel(o.category).en}</span>
                 </button>
               </li>
             ))}

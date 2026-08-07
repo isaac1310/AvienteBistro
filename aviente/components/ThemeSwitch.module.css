@@ -1,0 +1,16 @@
+.wrap { display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-3); flex-wrap: wrap; }
+.label { font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-ink); }
+.seg { display: flex; }
+.on, .off {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font: inherit; font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 1.5px; min-height: var(--tap); padding: 0 var(--sp-4);
+  border: 1px solid var(--card-border); background: var(--card);
+  color: var(--ink-soft); cursor: pointer;
+}
+.on { background: var(--primary); border-color: var(--primary); color: var(--page); }
+.dot { width: 11px; height: 11px; border-radius: 50%; }
+.green { background: #1e3a2f; }
+.burgundy { background: #5c2222; }

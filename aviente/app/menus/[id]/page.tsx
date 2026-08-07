@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MenuCard from '@/components/MenuCard';
 import MenuActions from '@/components/MenuActions';
+import MenuHistory from '@/components/MenuHistory';
 import Nav from '@/components/Nav';
 import { getMenu, occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
@@ -23,7 +24,7 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
       <Nav current="/menus" />
       <div className={styles.frame}>
         <div className={`shell ${styles.top}`}>
-          <Link href="/menus" className={styles.back}>← Nos Menus</Link>
+          <Link href="/menus" className={styles.back}>← Menus</Link>
         </div>
 
         <div className={styles.cardWrap}>
@@ -53,6 +54,7 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
             shareId={menu.share_id}
             shareSecret={menu.share_secret}
           />
+          <div className={styles.history}><MenuHistory menuId={menu.id} /></div>
         </div>
       </div>
     </>

@@ -136,7 +136,7 @@ export default function MenuBuilder({
         const dishes = rows.filter((r) => r.course === course.key);
         return (
           <section key={course.key} className={styles.course}>
-            <h2 className={styles.courseName}>{course.fr}</h2>
+            <h2 className={styles.courseName}>{course.en}</h2>
 
             {dishes.map((row) => {
               return (
@@ -150,7 +150,7 @@ export default function MenuBuilder({
                   <div className={styles.rowBody}>
                     <p className={styles.dish} lang="he">{row.recipe.title}</p>
                     <p className={styles.dishMeta}>
-                      {categoryLabel(row.recipe.category).fr}
+                      {categoryLabel(row.recipe.category).en}
                       {row.recipe.source_name && ` · ${row.recipe.source_name}`}
                     </p>
                   </div>
@@ -170,7 +170,7 @@ export default function MenuBuilder({
       })}
 
       <label className={styles.field}>
-        <span className={styles.label}>Notes du chef</span>
+        <span className={styles.label}>Chef's notes</span>
         <textarea className={styles.area} rows={3} value={notes} lang="he"
           onChange={(e) => setNotes(e.target.value)} />
       </label>
@@ -180,7 +180,7 @@ export default function MenuBuilder({
         <div className={styles.sheet} role="dialog" aria-label="Choose a dish">
           <div className={styles.sheetHead}>
             <span className={styles.label}>
-              {swapping ? 'Change this dish' : `Add to ${COURSES.find((c) => c.key === picking)?.fr}`}
+              {swapping ? 'Change this dish' : `Add to ${COURSES.find((c) => c.key === picking)?.en}`}
             </span>
             <button type="button" className={styles.close}
               onClick={() => { setPicking(null); setSwapping(null); }}>Close</button>
@@ -192,7 +192,7 @@ export default function MenuBuilder({
               <li key={r.id}>
                 <button type="button" className={styles.pick} onClick={() => add(r, picking)}>
                   <span lang="he">{r.title}</span>
-                  <span className={styles.pickMeta}>{categoryLabel(r.category).fr}</span>
+                  <span className={styles.pickMeta}>{categoryLabel(r.category).en}</span>
                 </button>
               </li>
             ))}

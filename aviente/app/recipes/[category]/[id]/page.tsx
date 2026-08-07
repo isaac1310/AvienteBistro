@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
+import RecipeHistory from '@/components/RecipeHistory';
 import { categoryLabel, getRecipe } from '@/lib/queries';
 import styles from './recipe.module.css';
 
@@ -38,10 +39,10 @@ export default async function RecipePage({ params }: Params) {
   /* Timing strip: every real recipe has these, and any null part is omitted
      rather than printed as "0 min". */
   const timing = [
-    recipe.prep_minutes && `PRÉPARATION ${recipe.prep_minutes} min`,
-    recipe.cook_minutes && `CUISSON ${recipe.cook_minutes} min`,
+    recipe.prep_minutes && `PREP ${recipe.prep_minutes} min`,
+    recipe.cook_minutes && `COOK ${recipe.cook_minutes} min`,
     recipe.servings
-      ? `${recipe.servings} ${recipe.servings === 1 ? 'PERSONNE' : 'PERSONNES'}`
+      ? `${recipe.servings} ${recipe.servings === 1 ? 'SERVING' : 'SERVINGS'}`
       : null,
   ].filter(Boolean) as string[];
 
@@ -62,7 +63,7 @@ export default async function RecipePage({ params }: Params) {
       </div>
 
       <div className={`shell ${styles.body}`}>
-        <p className="eyebrow">{cat.fr}</p>
+        <p className="eyebrow">{cat.en}</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {attribution && <p className={styles.attribution}>{attribution}</p>}
@@ -82,7 +83,7 @@ export default async function RecipePage({ params }: Params) {
         />
 
         <section>
-          <h2 className={styles.h2}>Préparation</h2>
+          <h2 className={styles.h2}>Method</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id} className={styles.step}>
@@ -95,7 +96,7 @@ export default async function RecipePage({ params }: Params) {
 
         {recipe.serving_suggestions && (
           <section className={styles.serve}>
-            <h2 className={styles.h2}>Pour Servir</h2>
+            <h2 className={styles.h2}>To Serve</h2>
             {/* Stored as newline-joined text; each line is its own suggestion. */}
             <ul className={styles.serveList}>
               {recipe.serving_suggestions.split('\n').filter(Boolean).map((line: string, i: number) => (
@@ -108,6 +109,10 @@ export default async function RecipePage({ params }: Params) {
         <div className={styles.actions}>
           <Link href={`/menus/new?dish=${id}`} className="btn">Add to menu</Link>
           <a href={`/print/recipe/${id}`} className="btn btn--ghost">Export PDF</a>
+        </div>
+
+        <div className={styles.history}>
+          <RecipeHistory recipeId={id} />
         </div>
 
         <p className={styles.edited}>

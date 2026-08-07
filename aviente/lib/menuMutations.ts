@@ -29,7 +29,7 @@ export async function saveMenu(input: {
   chef_notes: string | null;
   items: ItemInput[];
 }): Promise<string> {
-  await requireMember();
+  const member = await requireMember();
   const db = await supabaseServer();
 
   const fields = {
@@ -41,6 +41,9 @@ export async function saveMenu(input: {
 
   let menuId = input.id;
   if (menuId) {
+    // Before anything is overwritten — the same rule recipes have followed all
+    // along, and the reason last-write-wins is survivable.
+    await snapshotMenu(menuId, member.id);
     const { error } = await db.from('menus').update(fields).eq('id', menuId);
     if (error) throw new Error(error.message);
     await db.from('menu_items').delete().eq('menu_id', menuId);
@@ -161,5 +164,69 @@ export async function softDeleteMenu(id: string) {
   const { error } = await db
     .from('menus').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
+  revalidatePath('/menus');
+}
+
+/* Menu revisions.
+ *
+ * Recipes snapshot on every save; menus did not. With two people editing, the
+ * second save won silently and the first evening's work was gone — and unlike a
+ * recipe there was nothing to restore from. Same table, same shape: menus are
+ * small, so keep every version. */
+async function snapshotMenu(menuId: string, memberId: string) {
+  const db = await supabaseServer();
+  const { data } = await db
+    .from('menus').select('*, menu_items(*)').eq('id', menuId).maybeSingle();
+  if (!data) return;
+  await db.from('menu_revisions').insert({
+    menu_id: menuId, snapshot: data, edited_by: memberId,
+  });
+}
+
+export async function listMenuRevisions(menuId: string) {
+  await requireMember();
+  const db = await supabaseServer();
+  const { data } = await db
+    .from('menu_revisions')
+    .select('id, created_at, editor:family_members(name)')
+    .eq('menu_id', menuId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  return (data ?? []) as unknown as
+    { id: string; created_at: string; editor: { name: string } | null }[];
+}
+
+/** Put a menu back the way a revision found it. */
+export async function restoreMenuRevision(revisionId: string) {
+  const member = await requireMember();
+  const db = await supabaseServer();
+
+  const { data: rev } = await db
+    .from('menu_revisions').select('menu_id, snapshot').eq('id', revisionId).maybeSingle();
+  if (!rev) throw new Error('That version is no longer there.');
+
+  const snap = rev.snapshot as {
+    date: string; title: string | null; language: 'en' | 'he'; chef_notes: string | null;
+    menu_items: Record<string, unknown>[];
+  };
+
+  // Snapshot the CURRENT state first, so restoring is itself undoable.
+  await snapshotMenu(rev.menu_id, member.id);
+
+  await db.from('menus').update({
+    date: snap.date, title: snap.title,
+    language: snap.language, chef_notes: snap.chef_notes,
+  }).eq('id', rev.menu_id);
+
+  await db.from('menu_items').delete().eq('menu_id', rev.menu_id);
+  if (snap.menu_items?.length) {
+    await db.from('menu_items').insert(
+      snap.menu_items.map((i) => {
+        const { id, ...rest } = i as { id?: string };
+        void id;                       // a fresh row, not the old one
+        return rest;
+      }),
+    );
+  }
   revalidatePath('/menus');
 }

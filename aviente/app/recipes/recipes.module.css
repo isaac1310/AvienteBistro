@@ -58,3 +58,6 @@
 
 .backup { text-align: center; margin: var(--sp-7) 0 0; font-size: var(--t-small); }
 .backup a { color: var(--gold-ink); text-underline-offset: 3px; }
+
+.settings { margin-top: var(--sp-7); padding-top: var(--sp-5);
+  border-top: 1px solid var(--card-border); }

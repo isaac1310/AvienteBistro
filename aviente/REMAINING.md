@@ -6,6 +6,9 @@ Honest state of the app at v0.9.0. Grouped by who has to do it.
 
 ## A · Yours — five minutes, unblocks everything else
 
+- [ ] **A0 · Run `supabase/migrations/0006_menu_revisions.sql`**
+      New table. Until it exists, saving a menu throws — menus now snapshot before
+      every save, the way recipes always have.
 - [ ] **A1 · Run `supabase/migrations/0005_ingredient_groups.sql`**
       One `alter table`. Without it the ingredient groups vanish silently on
       import, which is the exact problem the column exists to prevent.
@@ -24,28 +27,14 @@ Honest state of the app at v0.9.0. Grouped by who has to do it.
 
 ## B · Real gaps in the build — things the spec asks for that do not exist
 
-- [ ] **B1 · Revision history has no UI.** `listRevisions` and `restoreRecipe`
-      are written and never called. Every save already writes a snapshot, so the
-      data is there — but there is no ⟲ button and no way to restore. This is the
-      safety net for last-write-wins, and right now it only half exists.
-- [ ] **B2 · Soft delete has no undo toast.** Deleting works and is reversible in
-      principle (`restoreRecipe`), but the ten-second undo the spec calls for is
-      not built, so recovering a mistap means asking me to run SQL.
-- [ ] **B3 · No per-user theme switch.** `family_members.theme` exists and
-      nothing writes it; everyone gets green. Burgundy is unreachable.
+- [x] **B1 · Revision history** — ⟲ on recipes and menus, restore is itself undoable.
+- [x] **B2 · Undo toast** — ten seconds, with a visible countdown.
+- [x] **B3 · Per-user theme** — green/burgundy on /recipes, stored per member.
 - [ ] **B4 · No select mode on category browse.** §3.2's "N SELECTED — BUILD
       MENU →" is missing. Building a menu from a category is currently one dish
       at a time through the builder's picker.
-- [ ] **B5 · Menus have no revisions.** Recipes snapshot on every save; menus do
-      not. With two people editing, the second save wins silently and the first
-      is gone. Recipes can be recovered; a menu cannot.
-- [ ] **B6 · `/print/recipe/[id]` does not exist.** The recipe page links to it
-      and the link 404s. Menu and kids printing both work.
-
----
-
-## C · Content, not code
-
+- [x] **B5 · Menu revisions** — migration 0006; saveMenu snapshots first.
+- [x] **B6 · /print/recipe/[id]** — built; two columns on paper.
 - [ ] **C1 · Extract the 8 dish photos** from `מתכונים.pdf` and attach them.
       This also finally exercises the photo pipeline with real files — one of the
       three things never tested.

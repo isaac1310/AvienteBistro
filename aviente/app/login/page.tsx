@@ -16,7 +16,7 @@ export default function LoginPage() {
   return (
     <main className={styles.page}>
       <div className={styles.plaque}>
-        <Cachet variant="plaque" subtitle="Livre de Recettes de Famille" />
+        <Cachet variant="plaque" subtitle="The Family Recipe Book" />
       </div>
 
       <Suspense fallback={null}>

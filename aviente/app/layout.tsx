@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Jost, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
 import SelfTest from '@/components/SelfTest';
 import { APP_VERSION } from '@/lib/version';
+import { currentMember } from '@/lib/supabase/server';
 import './globals.css';
 
 /* Five faces, each with a job (§1):
@@ -35,7 +36,7 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'Aviente — Livre de Recettes de Famille',
+  title: 'Aviente — The Family Recipe Book',
   description: 'The Aviente family cookbook: recipes, menu cards and the kids’ week.',
   manifest: '/manifest.webmanifest',
   icons: {
@@ -59,7 +60,10 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  /* The signed-in member's colour, read here so a reload keeps it. Signed-out
+     pages fall back to green rather than failing — /login has no member yet. */
+  const member = await currentMember().catch(() => null);
   const fonts = [cormorant, jost, baloo, frank, heebo].map((f) => f.variable).join(' ');
   return (
     // The chrome is English (French-accented) per §5, so that is what the document
@@ -71,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // the classes on <body> the tokens were undefined at :root, --ser collapsed, and
     // every heading silently rendered in Times -- including the Hebrew, which was
     // the one thing the font stack existed to fix.
-    <html lang="en" dir="ltr" data-theme="green" className={fonts}>
+    <html lang="en" dir="ltr" data-theme={member?.theme ?? 'green'} className={fonts}>
       {/* data-version lets the selftest report which build it ran against, so a
           result can never be misattributed to a cached page. */}
       <body data-version={APP_VERSION}>

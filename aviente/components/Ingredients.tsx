@@ -24,7 +24,7 @@ export default function Ingredients({
   return (
     <section className={styles.wrap}>
       <div className={styles.head}>
-        <h2 className={styles.h2}>Ingrédients</h2>
+        <h2 className={styles.h2}>Ingredients</h2>
 
         {/* No portion count means nothing to scale against, so the control is
             absent rather than present-and-inert. */}

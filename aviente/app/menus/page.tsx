@@ -4,7 +4,7 @@ import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
 import styles from './menus.module.css';
 
-export const metadata = { title: 'Aviente — Nos Menus' };
+export const metadata = { title: 'Aviente — Menus' };
 
 /* §3.7 — the keepers list, not a chronological log. Starred menus plus anything
  * upcoming; everything else is behind "show all". */
@@ -26,8 +26,8 @@ export default async function MenusPage({
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
-            <p className="eyebrow">Nos Menus</p>
-            <h1 className={styles.h1}>Menu History</h1>
+            <p className="eyebrow">Menus</p>
+            <h1 className={styles.h1}>Menu history</h1>
             <Link href="/menus/new" className="btn">＋ New menu</Link>
           </div>
         </header>
@@ -45,7 +45,7 @@ export default async function MenusPage({
 
           {upcoming.length > 0 && (
             <section>
-              <h2 className={styles.h2}>À venir</h2>
+              <h2 className={styles.h2}>Coming up</h2>
               <ul className={styles.list}>
                 {upcoming.map((m) => (
                   <li key={m.id}>
@@ -55,8 +55,8 @@ export default async function MenusPage({
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
-                        {m.items.length} {m.items.length === 1 ? 'plat' : 'plats'}
-                        {m.share_id && ' · partagé'}
+                        {m.items.length} {m.items.length === 1 ? 'dish' : 'dishes'}
+                        {m.share_id && ' · shared'}
                       </span>
                     </Link>
                   </li>
@@ -67,7 +67,7 @@ export default async function MenusPage({
 
           {past.length > 0 && (
             <section>
-              <h2 className={styles.h2}>{showAll ? 'Tous les menus' : '★ Gardés'}</h2>
+              <h2 className={styles.h2}>{showAll ? 'All menus' : '★ Kept'}</h2>
               <ul className={styles.list}>
                 {past.map((m) => (
                   <li key={m.id}>
@@ -77,7 +77,7 @@ export default async function MenusPage({
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
-                        {m.items.length} {m.items.length === 1 ? 'plat' : 'plats'}
+                        {m.items.length} {m.items.length === 1 ? 'dish' : 'dishes'}
                       </span>
                     </Link>
                   </li>
@@ -94,7 +94,7 @@ export default async function MenusPage({
 
           {suggestions.length > 0 && (
             <section>
-              <h2 className={styles.h2}>À planifier</h2>
+              <h2 className={styles.h2}>Worth planning</h2>
               <ul className={styles.list}>
                 {suggestions.map((s) => (
                   <li key={s.occasion.title}>

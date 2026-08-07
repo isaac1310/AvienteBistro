@@ -157,11 +157,57 @@ export async function listRevisions(recipeId: string) {
   const db = await supabaseServer();
   const { data } = await db
     .from('recipe_revisions')
-    .select('id, created_at, edited_by, family_members(name)')
+    .select('id, created_at, editor:family_members(name)')
     .eq('recipe_id', recipeId)
     .order('created_at', { ascending: false })
     .limit(20);
-  return data ?? [];
+  return (data ?? []) as unknown as
+    { id: string; created_at: string; editor: { name: string } | null }[];
+}
+
+/**
+ * Put a recipe back the way a revision found it.
+ *
+ * The current state is snapshotted FIRST, so restoring is itself undoable —
+ * otherwise "look at an old version" becomes a one-way door and nobody dares
+ * press it.
+ */
+export async function restoreRecipeRevision(revisionId: string) {
+  const member = await requireMember();
+  const db = await supabaseServer();
+
+  const { data: rev } = await db
+    .from('recipe_revisions').select('recipe_id, snapshot').eq('id', revisionId).maybeSingle();
+  if (!rev) throw new Error('That version is no longer there.');
+
+  const snap = rev.snapshot as Record<string, unknown> & {
+    ingredients?: Record<string, unknown>[];
+    steps?: Record<string, unknown>[];
+  };
+
+  await snapshot(rev.recipe_id, member.id);
+
+  const { ingredients, steps, id, ...fields } = snap;
+  void id;
+  await db.from('recipes')
+    .update({ ...fields, updated_by: member.id, updated_at: new Date().toISOString() })
+    .eq('id', rev.recipe_id);
+
+  await db.from('ingredients').delete().eq('recipe_id', rev.recipe_id);
+  await db.from('steps').delete().eq('recipe_id', rev.recipe_id);
+  if (ingredients?.length) {
+    await db.from('ingredients').insert(ingredients.map((i) => {
+      const { id: _drop, ...rest } = i as { id?: string };
+      void _drop; return rest;
+    }));
+  }
+  if (steps?.length) {
+    await db.from('steps').insert(steps.map((s) => {
+      const { id: _drop, ...rest } = s as { id?: string };
+      void _drop; return rest;
+    }));
+  }
+  revalidatePath('/', 'layout');
 }
 
 /**
@@ -223,4 +269,15 @@ export async function recipesWithoutPhoto(excludeId: string) {
     .neq('id', excludeId)
     .order('title');
   return (data ?? []) as { id: string; title: string; category: string }[];
+}
+
+/** Per-user theme (§1). Stored on the member, not globally — Papa switching to
+ *  burgundy must not repaint Maman's phone. */
+export async function setTheme(theme: 'green' | 'burgundy') {
+  const member = await requireMember();
+  const db = await supabaseServer();
+  const { error } = await db
+    .from('family_members').update({ theme }).eq('id', member.id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/', 'layout');
 }

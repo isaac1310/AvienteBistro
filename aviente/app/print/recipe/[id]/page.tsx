@@ -16,26 +16,26 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
   if (!recipe) notFound();
 
   const timing = [
-    recipe.prep_minutes && `PRÉPARATION ${recipe.prep_minutes} min`,
-    recipe.cook_minutes && `CUISSON ${recipe.cook_minutes} min`,
-    recipe.servings ? `${recipe.servings} PERSONNES` : recipe.yield_text,
+    recipe.prep_minutes && `PREP ${recipe.prep_minutes} min`,
+    recipe.cook_minutes && `COOK ${recipe.cook_minutes} min`,
+    recipe.servings ? `${recipe.servings} SERVINGS` : recipe.yield_text,
   ].filter(Boolean) as string[];
 
   return (
     <main className={styles.sheet}>
       <header className={styles.head}>
-        <p className={styles.eyebrow}>Aviente · Livre de Recettes de Famille</p>
+        <p className={styles.eyebrow}>Aviente · The Family Recipe Book</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {recipe.source_name && (
-          <p className={styles.credit}>— de la cuisine de {recipe.source_name} —</p>
+          <p className={styles.credit}>— from the kitchen of {recipe.source_name} —</p>
         )}
         {timing.length > 0 && <p className={styles.timing}>{timing.join(' · ')}</p>}
       </header>
 
       <section className={styles.cols}>
         <div>
-          <h2 className={styles.h2}>Ingrédients</h2>
+          <h2 className={styles.h2}>Ingredients</h2>
           <ul className={styles.ingredients}>
             {recipe.ingredients.map((ing, i) => {
               const amount = scaleAmount(ing, 1);
@@ -53,7 +53,7 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
         </div>
 
         <div>
-          <h2 className={styles.h2}>Préparation</h2>
+          <h2 className={styles.h2}>Method</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id}>

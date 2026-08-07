@@ -20,7 +20,7 @@ export default async function Home() {
         <header className={styles.header}>
           <div className="shell">
             <div className={styles.plate}>
-              <Cachet variant="header" subtitle="Livre de Recettes de Famille" />
+              <Cachet variant="header" subtitle="The Family Recipe Book" />
             </div>
           </div>
         </header>
@@ -28,8 +28,8 @@ export default async function Home() {
         <main className={`shell ${styles.main}`}>
           {member && (
             <p className={styles.greeting}>
-              <span className="eyebrow">Bonsoir, {member.display_name ?? member.name}</span>
-              {total} {total === 1 ? 'recette' : 'recettes'} dans le livre
+              <span className="eyebrow">Hello, {member.display_name ?? member.name}</span>
+              {total} {total === 1 ? 'recipe' : 'recipes'} in the book
             </p>
           )}
 
@@ -47,11 +47,11 @@ export default async function Home() {
                     className={`card ${styles.cat} ${c.key === 'kids' ? styles.kids : ''}`}
                   >
                     <span className={styles.emoji} aria-hidden="true">{c.emoji}</span>
-                    <span className={styles.catName}>{c.fr}</span>
+                    <span className={styles.catName}>{c.en}</span>
                     {/* An empty category still shows, and says so plainly rather
                         than showing "0" — four of nine are empty at launch. */}
                     <span className={styles.count}>
-                      {n === 0 ? 'rien encore' : `${n} ${n === 1 ? 'recette' : 'recettes'}`}
+                      {n === 0 ? 'nothing yet' : `${n} ${n === 1 ? 'recipe' : 'recipes'}`}
                     </span>
                   </Link>
                 </li>

@@ -9,3 +9,5 @@
 /* The card keeps its fixed geometry and sits centred — it is a printed object,
    not a responsive layout. */
 .cardWrap { display: grid; place-items: center; padding: var(--sp-4) var(--sp-4) var(--sp-6); }
+
+.history { display: grid; place-items: center; margin-top: var(--sp-5); }

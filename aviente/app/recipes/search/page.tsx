@@ -4,7 +4,7 @@ import RecipeCard from '@/components/RecipeCard';
 import { searchRecipes } from '@/lib/queries';
 import styles from '../[category]/category.module.css';
 
-export const metadata = { title: 'Aviente — Recherche' };
+export const metadata = { title: 'Aviente — Search' };
 
 /* Search results (§5.1). The design file has no such screen, so it reuses the
  * category layout — same card list, same empty-state treatment. */
@@ -21,12 +21,12 @@ export default async function SearchPage({
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
-            <Link href="/recipes" className={styles.back}>← Le Livre</Link>
-            <p className="eyebrow">Recherche</p>
+            <Link href="/recipes" className={styles.back}>← The Book</Link>
+            <p className="eyebrow">Search</p>
             <h1 className={styles.h1} lang="he">{query || '—'}</h1>
             <p className={styles.count}>
               {!query ? 'type something to search'
-                : `${results.length} ${results.length === 1 ? 'résultat' : 'résultats'}`}
+                : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
             </p>
           </div>
         </header>

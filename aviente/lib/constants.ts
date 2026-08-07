@@ -5,22 +5,26 @@
  *
  * Rule of thumb: if a client component needs it, it belongs here. */
 
+/* The APP is in English (recipe content is Hebrew). French appears in exactly one
+   place — the course names on the printed menu card — because that is a
+   convention of the artifact, not of the software. Category names are app chrome
+   and so are English. */
 export const CATEGORIES = [
-  { key: 'entrees',  fr: 'Entrées',         emoji: '🥗' },
-  { key: 'soups',    fr: 'Soupes',          emoji: '🥣' },
-  { key: 'salads',   fr: 'Salades',         emoji: '🥬' },
-  { key: 'mains',    fr: 'Plat Principal',  emoji: '🍗' },
-  { key: 'sides',    fr: 'Accompagnements', emoji: '🥔' },
-  { key: 'breads',   fr: 'Boulangerie',     emoji: '🥖' },
-  { key: 'desserts', fr: 'Desserts',        emoji: '🍰' },
-  { key: 'kids',     fr: "Kids' Table",     emoji: '🧸' },
-  { key: 'other',    fr: 'Divers',          emoji: '🫙' },
+  { key: 'entrees',  en: 'Starters',    he: 'ראשונות',  emoji: '🥗' },
+  { key: 'soups',    en: 'Soups',       he: 'מרקים',    emoji: '🥣' },
+  { key: 'salads',   en: 'Salads',      he: 'סלטים',    emoji: '🥬' },
+  { key: 'mains',    en: 'Mains',       he: 'עיקריות',  emoji: '🍗' },
+  { key: 'sides',    en: 'Sides',       he: 'תוספות',   emoji: '🥔' },
+  { key: 'breads',   en: 'Breads',      he: 'לחמים',    emoji: '🥖' },
+  { key: 'desserts', en: 'Desserts',    he: 'קינוחים',  emoji: '🍰' },
+  { key: 'kids',     en: "Kids' Table", he: 'ילדים',    emoji: '🧸' },
+  { key: 'other',    en: 'Other',       he: 'שונות',    emoji: '🫙' },
 ] as const;
 
 export type CategoryKey = (typeof CATEGORIES)[number]['key'];
 
 export const categoryLabel = (key: string) =>
-  CATEGORIES.find((c) => c.key === key) ?? { key, fr: key, emoji: '🍽' };
+  CATEGORIES.find((c) => c.key === key) ?? { key, en: key, he: key, emoji: '🍽' };
 
 export type Unit =
   | 'kg' | 'g' | 'ml' | 'l' | 'cup' | 'pcs' | 'tbsp' | 'tsp' | 'pinch' | 'to taste';
@@ -60,18 +64,26 @@ export type Recipe = RecipeSummary & {
    print above the main, whatever order the rows came back in. Lives in constants
    for the same reason CATEGORIES does — the menu builder is a client component. */
 
+/* Courses carry BOTH: `fr` is printed on the menu card, which is a French bistro
+   artifact by design; `en` is what the builder shows, because the builder is app
+   chrome. Kids' meals never use these — that section has its own vocabulary. */
 export const COURSES = [
-  { key: 'aperitif', fr: 'Apéritif' },
-  { key: 'entree',   fr: 'Entrée' },
-  { key: 'main',     fr: 'Plat Principal' },
-  { key: 'sides',    fr: 'Accompagnements' },
-  { key: 'dessert',  fr: 'Dessert' },
+  { key: 'aperitif', fr: 'Apéritif',         en: 'Aperitif' },
+  { key: 'entree',   fr: 'Entrée',           en: 'Starter' },
+  { key: 'main',     fr: 'Plat Principal',   en: 'Main' },
+  { key: 'sides',    fr: 'Accompagnements',  en: 'Sides' },
+  { key: 'dessert',  fr: 'Dessert',          en: 'Dessert' },
 ] as const;
 
 export type CourseKey = (typeof COURSES)[number]['key'];
 
+/** French — for the printed card only. */
 export const courseLabel = (key: string) =>
   COURSES.find((c) => c.key === key)?.fr ?? key;
+
+/** English — for the builder and anywhere else in the app. */
+export const courseLabelEn = (key: string) =>
+  COURSES.find((c) => c.key === key)?.en ?? key;
 
 export const courseIndex = (key: string) =>
   COURSES.findIndex((c) => c.key === key);

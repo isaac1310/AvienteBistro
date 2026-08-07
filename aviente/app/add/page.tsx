@@ -4,7 +4,7 @@ import RecipeForm from '@/components/RecipeForm';
 import { supabaseServer } from '@/lib/supabase/server';
 import styles from './add.module.css';
 
-export const metadata = { title: 'Aviente — Ajouter' };
+export const metadata = { title: 'Aviente — Add' };
 
 /* Two ways in, because they suit different moments: typing one out at the table,
  * or pasting what an AI made of a photograph. The chooser is one tap and saves
@@ -25,7 +25,7 @@ export default async function AddPage({
       <Nav current="/add" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <p className="eyebrow">Ajouter</p>
+          <p className="eyebrow">Add</p>
           <h1 className={styles.h1}>A new recipe</h1>
 
           <div className={styles.choices}>

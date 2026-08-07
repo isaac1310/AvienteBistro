@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Nav from '@/components/Nav';
-import RecipeCard from '@/components/RecipeCard';
+import SelectableList from '@/components/SelectableList';
 import UndoToast from '@/components/UndoToast';
 import { CATEGORIES, categoryLabel, recipesInCategory } from '@/lib/queries';
 import styles from './category.module.css';
@@ -56,11 +56,7 @@ export default async function CategoryPage({ params }: Params) {
               <Link href="/add" className="btn">＋ Add a recipe</Link>
             </div>
           ) : (
-            <ul className={styles.list}>
-              {recipes.map((r) => (
-                <li key={r.id}><RecipeCard recipe={r} /></li>
-              ))}
-            </ul>
+            <SelectableList recipes={recipes} />
           )}
         </main>
       </div>

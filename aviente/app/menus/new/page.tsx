@@ -47,9 +47,14 @@ export default async function NewMenuPage({
         title: null,
         language: 'he',
         chef_notes: null,
-        // "Add to menu" from a recipe page arrives with ?dish=; it lands as a
-        // main, which is the usual case and one tap from anything else.
-        items: dish ? [{ recipe_id: dish, course: 'main' as const }] : [],
+        /* ?dish= carries one id from a recipe page, or several from a category
+           selection. Everything lands as a main — the usual case, and one tap
+           from anything else in the builder. */
+        items: dish
+          ? dish.split(',').filter(Boolean).map((id) => ({
+              recipe_id: id, course: 'main' as const,
+            }))
+          : [],
       }}
     />
   );

@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "recipes": [
+    {
+      "title": "חביתת גבינה מגולגלת",
+      "titleEn": "Rolled cheese omelette",
+      "mealType": "breakfast",
+      "servings": 1,
+      "prepMinutes": 5,
+      "cookMinutes": 5,
+      "descriptionHe": "חביתה דקה מגולגלת סביב גבינה לבנה",
+      "descriptionEn": "A thin omelette rolled around soft white cheese",
+      "ingredients": [
+        {
+          "name": "ביצים",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "גבינה לבנה",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "חלב",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "מלח",
+          "amount": null,
+          "amountMax": null,
+          "unit": "pinch",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "חמאה",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tsp",
+          "note": "לטיגון",
+          "group": null
+        }
+      ],
+      "steps": [
+        {
+          "heading": null,
+          "body": "טורפים את הביצים עם החלב ומלח."
+        },
+        {
+          "heading": null,
+          "body": "מחממים חמאה במחבת קטנה ויוצקים את הביצים בשכבה דקה."
+        },
+        {
+          "heading": null,
+          "body": "כשהחביתה כמעט מוכנה מפזרים את הגבינה בפס אחד וגוללים."
+        },
+        {
+          "heading": null,
+          "body": "חותכים לגלילים — נוח לאכול ביד."
+        }
+      ],
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null,
+      "story": null
+    },
+    {
+      "title": "פנקייק בננה בלי סוכר",
+      "titleEn": "Banana pancakes",
+      "mealType": "breakfast",
+      "servings": 2,
+      "prepMinutes": 5,
+      "cookMinutes": 10,
+      "descriptionHe": "שלושה רכיבים, מתיקות מהבננה בלבד",
+      "descriptionEn": "Three ingredients, sweet from the banana alone",
+      "ingredients": [
+        {
+          "name": "בננה בשלה",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": "מעוכה",
+          "group": null
+        },
+        {
+          "name": "ביצים",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "קוואקר",
+          "amount": 3,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "קינמון",
+          "amount": null,
+          "amountMax": null,
+          "unit": "pinch",
+          "note": null,
+          "group": null
+        }
+      ],
+      "steps": [
+        {
+          "heading": null,
+          "body": "מועכים את הבננה עם מזלג עד שאין גושים."
+        },
+        {
+          "heading": null,
+          "body": "מוסיפים ביצים, קוואקר וקינמון ומערבבים."
+        },
+        {
+          "heading": null,
+          "body": "מטגנים כפית-כפית במחבת מחוממת, דקה לכל צד."
+        }
+      ],
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null,
+      "story": null
+    },
+    {
+      "title": "פסטה חמאה ופרמזן",
+      "titleEn": "Butter and parmesan pasta",
+      "mealType": "lunch",
+      "servings": 2,
+      "prepMinutes": 2,
+      "cookMinutes": 10,
+      "descriptionHe": "הצלה של ארוחת צהריים בעשר דקות",
+      "descriptionEn": "A ten-minute rescue of a lunch",
+      "ingredients": [
+        {
+          "name": "פסטה קצרה",
+          "amount": 200,
+          "amountMax": null,
+          "unit": "g",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "חמאה",
+          "amount": 30,
+          "amountMax": null,
+          "unit": "g",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "פרמזן מגורר",
+          "amount": 3,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "מלח",
+          "amount": null,
+          "amountMax": null,
+          "unit": "to taste",
+          "note": null,
+          "group": null
+        }
+      ],
+      "steps": [
+        {
+          "heading": null,
+          "body": "מבשלים את הפסטה במים מומלחים לפי ההוראות על האריזה."
+        },
+        {
+          "heading": null,
+          "body": "שומרים חצי כוס ממי הבישול ומסננים."
+        },
+        {
+          "heading": null,
+          "body": "מחזירים לסיר עם החמאה, הפרמזן ומעט ממי הבישול ומערבבים עד שנוצר רוטב."
+        }
+      ],
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null,
+      "story": null
+    },
+    {
+      "title": "כריך פיצה בטוסטר",
+      "titleEn": "Toaster pizza sandwich",
+      "mealType": "lunch",
+      "servings": 1,
+      "prepMinutes": 3,
+      "cookMinutes": 6,
+      "descriptionHe": "לחמנייה, רוטב, גבינה — ולטוסטר",
+      "descriptionEn": "A roll, sauce, cheese — and into the toaster",
+      "ingredients": [
+        {
+          "name": "לחמנייה",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": "חצויה",
+          "group": null
+        },
+        {
+          "name": "רסק עגבניות",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "גבינה צהובה מגוררת",
+          "amount": null,
+          "amountMax": null,
+          "unit": "to taste",
+          "note": null,
+          "group": null
+        },
+        {
+          "name": "אורגנו",
+          "amount": null,
+          "amountMax": null,
+          "unit": "pinch",
+          "note": null,
+          "group": null
+        }
+      ],
+      "steps": [
+        {
+          "heading": null,
+          "body": "מורחים רסק על שני חצאי הלחמנייה."
+        },
+        {
+          "heading": null,
+          "body": "מפזרים גבינה ואורגנו."
+        },
+        {
+          "heading": null,
+          "body": "בטוסטר או בתנור עד שהגבינה נמסה ומזהיבה."
+        }
+      ],
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null,
+      "story": null
+    },
+    {
+      "title": "שניצל תנור בפירורי פנקו",
+      "titleEn": "Oven schnitzel",
+      "mealType": "dinner",
+      "servings": 3,
+      "prepMinutes": 15,
+      "cookMinutes": 22,
+      "descriptionHe": "פריך בתנור, בלי מחבת ובלי שמן עמוק",
+      "descriptionEn": "Crisp from the oven, no pan and no deep oil",
+      "ingredients": [
+        {
+          "name": "חזה עוף",
+          "amount": 600,
+          "amountMax": null,
+          "unit": "g",
+          "note": "פרוס דק",
+          "group": "בשר"
+        },
+        {
+          "name": "מלח",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tsp",
+          "note": null,
+          "group": "בשר"
+        },
+        {
+          "name": "פפריקה מתוקה",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tsp",
+          "note": null,
+          "group": "בשר"
+        },
+        {
+          "name": "ביצים",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": null,
+          "group": "ציפוי"
+        },
+        {
+          "name": "קמח",
+          "amount": null,
+          "amountMax": null,
+          "unit": "to taste",
+          "note": null,
+          "group": "ציפוי"
+        },
+        {
+          "name": "פירורי פנקו",
+          "amount": null,
+          "amountMax": null,
+          "unit": "to taste",
+          "note": null,
+          "group": "ציפוי"
+        },
+        {
+          "name": "שמן זית",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": "להברשה",
+          "group": "ציפוי"
+        }
+      ],
+      "steps": [
+        {
+          "heading": "הכנה",
+          "body": "מחממים תנור ל-200 מעלות ומרפדים תבנית בנייר אפייה."
+        },
+        {
+          "heading": null,
+          "body": "מתבלים את העוף במלח ופפריקה."
+        },
+        {
+          "heading": "ציפוי",
+          "body": "מעבירים כל פרוסה בקמח, בביצה ובפנקו — בסדר הזה."
+        },
+        {
+          "heading": null,
+          "body": "מסדרים בתבנית, מברישים בשמן זית."
+        },
+        {
+          "heading": null,
+          "body": "אופים 12 דקות, הופכים, ועוד 8-10 דקות עד להזהבה."
+        }
+      ],
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null,
+      "story": null
+    },
+    {
+      "title": "קציצות עוף ברוטב עגבניות",
+      "titleEn": "Chicken meatballs in tomato",
+      "mealType": "dinner",
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 30,
+      "descriptionHe": "קציצות רכות ברוטב מתקתק שילדים אוכלים",
+      "descriptionEn": "Soft meatballs in a mild sauce children actually eat",
+      "ingredients": [
+        {
+          "name": "עוף טחון",
+          "amount": 500,
+          "amountMax": null,
+          "unit": "g",
+          "note": null,
+          "group": "קציצות"
+        },
+        {
+          "name": "ביצה",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": null,
+          "group": "קציצות"
+        },
+        {
+          "name": "פירורי לחם",
+          "amount": 3,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": "קציצות"
+        },
+        {
+          "name": "בצל",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": "קצוץ דק",
+          "group": "קציצות"
+        },
+        {
+          "name": "מלח",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tsp",
+          "note": null,
+          "group": "קציצות"
+        },
+        {
+          "name": "רסק עגבניות",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "pcs",
+          "note": "קופסה",
+          "group": "רוטב"
+        },
+        {
+          "name": "מים",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "cup",
+          "note": null,
+          "group": "רוטב"
+        },
+        {
+          "name": "סוכר",
+          "amount": 1,
+          "amountMax": null,
+          "unit": "tsp",
+          "note": "לאיזון החומציות",
+          "group": "רוטב"
+        },
+        {
+          "name": "שמן זית",
+          "amount": 2,
+          "amountMax": null,
+          "unit": "tbsp",
+          "note": null,
+          "group": "רוטב"
+        }
+      ],
+      "steps": [
+        {
+          "heading": "קציצות",
+          "body": "מערבבים את כל מרכיבי הקציצות ומקררים 15 דקות."
+        },
+        {
+          "heading": "רוטב",
+          "body": "בסיר מחממים שמן, מוסיפים רסק ומטגנים דקה."
+        },
+        {
+          "heading": null,
+          "body": "מוסיפים מים וסוכר ומביאים לרתיחה."
+        },
+        {
+          "heading": null,
+          "body": "מכדררים קציצות קטנות ומכניסים לרוטב הרותח."
+        },
+        {
+          "heading": null,
+          "body": "מכסים, מנמיכים ומבשלים 25-30 דקות."
+        }
+      ],
+      "story": "הרוטב מכוון להיות עדין ולא חמוץ — זה מה שמכריע אם ילד יאכל או לא.",
+      "schemaVersion": 1,
+      "category": "kids",
+      "yieldText": null,
+      "servingSuggestions": null
+    }
+  ]
+}

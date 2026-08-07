@@ -1,0 +1,48 @@
+.bar { display: flex; justify-content: flex-end; margin-bottom: var(--sp-3); }
+.toggle {
+  font: inherit; font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase;
+  min-height: var(--tap); padding: 0 var(--sp-4);
+  background: transparent; border: 1px solid var(--card-border);
+  border-radius: var(--radius); color: var(--primary); cursor: pointer;
+}
+@media (hover: hover) { .toggle:hover { border-color: var(--gold-deep); } }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); }
+@media (min-width: 768px)  { .list { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1280px) { .list { grid-template-columns: repeat(3, 1fr); } }
+.item { min-width: 0; }
+
+.selectable {
+  display: grid; grid-template-columns: auto 1fr; align-items: center;
+  gap: var(--sp-4); padding: var(--sp-4); min-height: 92px; cursor: pointer;
+}
+.on { border-color: var(--gold-deep); background: color-mix(in srgb, var(--card) 92%, var(--gold)); }
+
+/* A real checkbox, sized to be tappable and tinted to the theme. */
+.box { width: 22px; height: 22px; accent-color: var(--primary); }
+
+.body { display: grid; gap: 2px; min-width: 0; }
+.title { font-family: var(--ser); font-size: 1.25rem; color: var(--primary); }
+.meta { font-family: var(--ser); font-style: italic; font-size: 0.875rem; color: var(--ink-soft); }
+
+.sticky {
+  position: fixed; left: 0; right: 0;
+  bottom: calc(var(--tap) + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  background: var(--primary); color: var(--page);
+  box-shadow: 0 -8px 28px rgba(30, 58, 47, 0.24);
+}
+@media (min-width: 1024px) { .sticky { left: 210px; bottom: 0; } }
+
+.count { font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase; }
+.go {
+  font: inherit; font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase;
+  min-height: var(--tap); padding: 0 var(--sp-5);
+  background: var(--gold); border: 0; border-radius: var(--radius);
+  color: var(--primary-deep); cursor: pointer; font-weight: 500;
+}

@@ -140,7 +140,9 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.45;
-  color: #5a5140;
+  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
+     under AA. #4e463a clears it and is indistinguishable at a glance. */
+  color: #4e463a;
 }
 .dishDesc[lang='he'] { direction: rtl; }
 
@@ -158,7 +160,9 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.5;
-  color: #5a5140;
+  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
+     under AA. #4e463a clears it and is indistinguishable at a glance. */
+  color: #4e463a;
 }
 
 /* ── the candles ────────────────────────────────────────────────────────── */

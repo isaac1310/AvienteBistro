@@ -164,4 +164,12 @@ a { color: inherit; }
   border-radius: var(--radius);
 }
 
+/* A card that is itself a link gets the same treatment on keyboard focus as on
+   hover, plus the global outline. Hover-only feedback gives a mouse user a signal a
+   keyboard user never sees, on the app's most-repeated control. */
+a.card:hover,
+a.card:focus-visible {
+  border-color: var(--gold);
+}
+
 .shell { max-width: var(--shell); margin: 0 auto; padding: 0 var(--sp-4); }

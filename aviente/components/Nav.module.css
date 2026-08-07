@@ -32,17 +32,37 @@
   color: var(--ink-soft);
 }
 
-.icon { font-size: 1.125rem; line-height: 1; }
+/* A drawn SVG now, so it needs no font sizing — just a stable box so the label sits
+   at the same height whatever the glyph. */
+.icon { display: block; }
 
 .label {
   font-family: var(--san);
-  font-size: 0.5625rem;
-  letter-spacing: 2px;
+  /* Was 0.5625rem — 9px, on the primary navigation, with 2px of tracking on top.
+     Below comfortable reading even for four known words, and this is the one control
+     that has to work at arm's length in a kitchen. The bar had the room. */
+  font-size: var(--t-label);
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
 .active { color: var(--primary); }
 .active .label { color: var(--gold-ink); }
+
+/* Desktop sidebar: the active item gets the app's gold hairline, not colour alone.
+   Colour-only state is invisible to a colour-blind reader, and at 210px there is
+   room for the same signature the .pending indicator uses. */
+@media (min-width: 1024px) {
+  .active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--gold);
+  }
+}
 
 @media (min-width: 1024px) {
   .nav {

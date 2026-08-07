@@ -141,7 +141,7 @@
   border-color: #f3cfe0;
 }
 .kids .catName { font-family: var(--kid); font-weight: 600; color: #2f6b52; }
-.kids .count { color: #7a5f8f; }
+.kids .count { color: #5e4770; }
 
 .emoji { font-size: 1.5rem; line-height: 1; }
 
@@ -194,8 +194,6 @@
 }
 .actionIcon {
   grid-row: 1 / span 2;
-  font-size: 1.6rem;
-  line-height: 1;
 }
 .actionName {
   font-family: var(--ser);
@@ -219,7 +217,9 @@
   border-color: #f3cfe0;
 }
 .kidAction .actionName { font-family: var(--kid); font-weight: 600; color: #2f6b52; }
-.kidAction .actionHint { color: #7a5f8f; }
+/* Was #7a5f8f — about 3.4:1 on the pastel gradient at 0.8rem, which fails AA for
+   text this size. Darkened until it clears; the tile still reads as the pastel one. */
+.kidAction .actionHint { color: #5e4770; }
 
 /* The one thing on this page that is not a navigation choice: the export. Stated as
    a quiet line rather than a button, because it is reassurance more than a feature —
@@ -283,19 +283,30 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* One line of type under the cards, pointing at the nav bar. Not a card: it is a
-   sentence, and making it look tappable would put a fifth choice on a screen that
-   is deliberately four. */
-.aside {
-  margin: 0;
-  text-align: center;
-  font-family: var(--ser);
-  font-style: italic;
-  font-size: var(--t-small);
-  color: var(--ink-soft);
-}
 
 /* Four cards, not three: two-up on a phone so all four are above the fold on the
    Ultra, four across on a desktop. */
 @media (min-width: 480px) { .actions { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1100px) { .actions { grid-template-columns: repeat(4, 1fr); } }
+
+/* The search row. Deliberately quiet: it is the first thing you can DO on this
+   screen, but the four cards are what the screen is for. */
+.search { display: block; }
+
+.searchField {
+  font: inherit;
+  font-family: var(--ser);
+  font-size: 1rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--sp-4);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.searchField::placeholder { color: var(--ink-soft); font-style: italic; }
+.searchField:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 1px; }
+
+/* The icons are drawn now, so the box is fixed rather than following a font size. */
+.actionIcon { display: block; }

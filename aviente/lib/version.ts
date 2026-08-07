@@ -5,7 +5,7 @@
  *
  * major = schema change · minor = features · patch = fixes
  */
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.9.0';
 
 /** Bumped only when supabase/migrations change shape. Shown beside the version. */
 export const SCHEMA_VERSION = 1;

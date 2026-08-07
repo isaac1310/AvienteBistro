@@ -284,6 +284,75 @@
       eq(A.scaleFactor(12, null), 1, 'factor'));
   }
 
+
+  function occasions() {
+    group('occasions');
+    const A = window.Aviente;
+    if (!A?.resolveOccasion) { check('occasion exposed', () => skip('not attached')); return; }
+
+    const RULES = [
+      { id: '1', match: { weekday: 5, from: 'evening' }, title: 'Shabbat Dinner',
+        subtitle: null, ornament: 'candles', priority: 10 },
+      { id: '2', match: { hebcal: 'Rosh Hashana', from: 'evening' }, title: 'Rosh Hashanah',
+        subtitle: null, ornament: 'apple', priority: 100 },
+    ];
+    const on = (iso, when) => A.resolveOccasion(new Date(iso + 'T12:00:00'), when, RULES);
+
+    check('Friday EVENING is Shabbat', () =>
+      eq(on('2026-08-07', 'evening')?.title, 'Shabbat Dinner', 'title'));
+
+    // The sundown bug: a lunch menu on the same Friday must NOT be Shabbat dinner.
+    check('Friday LUNCH is not Shabbat', () => {
+      const r = on('2026-08-07', 'day');
+      return r === null ? true : `expected no occasion, got "${r.title}"`;
+    });
+
+    check('Thursday evening is not Shabbat', () => {
+      const r = on('2026-08-06', 'evening');
+      return r === null ? true : `expected no occasion, got "${r.title}"`;
+    });
+
+    // The staleness bug: one hebcal KEY must resolve across different years,
+    // which a stored Gregorian date could never do.
+    check('a holiday key resolves in two different years', () => {
+      const years = [2026, 2027].map((y) => {
+        for (let d = new Date(`${y}-09-01T12:00:00`); d < new Date(`${y}-10-15T12:00:00`);
+             d.setDate(d.getDate() + 1)) {
+          const r = A.resolveOccasion(new Date(d), 'evening', RULES);
+          if (r?.title === 'Rosh Hashanah') return d.toISOString().slice(0, 10);
+        }
+        return null;
+      });
+      if (years.some((y) => !y)) return `not found in ${JSON.stringify(years)}`;
+      // Different Gregorian dates each year is the entire point.
+      return years[0] !== years[1] ? true : `same date both years: ${years[0]}`;
+    });
+
+    check('the higher-priority rule wins', () => {
+      const r = A.resolveOccasion(new Date('2026-09-11T12:00:00'), 'evening', [
+        { id: 'a', match: { weekday: 5, from: 'evening' }, title: 'Low', subtitle: null, ornament: null, priority: 1 },
+        { id: 'b', match: { weekday: 5, from: 'evening' }, title: 'High', subtitle: null, ornament: null, priority: 99 },
+      ]);
+      return eq(r?.title, 'High', 'title');
+    });
+  }
+
+  function kidsWeek() {
+    group('kids');
+    const A = window.Aviente;
+    if (!A?.mondayOf) { check('kids helpers exposed', () => skip('not attached')); return; }
+
+    check('Monday maps to itself', () =>
+      eq(A.mondayOf(new Date('2026-08-03T12:00:00')), '2026-08-03', 'week start'));
+    check('Wednesday maps back to Monday', () =>
+      eq(A.mondayOf(new Date('2026-08-05T12:00:00')), '2026-08-03', 'week start'));
+    // Sunday belongs to the week that ALREADY started, not the one about to.
+    check('Sunday belongs to the week that started', () =>
+      eq(A.mondayOf(new Date('2026-08-09T12:00:00')), '2026-08-03', 'week start'));
+    check('week arithmetic stays on Mondays', () =>
+      eq(A.addWeeks('2026-08-03', 2), '2026-08-17', 'two weeks on'));
+  }
+
   /* ---------- the run ---------- */
 
   function tally() {
@@ -309,6 +378,8 @@
     splash();
     parser();
     scaling();
+    occasions();
+    kidsWeek();
 
     const t = tally();
     window.__selftest = { ...t, results, version: document.body.dataset.version || null };

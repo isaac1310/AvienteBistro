@@ -17,12 +17,19 @@ export default function SelfTest() {
     let cancelled = false;
     (async () => {
       // Dynamic imports so neither module is pulled into the normal client bundle.
-      const [parse, scale] = await Promise.all([
+      const [parse, scale, occasion, kids] = await Promise.all([
         import('@/lib/recipeParse.mjs'),
         import('@/lib/scale'),
+        import('@/lib/occasion'),
+        import('@/lib/constants'),
       ]);
       if (cancelled) return;
       (window as unknown as { Aviente: unknown }).Aviente = {
+        resolveOccasion: occasion.resolveOccasion,
+        cardDate: occasion.cardDate,
+        mondayOf: kids.mondayOf,
+        addWeeks: kids.addWeeks,
+        weekLabel: kids.weekLabel,
         scaleAmount: scale.scaleAmount,
         servingOptions: scale.servingOptions,
         scaleFactor: scale.scaleFactor,

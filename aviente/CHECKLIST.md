@@ -23,7 +23,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
 - [x] **Version footer** — `lib/version.ts`. Bump `APP_VERSION` every release.
 - [x] **Fonts** — five faces incl. Frank Ruhl Libre + Heebo for Hebrew.
 
-- [!] **Step 6: environment keys** — everything below is blocked on this.
+- [x] **Step 6: environment keys** — everything below is blocked on this.
       1. Supabase → Project Settings → API.
       2. Copy **Project URL** and the **anon / publishable** key.
       3. `cp .env.example .env.local`, paste both in, set `NEXT_PUBLIC_E2E=1`.
@@ -32,7 +32,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       hard-coded array in `app/page.tsx`.
       *Do not* put the `service_role` key here or in Vercel.
 
-- [ ] **Supabase client wiring**
+- [x] **Supabase client wiring**
       1. `lib/supabase/client.ts` — browser client via `@supabase/ssr`
          `createBrowserClient`.
       2. `lib/supabase/server.ts` — server client with the cookie adapter, for
@@ -42,7 +42,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       **Done when:** a Server Component can read `recipes` and an unauthenticated
       request to `/` lands on `/login`.
 
-- [ ] **Login screen** (`app/login/page.tsx`)
+- [x] **Login screen** (`app/login/page.tsx`)
       1. Le Cachet plaque, one email field, `SEND ME A LINK`.
       2. `supabase.auth.signInWithOtp({ email })`.
       3. **The code fallback** — same email carries a 6-digit code; add an
@@ -62,7 +62,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
 
 ## Phase 2 · Recipes (§3.2–3.4)
 
-- [ ] **Category browse** (`app/recipes/[category]/page.tsx`)
+- [x] **Category browse** (`app/recipes/[category]/page.tsx`)
       1. Title + count, filter chips (All / per member / Quick).
       2. Cards: thumb, serif title, italic "Savta's · serves 8".
       3. **Photo fallback** — striped placeholder with the category emoji.
@@ -70,7 +70,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       **Done when:** all five seeded categories browse correctly, and `breads`
       shows 5.
 
-- [ ] **Recipe view** (`app/recipes/[category]/[id]/page.tsx`)
+- [x] **Recipe view** (`app/recipes/[category]/[id]/page.tsx`)
       1. Photo hero or full-bleed blueprint; back + EDIT overlays.
       2. Serif title, `title_en` beneath when present, italic attribution.
       3. **Timing strip** — `PRÉPARATION 15 min · CUISSON 40 min · 6 PERSONNES`,
@@ -84,7 +84,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       **Done when:** the ginger concentrate shows its yield and **no** scale
       dropdown, and the khaluz shows its notes.
 
-- [ ] **Serving scaling** (`lib/scale.ts`)
+- [x] **Serving scaling** (`lib/scale.ts`)
       1. Multiply by `target/servings`; scale `amount` **and** `amount_max`.
       2. `pcs` rounds up with an "≈" hint; `to taste` and `pinch` untouched.
       3. g/ml promote to kg/l above 1000; 2 significant decimals otherwise.
@@ -92,7 +92,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       5. Note under the dropdown that step text does not scale.
       **Done when:** `400–500 g` at ×1.5 reads `600–750 g`, and 3 eggs ×1.5 is 5.
 
-- [ ] **Recipe edit** (§3.4) — **explicit save, no autosave**
+- [x] **Recipe edit** (§3.4) — **explicit save, no autosave**
       1. Header: EDITING · SAVE · CANCEL, with a dirty-guard on navigate-away.
       2. Inline title; CATEGORY select; MEAL TYPE only when category = kids.
       3. Ingredients: drag-reorder with a keyboard path (↑↓ on the focused
@@ -103,7 +103,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       7. Footer: "last edited by {name} · {time ago}".
       **Done when:** saving twice leaves two revisions and the footer updates.
 
-- [ ] **Photos**
+- [x] **Photos**
       1. Two dashed buttons: 📷 TAKE PHOTO (`capture="environment"`) /
          🖼 FROM GALLERY.
       2. **Downscale before upload** — canvas to max 1600px, WebP ~0.85.
@@ -112,10 +112,10 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       **Done when:** a 9MB phone photo lands under ~250KB and replacing one
       leaves exactly one object in the bucket.
 
-- [ ] **Soft delete + undo** — `deleted_at`, a 10-second undo toast, and every
+- [x] **Soft delete + undo** — `deleted_at`, a 10-second undo toast, and every
       query filtering `deleted_at is null`.
 
-- [ ] **Search** (§5.1) — recipes only: title, `title_en`, ingredient names, both
+- [x] **Search** (§5.1) — recipes only: title, `title_en`, ingredient names, both
       descriptions. `pg_trgm` similarity against `search_text`. Needs a results
       screen and an empty state; neither exists in the design file.
 
@@ -123,7 +123,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
 
 ## Phase 3 · Menus (§3.5–3.7)
 
-- [ ] **Occasion rules** (`lib/occasion.ts`)
+- [x] **Occasion rules** (`lib/occasion.ts`)
       1. Resolve `{weekday: 5}` and `{hebcal: "..."}` against the menu date using
          `@hebcal/core`, in `family_settings.timezone` (never the device clock).
       2. Evening vs day: a menu with a `main` course is an evening meal, so a
@@ -132,17 +132,17 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       4. Highest priority wins; the title stays editable.
       **Done when:** the same holiday resolves correctly in two different years.
 
-- [ ] **Menu builder** (§3.5) — date picker with occasion badge, language
+- [x] **Menu builder** (§3.5) — date picker with occasion badge, language
       segmented toggle, drag-reorder course rows, `+ ADD A DISH` into select
       mode, other-language fallback chip. **On save, write the `menu_items`
       snapshot fields** from the recipe as it is right now.
 
-- [ ] **Menu card** (§3.6 / 3b-5a) — beige, double frame, ❧ fleurons, burgundy
+- [x] **Menu card** (§3.6 / 3b-5a) — beige, double frame, ❧ fleurons, burgundy
       French course names, ❦ dividers, per-course credit, CSS candles for the
       `candles` ornament. An empty course is omitted, never printed empty.
       Fixed width; centred on desktop, never reflowed.
 
-- [ ] **Print routes + PDF** (§4)
+- [x] **Print routes + PDF** (§4)
       1. `/print/recipe/[id]`, `/print/menu/[id]`, `/print/kids/[week]` with a
          `@media print` sheet: A4 portrait, **`print-color-adjust: exact`**
          (without it browsers strip the beige and green), no nav, no page-break
@@ -153,11 +153,11 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       **Done when:** the PDF has extractable Hebrew text — that is the only way to
       catch a missing embedded font.
 
-- [ ] **Saved menus** (§3.7) — ★ list by default, upcoming pinned, "show all"
+- [x] **Saved menus** (§3.7) — ★ list by default, upcoming pinned, "show all"
       for the rest, DUPLICATE on every row, holiday suggestion rows, auto-tidy of
       unstarred menus older than 6 months.
 
-- [ ] **Guest share** (§3.6)
+- [x] **Guest share** (§3.6)
       1. 🔗 SHARE LINK mints `share_id` + `share_secret`, copies
          `/m/{id}?k={secret}`.
       2. `app/m/[id]/page.tsx` calls `fetch_shared_menu` — already written.
@@ -171,15 +171,15 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
 
 ## Phase 4 · Kids, import, polish
 
-- [ ] **Kids planner** (§3.8) — week picker (Mondays), `＋ PICK DISHES` into a
+- [x] **Kids planner** (§3.8) — week picker (Mondays), `＋ PICK DISHES` into a
       tray, place day-by-day or `FILL THE WEEK`, animal day bubbles, chef badges,
       ↻ swap, 🧲 Fridge PDF, Clear week. Exempt from theming.
 
-- [ ] **JSON paste import** (§3.9) — copyable prompt textarea, paste box, live
+- [x] **JSON paste import** (§3.9) — copyable prompt textarea, paste box, live
       preview, duplicate-title check, unknown `schemaVersion` refused.
       `lib/recipeParse.mjs` already does the parsing; this is the UI.
 
-- [ ] **Backup export** (§8) — one button, whole cookbook as §3.9 JSON. Free tier
+- [x] **Backup export** (§8) — one button, whole cookbook as §3.9 JSON. Free tier
       has no automated backups and these recipes exist nowhere else.
 
 - [ ] **Desktop + polish** — 768/1024 breakpoints, sidebar nav, empty/loading/

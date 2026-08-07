@@ -21,7 +21,11 @@ export default async function PrintMenu({
   const { k } = await searchParams;
 
   const shared = k ? await fetchSharedMenu(id, k) : null;
-  const owned = k ? null : await getMenu(id);
+  /* Without a session `anon` is refused at the privilege level, which getMenu
+     turns into a thrown error — and an unauthenticated visitor to a print URL
+     should see a sentence, not a 500 page. Swallow it and fall through to the
+     "not available" branch, which is the same answer a wrong secret gets. */
+  const owned = k ? null : await getMenu(id).catch(() => null);
 
   const menu = shared
     ? {

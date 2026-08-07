@@ -116,6 +116,16 @@
 
 .dish + .dish { margin-top: 12px; }
 
+/* The card is a centred composition, so Hebrew here is centred too. The global
+   [lang='he'] rule sets text-align:right, which is correct for a page of running
+   text and wrong for a menu — it left every dish name hugging the right frame.
+   Direction stays RTL; only the alignment is overridden. */
+.dishName,
+.dishDesc,
+.notes {
+  text-align: center;
+}
+
 .dishName {
   margin: 0;
   font-family: var(--ser);

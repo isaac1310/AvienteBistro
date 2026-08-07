@@ -81,7 +81,13 @@ body {
    `:not(html)` matters: the document element carries a lang attribute too, and
    without the exclusion this rule flipped the entire app -- reversing the category
    grid and rendering counts as "RECETTES 5". Scope it to content elements only. */
-[lang='he']:not(html), .rtl { direction: rtl; text-align: right; }
+/* `direction: rtl` alone is enough: the initial `text-align: start` already
+   resolves to the right edge in an RTL block. Setting `text-align: right`
+   explicitly ADDED nothing and broke the menu card, where Hebrew dish names must
+   be centred — and it outranked the card's own rule on specificity, so the card
+   could not override it locally. Set direction; let each component choose
+   alignment. */
+[lang='he']:not(html), .rtl { direction: rtl; }
 
 h1, h2, h3 { font-family: var(--ser); font-weight: 500; margin: 0; line-height: 1.15; }
 

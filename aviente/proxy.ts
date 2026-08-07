@@ -23,6 +23,12 @@ const PUBLIC = [
   '/login',
   '/auth',      // the magic-link callback
   '/m',         // guest menu share pages — secret-gated, no account by design
+  /* Print routes must be public, or a guest tapping "Save as PDF" on a shared
+     menu is bounced to a login screen they can never pass. This is safe: without
+     ?k= the print route falls back to getMenu(), which RLS answers with nothing,
+     so an unauthenticated visitor sees "Menu not available". The secret remains
+     the only thing that reveals anything. */
+  '/print',
 ];
 
 export async function proxy(request: NextRequest) {

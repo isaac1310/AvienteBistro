@@ -70,9 +70,34 @@ export async function GET(request: NextRequest) {
     }
 
     await page.goto(`${request.nextUrl.origin}${path}`, { waitUntil: 'networkidle0' });
-    // Fonts must be in before the snapshot or the card prints in a fallback face —
-    // and that is exactly the bug that would not show up until someone has paper.
-    await page.evaluate(() => document.fonts.ready);
+
+    /* Fonts must be IN before the snapshot, or the card prints in a fallback face.
+     *
+     * `page.evaluate(() => document.fonts.ready)` looks right and is not: it
+     * resolves to a FontFaceSet, which is not serialisable, so puppeteer does not
+     * actually wait for it. The first PDF produced this way embedded
+     * TimesNewRomanPSMT and nothing else — no Cormorant, no Frank Ruhl Libre.
+     * Return a plain boolean so the await is real, then confirm the faces are
+     * genuinely loaded rather than merely declared. */
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      return true;
+    });
+
+    await page.waitForFunction(
+      () => document.fonts.check('16px "Cormorant Garamond"'),
+      { timeout: 5000 },
+    ).catch(() => { /* fall through: a fallback face beats no PDF at all */ });
+
+    /* ?debug=shot returns what Chromium actually sees, as a PNG. Kept because
+       diagnosing a PDF by staring at its bytes is miserable, and the first font
+       bug here cost far more time than this branch will. */
+    if (request.nextUrl.searchParams.get('debug') === 'shot') {
+      const shot = await page.screenshot({ fullPage: true });
+      return new NextResponse(shot as unknown as BodyInit, {
+        headers: { 'content-type': 'image/png' },
+      });
+    }
 
     const pdf = await page.pdf({
       format: 'A4',

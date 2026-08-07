@@ -6,9 +6,57 @@
   .frame { padding-bottom: var(--sp-6); padding-left: 210px; }
 }
 
+/* The header now quotes the printed cookbook cover: a field of kitchen implements
+   with the title floating on a panel above it.
+   Three deliberate departures from the cover, so it reads as ours rather than as
+   a scan of it — the pattern is our gold instead of the cover's brown, it sits at
+   low opacity so it is texture rather than decoration, and the panel keeps the
+   app's 2px corners instead of the cover's soft radius. */
 .header {
+  position: relative;
   background: var(--page);
   border-bottom: 1px solid var(--card-border);
+  isolation: isolate;
+  overflow: hidden;
+  /* Air above and below, so the panel floats on the field rather than sitting
+     on its edge — the cover gives its title card the same margin. */
+  padding: var(--sp-6) 0 var(--sp-5);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/brand/pattern-utensils.svg');
+  background-repeat: repeat;
+  background-size: 168px;
+  /* currentColor inside the SVG resolves against this element, so the whole
+     field takes the theme's gold and changes with it. */
+  color: var(--gold-deep);
+  opacity: 0.18;
+  /* Fade it out toward the panel so the wordmark never fights the drawing. */
+  mask-image: radial-gradient(ellipse 78% 72% at 50% 46%, transparent 38%, #000 78%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 50% 46%, transparent 38%, #000 78%);
+}
+
+/* The cover's framed title card, in our vocabulary: cream panel, gold hairline,
+   square corners. */
+.plate {
+  position: relative;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: var(--sp-3) var(--sp-5);
+  background: color-mix(in srgb, var(--page) 88%, #fff);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 5px var(--page);
+}
+
+@media (max-width: 600px) {
+  .header { padding: var(--sp-5) 0 var(--sp-4); }
+  .header::before { background-size: 132px; }
+  .plate { padding: var(--sp-2) var(--sp-4); }
 }
 
 .main { padding-top: var(--sp-5); }

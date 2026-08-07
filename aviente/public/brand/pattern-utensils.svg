@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+  <title>Aviente — utensil pattern</title>
+  <!-- Adapted from the printed cookbook cover, which tiles hand-drawn kitchen
+       implements behind a framed title card.
+       Redrawn as vector line art rather than lifted as a raster: it tiles
+       seamlessly, stays crisp on the Ultra, weighs about 2KB instead of 300KB,
+       and takes the app's gold instead of the cover's brown.
+       Every shape is stroke-only at a single weight, which is what makes the
+       whole field read as one texture rather than a collage. -->
+  <g fill="none" stroke="currentColor" stroke-width="1.6"
+     stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- rolling pin -->
+    <g transform="translate(16 24) rotate(-18)">
+      <rect x="10" y="0" width="42" height="13" rx="6.5"/>
+      <path d="M10 6.5H0M52 6.5h10"/>
+    </g>
+
+    <!-- whisk -->
+    <g transform="translate(112 14)">
+      <path d="M9 30V16"/>
+      <rect x="6" y="30" width="6" height="14" rx="3"/>
+      <path d="M9 16c-7 0-9 7-6 12M9 16c7 0 9 7 6 12M9 16v12"/>
+      <ellipse cx="9" cy="8" rx="7" ry="8"/>
+    </g>
+
+    <!-- mason jar -->
+    <g transform="translate(196 18)">
+      <path d="M4 10h22v26a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/>
+      <rect x="2" y="4" width="26" height="7" rx="2"/>
+      <path d="M9 18v14M15 18v14M21 18v14"/>
+    </g>
+
+    <!-- teapot -->
+    <g transform="translate(28 104)">
+      <path d="M6 14h30a4 4 0 0 1 4 4v10a12 12 0 0 1-12 12H14A12 12 0 0 1 2 28V18a4 4 0 0 1 4-4z"/>
+      <path d="M40 20c6 1 9 5 8 10M14 14c0-5 4-8 7-8s7 3 7 8"/>
+      <path d="M19 5h4"/>
+    </g>
+
+    <!-- spoon -->
+    <g transform="translate(122 100) rotate(24)">
+      <ellipse cx="8" cy="9" rx="8" ry="10"/>
+      <path d="M8 19v24"/>
+    </g>
+
+    <!-- chef's knife -->
+    <g transform="translate(190 106) rotate(-10)">
+      <path d="M2 4c14 0 26 7 30 16H2z"/>
+      <path d="M2 20h-2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2z"/>
+    </g>
+
+    <!-- apple -->
+    <g transform="translate(20 188)">
+      <path d="M14 10c-8 0-13 6-13 14s7 16 13 16 13-6 13-16-5-14-13-14z"/>
+      <path d="M14 10V3M14 6c4-3 8-3 9-4"/>
+    </g>
+
+    <!-- mortar and pestle -->
+    <g transform="translate(104 192)">
+      <path d="M2 12h30c0 12-6 20-15 20S2 24 2 12z"/>
+      <path d="M26 10 36 0"/>
+      <circle cx="37" cy="-1" r="3"/>
+    </g>
+
+    <!-- balance scale -->
+    <g transform="translate(190 190)">
+      <path d="M4 34h28M18 34V12"/>
+      <path d="M6 12h24"/>
+      <path d="M6 12c0 6 3 9 6 9s6-3 6-9M18 12c0 6 3 9 6 9s6-3 6-9"/>
+      <circle cx="18" cy="9" r="3"/>
+    </g>
+
+    <!-- sprig, to break the grid -->
+    <g transform="translate(76 60)">
+      <path d="M6 22V2"/>
+      <path d="M6 8c-4-2-6-1-7 1 2 2 5 2 7-1zM6 14c4-2 6-1 7 1-2 2-5 2-7-1z"/>
+    </g>
+
+    <!-- coffee beans, filling the gaps the cover leaves -->
+    <g transform="translate(160 66)">
+      <ellipse cx="5" cy="5" rx="5" ry="3.5" transform="rotate(-30 5 5)"/>
+      <path d="M1.5 6.5c2-2 5-2 7 0" transform="rotate(-30 5 5)"/>
+    </g>
+    <g transform="translate(64 154)">
+      <ellipse cx="5" cy="5" rx="5" ry="3.5" transform="rotate(20 5 5)"/>
+      <path d="M1.5 6.5c2-2 5-2 7 0" transform="rotate(20 5 5)"/>
+    </g>
+    <g transform="translate(232 148)">
+      <ellipse cx="5" cy="5" rx="5" ry="3.5" transform="rotate(-12 5 5)"/>
+      <path d="M1.5 6.5c2-2 5-2 7 0" transform="rotate(-12 5 5)"/>
+    </g>
+  </g>
+</svg>

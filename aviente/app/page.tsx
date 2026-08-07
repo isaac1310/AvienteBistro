@@ -19,7 +19,9 @@ export default async function Home() {
       <div className={styles.frame}>
         <header className={styles.header}>
           <div className="shell">
-            <Cachet variant="header" subtitle="Livre de Recettes de Famille" />
+            <div className={styles.plate}>
+              <Cachet variant="header" subtitle="Livre de Recettes de Famille" />
+            </div>
           </div>
         </header>
 

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RecipeCard from './RecipeCard';
+import { clearBasket, onBasketChange, readBasket, writeBasket } from '@/lib/basket';
 import type { RecipeSummary } from '@/lib/constants';
 import styles from './SelectableList.module.css';
 
@@ -12,16 +13,37 @@ import styles from './SelectableList.module.css';
  * searching for each dish by name, one at a time. This is the path you actually
  * want: stand in Mains, tick three things, go.
  *
- * Selection is deliberately NOT persisted. It lasts as long as you are looking at
- * this list, which is how long the intention lasts.
+ * Selection now survives a walk to another category — see lib/basket.ts. It used to
+ * live in this component's state, which meant a soup picked in Soups vanished on the
+ * way to Mains, so the flow could not assemble the one thing it exists to assemble.
+ * It still dies with the tab.
  */
 export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }) {
   const router = useRouter();
-  const [selecting, setSelecting] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
 
-  const toggle = (id: string) =>
-    setChosen(chosen.includes(id) ? chosen.filter((c) => c !== id) : [...chosen, id]);
+  /* Read after mount, never during render. sessionStorage does not exist on the
+     server, so seeding useState from it makes the two disagree about the first paint
+     — and React's recovery is to throw away the server HTML and re-render, which
+     flickers the whole list. */
+  useEffect(() => {
+    setChosen(readBasket());
+    return onBasketChange(() => setChosen(readBasket()));
+  }, []);
+
+  /* Select mode is not its own state any more: arriving in a second category with a
+     selection already in hand has to land you IN select mode, or the basket exists and
+     the page pretends it does not. */
+  const [selectingHere, setSelectingHere] = useState(false);
+  const selecting = selectingHere || chosen.length > 0;
+
+  const toggle = (id: string) => {
+    const next = chosen.includes(id) ? chosen.filter((c) => c !== id) : [...chosen, id];
+    writeBasket(next);
+    setChosen(next);
+  };
+
+  const chosenHere = recipes.filter((r) => chosen.includes(r.id)).length;
 
   return (
     <>
@@ -29,7 +51,10 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
         <button
           type="button"
           className={styles.toggle}
-          onClick={() => { setSelecting(!selecting); setChosen([]); }}
+          onClick={() => {
+            if (selecting) { clearBasket(); setChosen([]); setSelectingHere(false); }
+            else setSelectingHere(true);
+          }}
         >
           {selecting ? 'Cancel' : '✓ Select for a menu'}
         </button>
@@ -68,11 +93,24 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
           scrolling back up a long list. */}
       {selecting && chosen.length > 0 && (
         <div className={styles.sticky}>
-          <span className={styles.count}>{chosen.length} selected</span>
+          <span className={styles.count}>
+            {chosen.length} selected
+            {/* The count includes dishes ticked in other categories, which is
+                surprising unless the bar says where they are. */}
+            {chosenHere < chosen.length && (
+              <span className={styles.across}>
+                {chosenHere} here · keep going in another category
+              </span>
+            )}
+          </span>
           <button
             type="button"
             className={styles.go}
-            onClick={() => router.push(`/menus/new?dish=${chosen.join(',')}`)}
+            onClick={() => {
+              const ids = chosen.join(',');
+              clearBasket();
+              router.push(`/menus/new?dish=${ids}`);
+            }}
           >
             Build menu →
           </button>

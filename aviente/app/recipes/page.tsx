@@ -1,9 +1,8 @@
 import Link from 'next/link';
+import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import FillDescriptions from '@/components/FillDescriptions';
-import ThemeSwitch from '@/components/ThemeSwitch';
 import { CATEGORIES, categoryCounts } from '@/lib/queries';
-import { currentMember } from '@/lib/supabase/server';
 import styles from './recipes.module.css';
 
 export const metadata = { title: 'Aviente — Recipes' };
@@ -12,7 +11,7 @@ export const metadata = { title: 'Aviente — Recipes' };
  * search. It exists so "Recipes" in the nav has somewhere honest to go rather
  * than jumping into one arbitrary category. */
 export default async function RecipesIndex() {
-  const [counts, member] = await Promise.all([categoryCounts(), currentMember()]);
+  const counts = await categoryCounts();
 
   return (
     <>
@@ -20,6 +19,7 @@ export default async function RecipesIndex() {
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
+            <BackLink href="/" label="Home" />
             <p className="eyebrow">The Book</p>
             <h1 className={styles.h1}>Recipes</h1>
             <form action="/recipes/search" className={styles.search} role="search">
@@ -47,16 +47,12 @@ export default async function RecipesIndex() {
               );
             })}
           </ul>
-          {/* The free tier takes no automated backups and these recipes exist
-              nowhere else, so the export is a first-class link, not a setting. */}
+          {/* Colour moved to the homepage's Settings block — a colour picker filed
+              under "Recipes" is something you find once, by accident. This is the
+              one maintenance job that genuinely belongs beside the recipe list. */}
           <div className={styles.settings}>
-            <ThemeSwitch current={(member?.theme as 'green' | 'burgundy') ?? 'green'} />
             <FillDescriptions />
           </div>
-
-          <p className={styles.backup}>
-            <a href="/api/backup" download>⤓ Download a backup of everything</a>
-          </p>
         </main>
       </div>
     </>

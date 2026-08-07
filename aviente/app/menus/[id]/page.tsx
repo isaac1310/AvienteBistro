@@ -17,7 +17,14 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
   if (!menu) notFound();
 
   const rules = await occasionRules();
-  const occasion = resolveOccasion(new Date(`${menu.date}T18:00:00`), 'evening', rules);
+  const occasion = resolveOccasion(
+    /* Noon for a daytime meal, 18:00 for an evening one. The clock time is not
+       what decides anything — mealTime is — but a Date is still needed and
+       midnight would land the wrong side of a day boundary. */
+    new Date(`${menu.date}T${menu.meal_time === 'day' ? '12' : '18'}:00:00`),
+    menu.meal_time,
+    rules,
+  );
 
   return (
     <>

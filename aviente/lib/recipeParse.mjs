@@ -265,9 +265,17 @@ export function normalizeIngredient(input) {
 
   // Some rows carry everything in `name` even in the "structured" file.
   if (!name) return null;
-  const { amount, amountMax, toTaste } = parseAmount(rawAmount);
+  const { amount, amountMax: parsedMax, toTaste } = parseAmount(rawAmount);
   let unit = mapUnit(rawUnit);
   if (!unit && toTaste) unit = 'to taste';
+
+  /* An explicit amountMax on a structured input WINS over anything parsed out of
+     the amount field. Without this, an export→import round trip silently dropped
+     the upper bound of every range: 400–500 g came back as 400 g. Same class of
+     loss as the group label, in the same function. */
+  const amountMax = pick(input, 'amountMax', 'amount_max') != null
+    ? parseNumber(pick(input, 'amountMax', 'amount_max'))
+    : parsedMax ?? null;
 
   return {
     name, amount, amountMax, unit, note,
@@ -331,8 +339,14 @@ export function splitTitle(raw) {
  */
 export function normalizeRecipe(input, opts = {}) {
   const warnings = [];
-  const { title, titleEn } = splitTitle(pick(input, 'title', 'name'));
+  const { title, titleEn: derivedEn } = splitTitle(pick(input, 'title', 'name'));
   if (!title) return { recipe: null, warnings: ['no title — cannot import'] };
+
+  /* An explicit titleEn wins over one derived from parentheses in the title.
+     splitTitle exists for source documents that write "חלוז (Khaluz)"; a backup
+     already has the field separately, and letting the derivation win discarded it
+     whenever the title had no parentheses. */
+  const titleEn = nonEmpty(pick(input, 'titleEn', 'title_en')) ?? derivedEn;
 
   const { category, resolved } = mapCategory(input.category);
   if (!resolved && input.category) warnings.push(`category "${input.category}" unrecognised → other`);

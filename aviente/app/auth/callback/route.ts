@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { safeNext } from '@/lib/safeNext';
 import { createServerClient } from '@supabase/ssr';
 
 /* Where the magic link lands. Exchanges the one-time code for a session cookie,
@@ -13,15 +14,16 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/';
-  // Never honour an absolute URL here: an open redirect on the auth callback is
-  // how a login link gets turned into a phishing hop.
-  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  /* One shared validator for the client and the callback, so the two cannot
+     drift apart. The earlier inline check here missed encoded and backslash
+     forms. */
+  const target = safeNext(next);
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=missing-code`);
   }
 
-  const response = NextResponse.redirect(`${origin}${safeNext}`);
+  const response = NextResponse.redirect(`${origin}${target}`);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -7,7 +7,7 @@
        and takes the app's gold instead of the cover's brown.
        Every shape is stroke-only at a single weight, which is what makes the
        whole field read as one texture rather than a collage. -->
-  <g fill="none" stroke="currentColor" stroke-width="1.6"
+  <g fill="none" stroke="currentColor" stroke-width="2.6"
      stroke-linecap="round" stroke-linejoin="round">
 
     <!-- rolling pin -->

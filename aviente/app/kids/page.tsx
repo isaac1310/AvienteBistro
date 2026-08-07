@@ -1,4 +1,5 @@
 import KidsPlanner from '@/components/KidsPlanner';
+import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import { getKidsWeek, kidsRecipes, mondayOf } from '@/lib/kids';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -21,6 +22,7 @@ export default async function KidsPage({
   return (
     <>
       <Nav current="/" />
+      <div className="shell"><BackLink href="/" label="Home" /></div>
       <KidsPlanner
         weekStart={weekStart}
         meals={meals}

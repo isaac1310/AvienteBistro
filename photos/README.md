@@ -15,7 +15,7 @@ page furniture, repeated across pages, and are not here.
 ## What each one is
 
 Page numbers would need `pdfimages -p`, which needs poppler, which we chose not to
-install. So these are identified by eye — two confidently, the rest are yours to
+install. So these are identified by eye — three confidently, the rest are yours to
 recognise. Nothing depends on getting this right first time; moving a photo is one
 tap.
 
@@ -28,7 +28,7 @@ tap.
 | `photo-05.jpg` | 491 KB | stuffed onions in a black sauté pan, golden sauce, wooden table | **בצל ממולא** |
 | `photo-06.jpg` | 334 KB | ? | ? |
 | `photo-07.jpg` | 327 KB | ? | ? |
-| `photo-08.jpg` | 426 KB | ? | ? |
+| `photo-08.jpg` | 426 KB | chicken drumsticks on turmeric rice with grated carrot, big pot on the hob | **עוף באורז** |
 
 ## Why the cover is not one of them
 

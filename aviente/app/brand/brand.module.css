@@ -1,0 +1,82 @@
+.frame { padding-bottom: calc(var(--tap) + var(--sp-6)); }
+@media (min-width: 1024px) {
+  .frame { padding-bottom: var(--sp-6); padding-left: 210px; }
+}
+
+.main { padding-top: var(--sp-4); display: grid; gap: var(--sp-5); }
+
+.h1 {
+  margin: 0;
+  font-family: var(--ser);
+  font-size: var(--t-h1);
+  font-weight: 400;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.intro, .note {
+  margin: 0;
+  max-width: 42rem;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.intro code, .note code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: var(--gold-ink);
+}
+
+.block { display: grid; gap: var(--sp-3); }
+
+.h2 {
+  margin: 0;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+/* The list, in the real card geometry — same flex row, same 92px column. */
+.rows { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-3); }
+.row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  padding: 0;
+  overflow: hidden;
+  min-height: 92px;
+}
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) 0;
+}
+.rowName { font-family: var(--ser); font-size: 1.25rem; color: var(--primary); }
+.rowMeta {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+}
+
+.heroes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.hero { display: grid; gap: var(--sp-2); }
+.heroName {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+}

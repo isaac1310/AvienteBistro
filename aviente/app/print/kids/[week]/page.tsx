@@ -1,3 +1,5 @@
+import KidsArt from '@/components/KidsArt';
+import PrintExit from '@/components/PrintExit';
 import { ANIMALS, MEALS, getKidsWeek, weekLabel } from '@/lib/kids';
 import styles from './fridge.module.css';
 
@@ -19,15 +21,37 @@ export default async function FridgePrint({
 
   return (
     <main className={styles.page}>
-      <h1 className={styles.title}>The Kids&rsquo; Table · {weekLabel(week)}</h1>
+      {/* On screen only — a print page with no way out is a dead end, and this one is
+          reached from a link that replaces the app. */}
+      <PrintExit href={`/kids?week=${week}`} label="Back to the planner" />
 
-      <table className={styles.grid}>
+      {/* The sheet: title, grid and decoration in one positioned box.
+          The decoration layer used to be pinned to the whole page, which on a tall
+          screen threw the balloons into the corners of an empty document and put one
+          behind the back link. Scoped here, they sit around the table wherever the
+          table happens to be. */}
+      <div className={styles.sheet}>
+        <div className={styles.garden} aria-hidden="true">
+          {/* Drawn rather than emoji: the butterflies were 🦋 and did not render at
+              all on a Samsung Ultra. Same drawings as the planner's day bubbles, so
+              the sheet and the screen are recognisably one thing. */}
+          <KidsArt name="balloon" size={44} className={`${styles.deco} ${styles.d1}`} />
+          <KidsArt name="butterfly" size={34} className={`${styles.deco} ${styles.d2}`} />
+          <KidsArt name="butterfly" size={26} className={`${styles.deco} ${styles.d4}`} />
+          <KidsArt name="balloon" size={32} className={`${styles.deco} ${styles.d5}`} />
+          <KidsArt name="child" size={58} className={`${styles.deco} ${styles.d3}`} />
+        </div>
+
+        <h1 className={styles.title}>The Kids&rsquo; Table · {weekLabel(week)}</h1>
+
+        <table className={styles.grid}>
         <thead>
           <tr>
             <th className={styles.corner} />
             {ANIMALS.map((a) => (
               <th key={a.weekday} className={styles.dayHead} style={{ background: a.colour }}>
-                <span className={styles.animal}>{a.animal}</span>
+                <KidsArt name={a.art} size={30} className={styles.animal} />
+                <span className={styles.day}>{a.day}</span>
                 <span className={styles.host}>{a.host}</span>
               </th>
             ))}
@@ -59,7 +83,8 @@ export default async function FridgePrint({
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </main>
   );
 }

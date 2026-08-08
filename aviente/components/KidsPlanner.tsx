@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ANIMALS, MEALS, addWeeks, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
 import { clearMeal, clearWeek, fillWeek, setChef, setMeal } from '@/lib/kidsMutations';
+import KidsArt from './KidsArt';
 import styles from './KidsPlanner.module.css';
 
 /* §3.8 — pick a week, pick dishes into a tray, then place them either day by day
@@ -22,7 +23,10 @@ export default function KidsPlanner({
 }) {
   const router = useRouter();
   const [tray, setTray] = useState<Recipe[]>([]);
-  const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  /* Sunday to Thursday on by default — the days there is school tomorrow. Friday and
+     Saturday are off until someone turns them on, rather than presenting seven empty
+     columns most of which will never be filled. */
+  const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4]);
   const [picking, setPicking] = useState<{ weekday: number; meal: MealKey } | null>(null);
   const [trayOpen, setTrayOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -32,14 +36,38 @@ export default function KidsPlanner({
     try { await fn(); router.refresh(); } finally { setBusy(false); }
   };
 
+  /**
+   * Turn a day on or off.
+   *
+   * Turning one OFF used to hide the column and leave its meals in the database. They
+   * came back the moment the day was turned on again, and in the meantime the printed
+   * sheet still carried them — the screen and the fridge disagreed. So an occupied day
+   * asks first, then actually clears.
+   */
+  function toggleDay(weekday: number, planned: number) {
+    const on = days.includes(weekday);
+    if (!on) { setDays([...days, weekday]); return; }
+    const animal = ANIMALS.find((a) => a.weekday === weekday);
+    if (planned > 0
+      && !confirm(`Take ${animal?.day} out of the week? Its ${planned} `
+        + `${planned === 1 ? 'meal' : 'meals'} will be cleared.`)) return;
+    setDays(days.filter((d) => d !== weekday));
+    if (planned > 0) {
+      run(() => Promise.all(MEALS.map((m) => clearMeal(weekStart, weekday, m.key)))
+        .then(() => undefined));
+    }
+  }
+
   const mealAt = (weekday: number, meal: MealKey) =>
     meals.find((m) => m.weekday === weekday && m.meal === meal);
 
   return (
     <div className={styles.garden}>
-      {/* CSS butterflies, per the design. Decorative only. */}
-      <span className={`${styles.butterfly} ${styles.b1}`} aria-hidden="true">🦋</span>
-      <span className={`${styles.butterfly} ${styles.b2}`} aria-hidden="true">🦋</span>
+      {/* Drawn, not 🦋. The emoji did not render at all on a Samsung Ultra, and
+          chasing which platform ships which codepoint is not a fix — owning the
+          drawing is. */}
+      <KidsArt name="butterfly" size={26} className={`${styles.butterfly} ${styles.b1}`} />
+      <KidsArt name="butterfly" size={22} className={`${styles.butterfly} ${styles.b2}`} />
 
       <header className={styles.banner}>
         <h1 className={styles.title}>The Kids&rsquo; Table</h1>
@@ -53,21 +81,28 @@ export default function KidsPlanner({
           onClick={() => router.push(`/kids?week=${addWeeks(weekStart, 1)}`)}>▶</button>
       </div>
 
-      {/* Day bubbles: tap to include or exclude a day. Excluded days are dashed
-          and hold nothing. */}
+      {/* One bubble per day, Sunday to Saturday.
+          The day's NAME is printed under the animal. It used to be the animal alone,
+          which meant the only way to know the elephant was Wednesday was to turn it on
+          and read the heading that appeared — the mapping was a secret the interface
+          kept. */}
       <div className={styles.bubbles}>
         {ANIMALS.map((a) => {
           const on = days.includes(a.weekday);
+          const planned = meals.filter((m) => m.weekday === a.weekday).length;
           return (
             <button
               key={a.weekday}
+              type="button"
               className={`${styles.bubble} ${on ? '' : styles.bubbleOff}`}
               style={on ? { background: a.colour, boxShadow: `0 3px 0 ${a.shadow}` } : undefined}
               aria-pressed={on}
-              aria-label={`${a.host}'s day`}
-              onClick={() => setDays(on ? days.filter((d) => d !== a.weekday) : [...days, a.weekday])}
+              aria-label={`${a.day} — ${a.host}${planned ? `, ${planned} planned` : ''}`}
+              onClick={() => toggleDay(a.weekday, planned)}
             >
-              {a.animal}
+              <KidsArt name={a.art} size={30} className={styles.bubbleArt} />
+              <span className={styles.bubbleDay}>{a.day.slice(0, 3)}</span>
+              {planned > 0 && <span className={styles.bubbleDot} aria-hidden="true" />}
             </button>
           );
         })}
@@ -102,9 +137,12 @@ export default function KidsPlanner({
       {ANIMALS.filter((a) => days.includes(a.weekday)).map((a) => (
         <section key={a.weekday} className={styles.day}>
           <h2 className={styles.dayName}>
-            <span aria-hidden="true">{a.animal}</span> {a.host}&rsquo;s {
-              ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][a.weekday - 1]
-            }
+            {/* Day first, host second. The heading indexed an array by weekday - 1,
+                which was a Monday-based assumption sitting in the view; on a Sunday
+                week that reads [-1] and prints "undefined". The name is on the record
+                now. */}
+            <KidsArt name={a.art} size={26} className={styles.dayArt} />
+            {a.day} &middot; <span className={styles.dayHost}>{a.host}</span>
           </h2>
 
           {MEALS.map((meal) => {

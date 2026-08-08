@@ -35,12 +35,21 @@ async function downscale(file: File): Promise<Blob> {
 }
 
 export default function PhotoField({
-  value, onChange,
-}: { value: string | null; onChange: (url: string | null) => void }) {
+  value, previewUrl, onChange,
+}: {
+  /** The stored PATH inside the bucket, not a URL. */
+  value: string | null;
+  /** A signed URL for whatever `value` points at, if the server already made one. */
+  previewUrl?: string | null;
+  onChange: (path: string | null) => void;
+}) {
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Signed here after an upload; seeded from the server for a photo already saved.
+     The form cannot show a path. */
+  const [preview, setPreview] = useState<string | null>(previewUrl ?? null);
 
   async function handle(file: File | undefined) {
     if (!file) return;
@@ -53,19 +62,20 @@ export default function PhotoField({
         .from('recipe-photos').upload(path, blob, { contentType: 'image/webp' });
       if (upErr) throw upErr;
 
-      // The bucket is private, so a plain public URL would 404. Sign it long
-      // enough to be useful and re-sign on read later.
+      /* A short signed URL, for the preview in this form only.
+         What gets SAVED is the path — see lib/photos.ts. This used to mint a
+         one-year signed URL and store that, which put a hidden expiry date inside
+         every recipe row: a year on, the photograph would disappear and nothing could
+         tell that from a deleted file. */
       const { data } = await db.storage
-        .from('recipe-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
+        .from('recipe-photos').createSignedUrl(path, 60 * 10);
+      setPreview(data?.signedUrl ?? null);
 
       // Replacing a photo must delete the old object, or orphans accumulate
       // forever in a bucket nobody ever looks at.
-      if (value) {
-        const old = value.split('/recipe-photos/')[1]?.split('?')[0];
-        if (old) await db.storage.from('recipe-photos').remove([old]);
-      }
+      if (value) await db.storage.from('recipe-photos').remove([value]);
 
-      onChange(data?.signedUrl ?? null);
+      onChange(path);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'upload failed');
     } finally {
@@ -75,9 +85,9 @@ export default function PhotoField({
 
   return (
     <div className={styles.wrap}>
-      {value && (
+      {value && preview && (
         // eslint-disable-next-line @next/next/no-img-element -- signed Storage URL
-        <img src={value} alt="" className={styles.preview} />
+        <img src={preview} alt="" className={styles.preview} />
       )}
 
       <div className={styles.buttons}>
@@ -91,7 +101,7 @@ export default function PhotoField({
         </button>
         {value && (
           <button type="button" className={styles.remove} disabled={busy}
-            onClick={() => onChange(null)}>
+            onClick={() => { onChange(null); setPreview(null); }}>
             Remove
           </button>
         )}

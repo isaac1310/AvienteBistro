@@ -1,0 +1,31 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+}
+
+/* Never on paper. The whole point of a print route is that what you see is what
+   comes out of the printer, minus the controls that got you there. */
+@media print {
+  .bar { display: none; }
+}
+
+.back, .print {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold-ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.print { border: 1px solid var(--card-border); border-radius: var(--radius); }
+.back:hover, .print:hover { color: var(--primary); }

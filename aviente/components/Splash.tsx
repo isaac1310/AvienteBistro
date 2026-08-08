@@ -20,19 +20,33 @@ import styles from './Splash.module.css';
  *     entirely once the fade ends.
  *  3. Reduced motion shortens the wait rather than removing the animation. Killing
  *     the fade alone would leave the cover sitting there at full opacity.
+ *  4. It runs ONCE per tab. This component only wraps the homepage, so tapping Home
+ *     from anywhere remounted it and played the whole cover again — a 1.7s cover is
+ *     an arrival, and the fourth time in a minute it is an obstacle. sessionStorage,
+ *     not localStorage: opening the app tomorrow should feel like opening a book.
  */
 
 const MIN_MS = 1700;   // TravelHub's SPLASH_MIN_MS -- long enough to read the name
 const FADE_MS = 450;
+const SEEN = 'aviente.splash.seen';
 
 export default function Splash({ children }: { children: React.ReactNode }) {
   const [phase, setPhase] = useState<'showing' | 'hiding' | 'gone'>('showing');
+
+  /* Checked after mount, never during render: sessionStorage does not exist on the
+     server, so deciding the first paint from it makes server and client disagree and
+     React throws away the server HTML to recover. Starting shown and hiding
+     immediately costs one frame; a hydration mismatch costs the whole page. */
+  useEffect(() => {
+    if (sessionStorage.getItem(SEEN)) setPhase('gone');
+  }, []);
 
   useEffect(() => {
     // ?splash=hold pins it open. §9 needs this: 1.7s is shorter than a screenshot
     // round-trip, so without a hold the splash cannot be visually asserted by the
     // test agent -- or looked at properly on a real phone.
     if (new URLSearchParams(location.search).get('splash') === 'hold') return;
+    if (sessionStorage.getItem(SEEN)) return;
 
     const start = Date.now();
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -42,6 +56,7 @@ export default function Splash({ children }: { children: React.ReactNode }) {
     const dismiss = () => {
       const wait = Math.max(0, floor - (Date.now() - start));
       setTimeout(() => {
+        try { sessionStorage.setItem(SEEN, '1'); } catch { /* see skip() */ }
         setPhase('hiding');
         fadeTimer = setTimeout(() => setPhase('gone'), FADE_MS);
       }, wait);
@@ -53,7 +68,11 @@ export default function Splash({ children }: { children: React.ReactNode }) {
     ready.then(dismiss, dismiss);
 
     // Any deliberate input means "I know what this is, let me in."
-    const skip = () => { setPhase('hiding'); fadeTimer = setTimeout(() => setPhase('gone'), FADE_MS); };
+    const skip = () => {
+      try { sessionStorage.setItem(SEEN, '1'); } catch { /* private mode: it just plays again */ }
+      setPhase('hiding');
+      fadeTimer = setTimeout(() => setPhase('gone'), FADE_MS);
+    };
     window.addEventListener('pointerdown', skip, { once: true });
     window.addEventListener('keydown', skip, { once: true });
     return () => {

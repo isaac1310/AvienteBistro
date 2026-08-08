@@ -38,7 +38,7 @@ export default function CategoryPlate({
   category, size = 'thumb', caption,
 }: {
   category: CategoryKey;
-  size?: 'thumb' | 'hero';
+  size?: 'thumb' | 'row' | 'hero';
   /** The category name under the drawing. Hero only — a 92px column has no room. */
   caption?: string;
 }) {
@@ -49,7 +49,7 @@ export default function CategoryPlate({
      right at 130px and wrong at 92px: the air ate most of the box and the drawing
      came out a third of the size it should be. Cropping to where the ink actually is
      gives the thumbnail its size back without touching the files. */
-  const viewBox = size === 'thumb' ? '18 20 78 62' : plate.viewBox;
+  const viewBox = size === 'hero' ? plate.viewBox : '18 20 78 62';
 
   return (
     <span
@@ -65,7 +65,7 @@ export default function CategoryPlate({
         stroke="currentColor"
         /* Heavier at thumbnail size, as the blueprint README asks: 1.4 disappears
            when the drawing is 44px wide. */
-        strokeWidth={size === 'thumb' ? 2.4 : 1.4}
+        strokeWidth={size === 'hero' ? 1.4 : 2.4}
         strokeLinecap="round"
         role="presentation"
         dangerouslySetInnerHTML={{ __html: plate.inner }}

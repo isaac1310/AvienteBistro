@@ -13,7 +13,8 @@
     "test:clean": "node tools/clean-test-fixtures.mjs",
     "dev:test": "node tools/dev-sandbox.mjs",
     "blueprints": "node tools/build-blueprints.mjs",
-    "icons": "node tools/build-icons.mjs"
+    "icons": "node tools/build-icons.mjs",
+    "kids-art": "node tools/build-kids-art.mjs"
   },
   "dependencies": {
     "@hebcal/core": "^6.9.1",

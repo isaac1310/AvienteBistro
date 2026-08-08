@@ -48,6 +48,10 @@ export default async function RecipePage({ params }: Params) {
       : null,
   ].filter(Boolean) as string[];
 
+  /* Is this a Hebrew recipe? Decided from the title, which is the one field every
+     recipe has and the one that is always written in the recipe's own language. */
+  const hebrew = /[\u0590-\u05FF]/.test(recipe.title);
+
   return (
     <article className={styles.page}>
       {recipe.photo_url ? (
@@ -72,7 +76,14 @@ export default async function RecipePage({ params }: Params) {
         <Link href={`/recipes/${category}/${id}/edit`} className={styles.chip}>Edit</Link>
       </div>
 
-      <div className={`shell ${styles.body}`}>
+      {/* RTL for the whole recipe, not per element.
+          Every Hebrew string carried its own lang="he", so the words flipped but the
+          PAGE did not: headings stayed hard against the left margin while the text
+          under them ran right-to-left, and the ingredient columns read backwards. A
+          Hebrew recipe is a right-to-left document; the English chrome around it is
+          not, which is why this starts here and not on <html>. */}
+      <div className={`shell ${styles.body}`} dir={hebrew ? 'rtl' : 'ltr'}
+           lang={hebrew ? 'he' : 'en'}>
         <p className="eyebrow">{cat.en}</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
@@ -80,10 +91,6 @@ export default async function RecipePage({ params }: Params) {
 
         {timing.length > 0 && (
           <p className={styles.timing}>{timing.join(' · ')}</p>
-        )}
-
-        {recipe.story && (
-          <blockquote className={styles.story} lang="he">{recipe.story}</blockquote>
         )}
 
         <Ingredients
@@ -113,6 +120,16 @@ export default async function RecipePage({ params }: Params) {
                 <li key={i} lang="he">{line}</li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {/* Notes last. This sat between the timing line and the ingredients, which
+            put a paragraph of reminiscence between someone and the thing they opened
+            the page to read. A note is what you read AFTER cooking it, or once. */}
+        {recipe.story && (
+          <section className={styles.notes}>
+            <h2 className={styles.h2}>Notes</h2>
+            <blockquote className={styles.story} lang="he">{recipe.story}</blockquote>
           </section>
         )}
 

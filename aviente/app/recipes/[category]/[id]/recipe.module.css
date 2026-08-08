@@ -159,3 +159,6 @@
 }
 
 .history { margin-top: var(--sp-4); }
+
+/* Notes, after the method. */
+.notes { margin-top: var(--sp-5); }

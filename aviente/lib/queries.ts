@@ -1,3 +1,4 @@
+import { attachPhotoUrl, attachPhotoUrls } from './photos';
 import { supabaseServer } from './supabase/server';
 
 /* Every read the app does, in one place.
@@ -34,7 +35,7 @@ export async function categoryCounts(): Promise<Record<string, number>> {
 /* The source member is a join; Supabase returns it as a nested object, so it is
    flattened here rather than leaking the shape into every component. */
 const SUMMARY_COLUMNS =
-  'id, title, title_en, category, photo_url, servings, yield_text, ' +
+  'id, title, title_en, category, photo_url, photo_path, servings, yield_text, ' +
   'prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)';
 
 type SummaryRow = Omit<RecipeSummary, 'source_name'> & { source: { name: string } | null };
@@ -54,7 +55,9 @@ export async function recipesInCategory(category: string): Promise<RecipeSummary
     .order('title');
 
   if (error) throw new Error(`recipesInCategory: ${error.message}`);
-  return (data as unknown as SummaryRow[]).map(flatten);
+  /* Sign the stored paths for this request. See lib/photos.ts — the alternative was
+     a one-year signed URL frozen into the row at upload time. */
+  return attachPhotoUrls(db, (data as unknown as SummaryRow[]).map(flatten));
 }
 
 export async function getRecipe(id: string): Promise<Recipe | null> {
@@ -84,7 +87,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
     ingredients: Ingredient[]; steps: Step[];
   };
 
-  return {
+  return attachPhotoUrl(db, {
     ...flatten(row),
     source_member_id: row.source_member_id,
     meal_type: row.meal_type,
@@ -98,7 +101,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
     // reliably across versions, and getting this wrong scrambles a recipe.
     ingredients: [...(row.ingredients ?? [])].sort((a, b) => a.position - b.position),
     steps: [...(row.steps ?? [])].sort((a, b) => a.position - b.position),
-  };
+  });
 }
 
 /** Trigram search over title, title_en, ingredient names and both descriptions. */
@@ -115,5 +118,5 @@ export async function searchRecipes(query: string): Promise<RecipeSummary[]> {
     .limit(50);
 
   if (error) throw new Error(`searchRecipes: ${error.message}`);
-  return (data as unknown as SummaryRow[]).map(flatten);
+  return attachPhotoUrls(db, (data as unknown as SummaryRow[]).map(flatten));
 }

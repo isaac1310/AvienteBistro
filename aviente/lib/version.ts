@@ -7,7 +7,14 @@
  */
 export const APP_VERSION = '0.9.0';
 
-/** Bumped only when supabase/migrations change shape. Shown beside the version. */
-export const SCHEMA_VERSION = 1;
+/**
+ * The highest migration this build requires.
+ *
+ * No longer decorative. lib/schema.ts compares it to what the database actually
+ * reports in `schema_migrations`, and the app says so when it is behind — 0008 was
+ * merged without being run and took /menus down in production with a 500 that named
+ * nothing. Bump this in the SAME commit as the migration that needs it.
+ */
+export const SCHEMA_VERSION = 11;
 
 export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${SCHEMA_VERSION}`;

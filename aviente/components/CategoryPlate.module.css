@@ -39,6 +39,22 @@
 }
 .thumb .art { width: 78px; height: 62px; }
 
+/* An index row: the drawing alone at 40px, no ground and no frame.
+   The framed plate stands in for a PHOTOGRAPH. A contents list has no photograph to
+   stand in for, so nine framed panels down a column would read as nine empty slots
+   rather than as nine categories. */
+.row {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  background: none;
+  border: 0;
+  color: var(--gold-deep);
+}
+.row::before, .row::after { display: none; }
+.row .art { width: 100%; height: 100%; }
+.kid.row { color: #c2417e; }
+
 /* The recipe page's wide slot, where the drawing gets its intended size and the
    caption has room. */
 .hero {

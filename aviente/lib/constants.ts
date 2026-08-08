@@ -42,7 +42,11 @@ export type Step = { id: string; position: number; heading: string | null; body:
 
 export type RecipeSummary = {
   id: string; title: string; title_en: string | null;
-  category: string; photo_url: string | null;
+  category: string;
+  /* photo_path is where the object lives; photo_url is what the server signed for
+     THIS request. Components only ever want the second. See lib/photos.ts. */
+  photo_path?: string | null;
+  photo_url: string | null;
   servings: number | null; yield_text: string | null;
   prep_minutes: number | null; cook_minutes: number | null;
   source_name: string | null;
@@ -93,12 +97,26 @@ export const courseIndex = (key: string) =>
    cannot live beside the Supabase queries — the third time this rule has come
    up, and the reason lib/constants.ts exists at all. */
 
+/* One host per day, Sunday through Saturday.
+ *
+ * `weekday` is JavaScript's getDay(): 0 = Sunday … 6 = Saturday. That is also what
+ * kids_meals.weekday stores, and it is why widening from five days to seven needed no
+ * data migration — Mon..Fri were already 1..5 under both schemes.
+ *
+ * `art` names a drawing in design/kids, not an emoji. These were 🧸 🐶 🐱 🐘 🐰, which
+ * render differently on every platform and, in the butterflies' case, not at all on a
+ * Samsung Ultra.
+ *
+ * `day` is written out because the animal is a decoration, not a label: nobody can be
+ * expected to know that the elephant means Wednesday. */
 export const ANIMALS = [
-  { weekday: 1, animal: '🧸', host: 'Teddy',   colour: '#f4a6c0', shadow: '#d97fa0' },
-  { weekday: 2, animal: '🐶', host: 'Buddy',   colour: '#f4c95d', shadow: '#d6a833' },
-  { weekday: 3, animal: '🐱', host: 'Mimi',    colour: '#8fb8e8', shadow: '#6b95c9' },
-  { weekday: 4, animal: '🐘', host: 'Ellie',   colour: '#a8d5ba', shadow: '#7bbf9e' },
-  { weekday: 5, animal: '🐰', host: 'Bunny',   colour: '#d6b8e8', shadow: '#b492cc' },
+  { weekday: 0, day: 'Sunday',    art: 'bear',     host: 'Teddy', colour: '#f4a6c0', shadow: '#d97fa0' },
+  { weekday: 1, day: 'Monday',    art: 'dog',      host: 'Buddy', colour: '#f4c95d', shadow: '#d6a833' },
+  { weekday: 2, day: 'Tuesday',   art: 'cat',      host: 'Mimi',  colour: '#8fb8e8', shadow: '#6b95c9' },
+  { weekday: 3, day: 'Wednesday', art: 'elephant', host: 'Ellie', colour: '#a8d5ba', shadow: '#7bbf9e' },
+  { weekday: 4, day: 'Thursday',  art: 'rabbit',   host: 'Bunny', colour: '#d6b8e8', shadow: '#b492cc' },
+  { weekday: 5, day: 'Friday',    art: 'fox',      host: 'Foxy',  colour: '#f2b48c', shadow: '#d18d63' },
+  { weekday: 6, day: 'Saturday',  art: 'owl',      host: 'Ollie', colour: '#b9c7e8', shadow: '#8fa2cc' },
 ] as const;
 
 export const MEALS = [
@@ -120,13 +138,19 @@ export type KidsMeal = {
 };
 
 
-/** The Monday of the week containing `date`. */
-export function mondayOf(date = new Date()): string {
+/**
+ * The Sunday of the week containing `date`.
+ *
+ * The week here runs Sunday to Saturday. It used to run Monday to Friday, which is a
+ * European school week; migration 0010 moves the stored week_start dates to match.
+ *
+ * Named `sundayOf` rather than left as `mondayOf` deliberately: a helper whose name
+ * says Monday while it returns a Sunday is the kind of thing that reads as correct in
+ * a diff for years.
+ */
+export function sundayOf(date = new Date()): string {
   const d = new Date(date);
-  // getDay(): 0 = Sunday. Sunday belongs to the week that STARTED six days ago,
-  // not the one about to begin — otherwise a Sunday plan lands on the wrong week.
-  const delta = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - delta);
+  d.setDate(d.getDate() - d.getDay());   // getDay(): 0 = Sunday
   return d.toISOString().slice(0, 10);
 }
 
@@ -140,7 +164,9 @@ export function addWeeks(weekStart: string, n: number): string {
 export function weekLabel(weekStart: string): string {
   const start = new Date(`${weekStart}T12:00:00`);
   const end = new Date(start);
-  end.setDate(end.getDate() + 4);
+  // +6, not +4: the week is Sunday to Saturday now, so a five-day span would print
+  // "2 – 6 AUG" for a week that runs to the 8th.
+  end.setDate(end.getDate() + 6);
   const month = end.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
   return `${start.getDate()} – ${end.getDate()} ${month}`;
 }

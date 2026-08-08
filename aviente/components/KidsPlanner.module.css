@@ -17,7 +17,8 @@
   .garden { padding-left: calc(210px + var(--sp-4)); }
 }
 
-.butterfly { position: absolute; font-size: 20px; opacity: 0.75; }
+/* A drawn SVG now, so it needs a colour rather than a font size. */
+.butterfly { position: absolute; opacity: 0.75; color: #6b95c9; }
 /* Positioned inside the content column, not the viewport, for the same reason. */
 .b1 { top: 8%; left: max(6%, 24px); transform: rotate(-12deg); }
 .b2 { top: 22%; right: 8%; transform: rotate(14deg); }
@@ -56,8 +57,11 @@
 
 .bubbles { display: flex; justify-content: center; gap: var(--sp-3);
   flex-wrap: wrap; margin-bottom: var(--sp-4); }
-.bubble { width: 52px; height: 52px; border-radius: 50%; border: 0;
-  font-size: 24px; cursor: pointer; background: #fff; }
+/* Wider than tall now, and no longer a circle: the day name has to fit inside it.
+   A 52px circle could hold an animal or three letters, not both. */
+.bubble { position: relative; width: 58px; min-height: 58px; border-radius: 18px;
+  border: 0; padding: var(--sp-2) 4px; cursor: pointer; background: #fff;
+  color: #2f6b52; }
 .bubbleOff { background: transparent; border: 2px dashed rgba(47,107,82,0.45);
   opacity: 0.6; box-shadow: none; }
 
@@ -130,3 +134,31 @@
 .pickTag { font-size: 0.6875rem; letter-spacing: 1px; text-transform: uppercase;
   color: #6b7f76; }
 .noKids { padding: var(--sp-5); font-size: 0.875rem; color: #6b7f76; text-align: center; }
+
+/* The day bubbles are a stack: drawing, short day name, and a dot when something is
+   planned. The name is the point — the animal alone kept the mapping secret. */
+.bubbleArt { display: block; margin: 0 auto; }
+
+.bubbleDay {
+  display: block;
+  font-family: var(--kid);
+  font-weight: 700;
+  font-size: 0.7rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* Something is planned on this day — visible even when the day is switched off, so
+   turning one off does not hide the fact that it holds meals. */
+.bubbleDot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2f6b52;
+}
+
+.dayArt { display: inline-block; vertical-align: -5px; margin-inline-end: var(--sp-2); }
+.dayHost { opacity: 0.75; }

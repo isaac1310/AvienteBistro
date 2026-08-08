@@ -70,3 +70,57 @@
   :global(nextjs-portal),
   :global([data-nextjs-toast]) { display: none !important; }
 }
+
+/* ── decoration ────────────────────────────────────────────────────────────
+   Balloons, butterflies and a child around the table. Absolutely positioned in a
+   layer of their own so they can sit near the edges without ever pushing the grid
+   around — a seven-column table on a landscape page has no room to spare.
+   `print-color-adjust: exact` because a browser strips background colour when
+   printing by default, and a fridge sheet in greyscale is not the point. */
+/* The sheet is what the decoration is arranged around: title plus grid, and the
+   padding that gives the drawings somewhere to live without touching the table. */
+.sheet {
+  position: relative;
+  padding: var(--sp-6) 70px var(--sp-8);
+}
+
+.garden {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.deco {
+  position: absolute;
+  opacity: 0.5;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* In the margins the table does not use: the 70px gutters either side, and the band
+   under the last row. Nothing sits over a cell — a decoration that obscures which
+   dish is on Wednesday has stopped being decoration. */
+.d1 { top: 6px;   left: 8px;   color: #d97fa0; transform: rotate(-8deg); }
+.d2 { top: 34px;  right: 10px; color: #7bbf9e; transform: rotate(12deg); }
+.d4 { bottom: 26px; left: 14px; color: #c2417e; transform: rotate(-16deg); }
+.d5 { bottom: 70px; right: 8px; color: #d6a833; transform: rotate(6deg); }
+/* The child sits at the foot of the table, looking up at the week. */
+.d3 { bottom: 0; right: 46%; color: #6b95c9; }
+
+/* The grid sits above the garden. */
+.page { position: relative; }
+.title, .grid { position: relative; z-index: 1; }
+.grid { width: 100%; }
+
+/* The day head is a small stack now: drawing, day, host. It was drawing + host, and
+   the day was left to be inferred from the column's position. */
+.animal { display: block; margin: 0 auto 2px; }
+
+.day {
+  display: block;
+  font-family: var(--kid);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.1;
+}

@@ -1,0 +1,21 @@
+/* Loud enough to act on, quiet enough not to be the design. It sits above the
+   content on every page, so it must not push the app around more than one line. */
+.bar {
+  padding: var(--sp-3) var(--sp-4);
+  background: #fdf4f4;
+  border-bottom: 1px solid #d9b3b3;
+  border-left: 3px solid #8c2b2b;
+  color: #8c2b2b;
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+
+.title { font-weight: 600; }
+
+.file {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(140, 43, 43, 0.08);
+  padding: 1px 4px;
+  border-radius: 2px;
+}

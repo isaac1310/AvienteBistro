@@ -105,3 +105,71 @@
   border-left: 2px solid var(--gold);
   padding-left: var(--sp-3);
 }
+
+/* ── the ingredient table ──────────────────────────────────────────────────
+   Amount first, because that is the column the eye runs down while cooking, and
+   because it is the one with a predictable width. In RTL the browser flips the
+   column order for us — the amount stays the leading column either way. */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.0625rem;
+}
+
+/* The headers exist for screen readers and for the column widths; showing them
+   would be four extra words above a list nobody needs told is a list. */
+.table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The rule goes on the ROW, not on each cell. Per-cell borders left an 8px break
+   between the two columns — collapse joins borders that meet, and these did not
+   quite. One border on the row cannot have a gap in it by construction. */
+.row { border-bottom: 1px solid var(--card-border); }
+.row > * { padding: var(--sp-2) 0; vertical-align: baseline; }
+
+.amount {
+  /* Fixed and narrow so every amount starts on the same axis. Tabular numerals so
+     "1" and "1/2" occupy the same width and the column does not shimmer. */
+  width: 7.5rem;
+  padding-inline-end: var(--sp-3);
+  white-space: nowrap;
+  font-family: var(--san);
+  font-size: var(--t-small);
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-ink);
+  /* `start` resolves against the CELL's dir, which is now ltr, so it would pin the
+     amount to the left of its own box inside a right-to-left table. The column has to
+     follow the table. */
+  text-align: inherit;
+}
+
+.name { font-family: var(--ser); color: var(--ink); }
+
+.note {
+  display: block;
+  font-size: var(--t-small);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.approx { margin-inline-start: 2px; opacity: 0.7; }
+
+/* A sub-group heading, spanning the table. */
+.groupHead {
+  padding: var(--sp-4) 0 var(--sp-1);
+  text-align: start;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.groupRow:first-child .groupHead { padding-top: 0; }

@@ -33,7 +33,9 @@ export default function RecipeForm({
   const [titleEn, setTitleEn] = useState(recipe?.title_en ?? '');
   const [category, setCategory] = useState(recipe?.category ?? 'mains');
   const [mealType, setMealType] = useState(recipe?.meal_type ?? '');
-  const [photo, setPhoto] = useState<string | null>(recipe?.photo_url ?? null);
+  /* The stored path. `recipe.photo_url` is the signed URL the server made for this
+     render, and is only good for the preview. */
+  const [photo, setPhoto] = useState<string | null>(recipe?.photo_path ?? null);
   const [servings, setServings] = useState(recipe?.servings ? String(recipe.servings) : '');
   const [yieldText, setYieldText] = useState(recipe?.yield_text ?? '');
   const [prep, setPrep] = useState(recipe?.prep_minutes ? String(recipe.prep_minutes) : '');
@@ -94,7 +96,7 @@ export default function RecipeForm({
         story: story || null, serving_suggestions: serveWith || null,
         prep_minutes: num(prep), cook_minutes: num(cook),
         servings: num(servings), yield_text: yieldText || null,
-        source_member_id: source || null, photo_url: photo,
+        source_member_id: source || null, photo_path: photo,
         ingredients: rows
           .filter((r) => r.name.trim())
           .map((r) => ({
@@ -156,7 +158,14 @@ export default function RecipeForm({
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      <PhotoField value={photo} onChange={touch(setPhoto)} />
+      {/* previewUrl is the signed URL the server minted for this render — the form
+          cannot display a bucket path. It is only right while `photo` is unchanged;
+          PhotoField signs its own after an upload. */}
+      <PhotoField
+        value={photo}
+        previewUrl={photo === recipe?.photo_path ? recipe?.photo_url ?? null : null}
+        onChange={touch(setPhoto)}
+      />
 
       {/* Only offered once a photo exists and the recipe has been saved: moving
           needs both an id to move from and something to move. */}

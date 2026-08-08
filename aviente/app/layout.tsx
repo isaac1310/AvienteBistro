@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Jost, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
+import SchemaBanner from '@/components/SchemaBanner';
 import SelfTest from '@/components/SelfTest';
 import { APP_VERSION } from '@/lib/version';
 import { currentMember } from '@/lib/supabase/server';
@@ -79,6 +80,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {/* data-version lets the selftest report which build it ran against, so a
           result can never be misattributed to a cached page. */}
       <body data-version={APP_VERSION}>
+        {/* Above everything, on every page. A migration nobody ran is the most
+            likely reason this app breaks, because running it is a manual step. */}
+        <SchemaBanner />
         {children}
         <SelfTest />
       </body>

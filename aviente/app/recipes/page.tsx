@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
+import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
 import FillDescriptions from '@/components/FillDescriptions';
+import type { CategoryKey } from '@/lib/constants';
 import { CATEGORIES, categoryCounts } from '@/lib/queries';
 import styles from './recipes.module.css';
 
@@ -39,7 +41,11 @@ export default async function RecipesIndex() {
               return (
                 <li key={c.key}>
                   <Link href={`/recipes/${c.key}`} className={`card ${styles.row}`}>
-                    <span className={styles.rowEmoji} aria-hidden="true">{c.emoji}</span>
+                    {/* The category's own plate, at row size. This was the category
+                        emoji — the last emoji left in the app after the icons and the
+                        blueprints, and the one place where the two vocabularies sat
+                        in the same list. */}
+                    <CategoryPlate category={c.key as CategoryKey} size="row" />
                     <span className={styles.rowName}>{c.en}</span>
                     <span className={styles.rowCount}>{n || '—'}</span>
                   </Link>

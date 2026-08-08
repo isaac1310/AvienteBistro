@@ -39,7 +39,7 @@ export type RecipeInput = {
   servings: number | null;
   yield_text: string | null;
   source_member_id: string | null;
-  photo_url: string | null;
+  photo_path: string | null;
   ingredients: IngredientInput[];
   steps: StepInput[];
 };
@@ -87,7 +87,7 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
     servings: input.servings ?? null,
     yield_text: input.servings ? null : (input.yield_text?.trim() || '—'),
     source_member_id: input.source_member_id,
-    photo_url: input.photo_url,
+    photo_path: input.photo_path,
     updated_by: member.id,
     updated_at: new Date().toISOString(),
   };
@@ -226,14 +226,17 @@ export async function movePhoto(fromRecipeId: string, toRecipeId: string) {
   const member = await requireMember();
   const db = await supabaseServer();
 
+  /* The PATH moves, not a URL. Moving a signed URL between rows moved a link with
+     an expiry baked into it, so the photograph would have expired on its new recipe
+     at whatever moment it was going to expire on the old one. */
   const { data: source } = await db
-    .from('recipes').select('photo_url').eq('id', fromRecipeId).maybeSingle();
-  if (!source?.photo_url) throw new Error('That recipe has no photo to move.');
+    .from('recipes').select('photo_path').eq('id', fromRecipeId).maybeSingle();
+  if (!source?.photo_path) throw new Error('That recipe has no photo to move.');
 
   const { data: target } = await db
-    .from('recipes').select('photo_url, title').eq('id', toRecipeId).maybeSingle();
+    .from('recipes').select('photo_path, title').eq('id', toRecipeId).maybeSingle();
   if (!target) throw new Error('Could not find the recipe to move it to.');
-  if (target.photo_url) {
+  if (target.photo_path) {
     // Refuse rather than overwrite: silently replacing a photo someone chose is
     // worse than making them clear it first.
     throw new Error(`"${target.title}" already has a photo. Remove that one first.`);
@@ -244,13 +247,13 @@ export async function movePhoto(fromRecipeId: string, toRecipeId: string) {
 
   const { error: setErr } = await db
     .from('recipes')
-    .update({ photo_url: source.photo_url, updated_by: member.id })
+    .update({ photo_path: source.photo_path, photo_url: null, updated_by: member.id })
     .eq('id', toRecipeId);
   if (setErr) throw new Error(setErr.message);
 
   const { error: clearErr } = await db
     .from('recipes')
-    .update({ photo_url: null, updated_by: member.id })
+    .update({ photo_path: null, photo_url: null, updated_by: member.id })
     .eq('id', fromRecipeId);
   if (clearErr) throw new Error(clearErr.message);
 
@@ -265,7 +268,7 @@ export async function recipesWithoutPhoto(excludeId: string) {
     .from('recipes')
     .select('id, title, category')
     .is('deleted_at', null)
-    .is('photo_url', null)
+    .is('photo_path', null)
     .neq('id', excludeId)
     .order('title');
   return (data ?? []) as { id: string; title: string; category: string }[];

@@ -17,7 +17,7 @@ export default async function EditMenuPage({ params }: { params: Promise<{ id: s
   const [menu, { data: recipes }, rules] = await Promise.all([
     getMenu(id),
     db.from('recipes')
-      .select('id, title, title_en, category, photo_url, servings, yield_text, prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)')
+      .select('id, title, title_en, category, photo_url, photo_path, servings, yield_text, prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)')
       .is('deleted_at', null)
       .order('title'),
     occasionRules(),

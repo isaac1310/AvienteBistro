@@ -340,17 +340,23 @@
   function kidsWeek() {
     group('kids');
     const A = window.Aviente;
-    if (!A?.mondayOf) { check('kids helpers exposed', () => skip('not attached')); return; }
+    if (!A?.sundayOf) { check('kids helpers exposed', () => skip('not attached')); return; }
 
-    check('Monday maps to itself', () =>
-      eq(A.mondayOf(new Date('2026-08-03T12:00:00')), '2026-08-03', 'week start'));
-    check('Wednesday maps back to Monday', () =>
-      eq(A.mondayOf(new Date('2026-08-05T12:00:00')), '2026-08-03', 'week start'));
-    // Sunday belongs to the week that ALREADY started, not the one about to.
-    check('Sunday belongs to the week that started', () =>
-      eq(A.mondayOf(new Date('2026-08-09T12:00:00')), '2026-08-03', 'week start'));
-    check('week arithmetic stays on Mondays', () =>
-      eq(A.addWeeks('2026-08-03', 2), '2026-08-17', 'two weeks on'));
+    // The week runs Sunday -> Saturday. 2026-08-02 is a Sunday; 08-08 the Saturday.
+    check('Sunday maps to itself', () =>
+      eq(A.sundayOf(new Date('2026-08-02T12:00:00')), '2026-08-02', 'week start'));
+    check('Wednesday maps back to Sunday', () =>
+      eq(A.sundayOf(new Date('2026-08-05T12:00:00')), '2026-08-02', 'week start'));
+    check('Saturday still belongs to the week that started', () =>
+      eq(A.sundayOf(new Date('2026-08-08T12:00:00')), '2026-08-02', 'week start'));
+    // The next Sunday starts the NEXT week, which is the boundary the old
+    // Monday-based helper put in a different place.
+    check('the next Sunday is a new week', () =>
+      eq(A.sundayOf(new Date('2026-08-09T12:00:00')), '2026-08-09', 'week start'));
+    check('week arithmetic stays on Sundays', () =>
+      eq(A.addWeeks('2026-08-02', 2), '2026-08-16', 'two weeks on'));
+    check('every day of the week has a host', () =>
+      eq(new Set((A.ANIMALS || []).map((a) => a.weekday)).size, 7, 'distinct weekdays'));
   }
 
   function redirects() {

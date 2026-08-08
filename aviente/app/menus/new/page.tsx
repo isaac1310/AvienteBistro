@@ -22,7 +22,7 @@ export default async function NewMenuPage({
   const db = await supabaseServer();
   const [{ data: recipes }, rules] = await Promise.all([
     db.from('recipes')
-      .select('id, title, title_en, category, photo_url, servings, yield_text, prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)')
+      .select('id, title, title_en, category, photo_url, photo_path, servings, yield_text, prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)')
       .is('deleted_at', null)
       .order('title'),
     occasionRules(),

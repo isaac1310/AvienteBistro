@@ -19,3 +19,5 @@ aviente/supabase/seed.sql
 # Generated import payloads — regenerate with tools/parse-markdown-book.mjs
 metakonim-import.json
 aviente/repairs.json
+aviente/recategorise.json
+aviente/repairs-categories.json

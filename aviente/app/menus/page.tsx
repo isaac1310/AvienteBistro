@@ -2,6 +2,7 @@ import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import PageHeader from '@/components/PageHeader';
+import { todayIn } from '@/lib/today';
 import PageTitle from '@/components/PageTitle';
 import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
@@ -20,7 +21,8 @@ export default async function MenusPage({
   const showAll = all === '1';
 
   const [menus, rules] = await Promise.all([savedMenus(showAll), occasionRules()]);
-  const today = new Date().toISOString().slice(0, 10);
+  // Today in Jerusalem: a UTC server files tonight's menu under yesterday.
+  const today = todayIn();
   const upcoming = menus.filter((m) => m.date >= today);
   const past = menus.filter((m) => m.date < today);
   const suggestions = upcomingOccasions(rules, 75).slice(0, 4);

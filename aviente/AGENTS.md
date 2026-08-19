@@ -13,9 +13,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Full detail in `tests/REGRESSION.md`. This is the short version.
 
 ```bash
-npm run prepr                                  # typecheck + build
-npm run dev && open 'http://localhost:3000/?selftest=1'   # then read window.__selftest
+npm run prepr        # check-schema + typecheck + build
+npm run dev:test     # :3001, a PRODUCTION build — run the suite here, not on :3000
+open 'http://localhost:3001/?selftest=1'   # then read window.__selftest
 ```
+
+`prepr` now begins with `tools/check-schema.mjs`, which refuses to build when the
+database is behind `DB_SCHEMA_VERSION`. Both outages this project has had were the
+same event — a migration merged and never applied. **A migration ships in the same
+commit as the code that needs it, is applied BEFORE the merge, and adds its probe to
+`tools/check-schema.mjs` in that same commit.** Take a backup first when a migration
+rewrites rows.
 
 **There is no test runner, on purpose.** The suite is `public/selftest.js`, running
 inside the app in a real browser — TravelHub's model. Playwright was tried and
@@ -36,11 +44,17 @@ live, and you already drive a real browser.
    writes. Anything needing writes goes in `tools/db-check.mjs`, tags its fixtures
    with `__test__`, and cleans up via `npm run test:clean`. Never truncate.
 5. **Assert the app, not the harness.** An early tap-target check failed on the
-   Next.js dev-overlay button. Scope selectors to `header, main, footer`.
+   Next.js dev-overlay button, so checks scope their selectors. Include `article`:
+   the recipe page renders one at top level, and a check scoped to
+   `header, main, footer` skipped itself on the only page it had anything to measure
+   — reporting "nothing to check" while sitting on a table full of it.
 6. **Run it at 412px and 1280px.** Several checks skip themselves outside phone
    width; they must be seen to skip, not assumed to pass.
 
-**Release candidates:** also run `node tools/db-check.mjs`, then Itzik does the
-manual pass from `tests/TEST-PLAN-v<version>.md` on the Ultra. Bump `APP_VERSION`
+**Release candidates:** also run `npm run db-check` — it exists now, and it is the
+only gate covering WRITES: anon refused on every table, the migration constraints
+actually enforced, and a `__test__` fixture created and removed. Read-only by default;
+`--write` needs a service key. Then Itzik does the manual pass from
+`tests/TEST-PLAN-v<version>.md` on the Ultra, against :3001. Bump `APP_VERSION`
 in `lib/version.ts` first — `window.__selftest.version` and the footer are what
 prove the pass was not performed against a cached build.

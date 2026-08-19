@@ -94,6 +94,8 @@ export const courseLabelEn = (key: string) =>
 export const courseIndex = (key: string) =>
   COURSES.findIndex((c) => c.key === key);
 
+import { todayAnchor } from './today';
+
 /* ── the kids' week ────────────────────────────────────────────────────────
    Pure values and date helpers. The planner is a client component, so these
    cannot live beside the Supabase queries — the third time this rule has come
@@ -153,8 +155,13 @@ export type KidsMeal = {
  * says Monday while it returns a Sunday is the kind of thing that reads as correct in
  * a diff for years.
  */
-export function sundayOf(date = new Date()): string {
-  const d = new Date(date);
+export function sundayOf(date?: Date | string): string {
+  /* Defaults to today IN JERUSALEM, not on the server's clock. Between midnight and
+     03:00 local a UTC server still reports yesterday, so the planner opened on last
+     week for three hours every night. See lib/today.ts. */
+  const d = date === undefined
+    ? todayAnchor()
+    : new Date(typeof date === 'string' ? `${date}T12:00:00` : date);
   d.setDate(d.getDate() - d.getDay());   // getDay(): 0 = Sunday
   return d.toISOString().slice(0, 10);
 }

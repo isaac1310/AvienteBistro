@@ -59,7 +59,9 @@ export type Recipe = RecipeSummary & {
   meal_type: string | null;
   description_en: string | null; description_he: string | null;
   story: string | null; serving_suggestions: string | null;
-  updated_at: string; updated_by_name: string | null;
+  updated_at: string;
+  /* Null only until migration 0013 has run. */
+  created_at?: string | null; updated_by_name: string | null;
   ingredients: Ingredient[]; steps: Step[];
 };
 

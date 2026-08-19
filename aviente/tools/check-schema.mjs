@@ -1,0 +1,102 @@
+#!/usr/bin/env node
+/**
+ * Refuse to ship code the database cannot run.
+ *
+ * Part of `npm run prepr`, because both outages this project has had were the same
+ * event: a migration merged and never applied. 0008 took /menus down in production;
+ * 0011 took every recipe page down. The banner explains the state after the fact —
+ * this stops it shipping.
+ *
+ * Compares DB_SCHEMA_VERSION (lib/version.ts) with the highest row in
+ * public.schema_migrations, read with the anon key. RLS filters rows from anon, so
+ * the read goes through a security-definer-free path: PostgREST HEAD with count is
+ * also filtered — so instead we accept ONLY hard evidence:
+ *   - table missing (PGRST205)          → behind, fail
+ *   - column probe on a known migration → present/missing per version
+ *
+ * The probe: each migration that added a column is checked directly, newest first.
+ * A missing column is 42703 regardless of RLS, so anon can measure it — the same
+ * trick lib/schema.ts uses, without needing to see any rows.
+ *
+ * OFFLINE IS NOT A FAILURE. prepr must still run on a train: no network → warn and
+ * pass. Only a real answer saying the database is behind fails the build.
+ */
+import { readFileSync } from 'node:fs';
+
+const version = readFileSync(new URL('../lib/version.ts', import.meta.url), 'utf8');
+const need = Number(version.match(/DB_SCHEMA_VERSION = (\d+)/)?.[1]);
+if (!need) { console.error('check-schema: could not read DB_SCHEMA_VERSION'); process.exit(1); }
+
+let env = {};
+try {
+  env = Object.fromEntries(
+    readFileSync(new URL('../.env.local', import.meta.url), 'utf8')
+      .split('\n').filter((l) => l.includes('='))
+      .map((l) => [l.slice(0, l.indexOf('=')).trim(), l.slice(l.indexOf('=') + 1).trim()]),
+  );
+} catch { /* no .env.local — CI without secrets; treated as offline below */ }
+
+const url = env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!url || !key) {
+  console.warn('check-schema: no Supabase credentials available — SKIPPED, not verified.');
+  process.exit(0);
+}
+
+/* One probe per migration that changed a queryable shape. Newest first: the first
+   probe that answers "present" proves everything at or below its version.
+   MAINTENANCE RULE, stated where it bites: a new migration that adds a column adds
+   a probe here in the same commit — that is what prepr then enforces for everyone
+   after you. */
+const PROBES = [
+  [14, 'family_members?select=id,language&limit=1'],
+  [13, 'recipes?select=id,created_at&limit=1'],
+  [12, 'family_members?select=id,role&limit=1'],
+  [11, 'recipes?select=id,photo_path&limit=1'],
+  [10, 'kids_week?select=id,week_start&limit=1'],
+  [9,  'schema_migrations?select=version&limit=1'],
+  [8,  'menus?select=id,meal_time&limit=1'],
+];
+
+const missing = (t) => /PGRST205|42703/.test(t);
+
+let have = 0;
+try {
+  for (const [v, probe] of PROBES) {
+    const res = await fetch(`${url}/rest/v1/${probe}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    const body = await res.text();
+    if (!missing(body)) { have = v; break; }
+  }
+} catch (e) {
+  console.warn(`check-schema: network unreachable (${e?.cause?.code ?? e.message}) — SKIPPED, not verified.`);
+  process.exit(0);
+}
+
+/* A build that needs a version NO PROBE covers is a build whose migration shipped
+   without its probe — and capping the requirement to the highest probe (the first
+   version of this line) made the guard PASS in exactly that case. The check would
+   have failed open for every future migration, forever, silently. It fails closed
+   instead: the fix is one probe line, in the same commit as the migration. */
+if (need > PROBES[0][0]) {
+  console.error(
+    `check-schema: DB_SCHEMA_VERSION is ${need} but the newest probe here covers ${PROBES[0][0]}.\n` +
+    `  Add a probe for migration ${need} to tools/check-schema.mjs in the same commit —\n` +
+    `  without it this guard cannot verify the database and would pass on a broken one.`,
+  );
+  process.exit(1);
+}
+
+if (have >= need) {
+  console.log(`check-schema: database has migration ${have}, build needs ${need} — OK`);
+  process.exit(0);
+}
+
+console.error(
+  `check-schema: the DATABASE IS BEHIND — it has migration ${have}, this build needs ${need}.\n` +
+  `  Run supabase/migrations/${String(have + 1).padStart(4, '0')}_*.sql onward in the SQL editor,\n` +
+  `  then re-run. Merging now repeats the outage that took the recipe pages down.`,
+);
+process.exit(1);

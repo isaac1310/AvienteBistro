@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed:build": "node tools/seed-from-source.mjs --commit",
-    "prepr": "npm run typecheck && npm run build",
+    "prepr": "node tools/check-schema.mjs && npm run typecheck && npm run build",
     "test:clean": "node tools/clean-test-fixtures.mjs",
     "dev:test": "node tools/dev-sandbox.mjs",
     "blueprints": "node tools/build-blueprints.mjs",

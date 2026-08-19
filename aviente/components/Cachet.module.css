@@ -140,18 +140,27 @@
 .est { /* the default tone — kept as a named variant so callers read clearly */ }
 
 /* ── 4B · the in-app header ──────────────────────────────────────────────── */
-.header {
-  --scale: 0.42;
-}
+/* Scaled to the viewport in steps, not fixed. The artboard's 26px wordmark was drawn
+   for a 412px phone; on a 1400px screen the header band grew with the display and the
+   lockup did not, so it sat in the field like a stamp.
+   Steps rather than a clamp: --scale is a NUMBER multiplied inside calc(), and CSS
+   cannot mix a number with a vw length — clamp(0.42, 0.28 + 0.045vw, 0.8) is invalid
+   at computed-value time, so the declaration is dropped and nothing anywhere errors.
+   That is exactly what happened on the first attempt, and the only symptom was the
+   lockup staying small. */
+.header { --scale: 0.44; }
+@media (min-width: 700px)  { .header { --scale: 0.62; } }
+@media (min-width: 1100px) { .header { --scale: 0.78; } }
+
 .header .word {
   font-weight: 500;
-  font-size: 26px;
-  letter-spacing: 6px;
-  text-indent: 6px;
+  font-size: calc(62px * var(--scale));
+  letter-spacing: calc(13px * var(--scale));
+  text-indent: calc(13px * var(--scale));
   margin-top: 0;
 }
-.header .family { font-size: 9px; letter-spacing: 3px; margin-top: 0; }
-.header .tagline { font-size: 15px; }
+.header .family { font-size: calc(21px * var(--scale)); letter-spacing: calc(7px * var(--scale)); margin-top: 0; }
+.header .tagline { font-size: calc(34px * var(--scale)); }
 /* Centred, not flush right. 4B sets align-items: flex-end so the tagline hangs off
    the wordmark's right edge — which reads as deliberate on a Latin artboard and as a
    misalignment in the app, where the header is a centred stack and the page may run
@@ -159,8 +168,8 @@
 .header .taglineWrap { align-self: center; margin-top: 2px; }
 /* The header keeps the signature stroke but tucks the overshoot: at 15px the extra
    14px tail would poke past the lockup's edge. */
-.header .underline { inset-inline-end: -6px; width: calc(100% + 6px); }
-.header .year { font-size: 9px; letter-spacing: 2.6px; margin-top: 12px; }
+.header .underline { inset-inline-end: calc(-10px * var(--scale)); width: calc(100% + 10px * var(--scale)); }
+.header .year { font-size: calc(21px * var(--scale)); letter-spacing: calc(6px * var(--scale)); margin-top: calc(28px * var(--scale)); }
 /* The header drops the ornament: 4B is the wordmark alone, because the page
    underneath already has its own rules and a second one crowds them. */
 .header .ornament { display: none; }

@@ -17,7 +17,12 @@ export const maxDuration = 60;
 export const runtime = 'nodejs';
 
 const REMOTE_CHROMIUM =
-  'https://github.com/Sparticuz/chromium/releases/download/v140.0.0/chromium-v140.0.0-pack.x64.tar';
+  /* The pack's major MUST match @sparticuz/chromium-min in package.json (^147): the
+     JS half sets flags for the binary half, and a 140 binary under 147 flags is the
+     kind of skew that works until it corrupts output. Unverified in production in
+     either direction — every PDF to date used local Chrome — but skew is never the
+     right state to leave. */
+  'https://github.com/Sparticuz/chromium/releases/download/v147.0.0/chromium-v147.0.0-pack.x64.tar';
 
 /** Chrome's own path on a Mac, for local development. */
 const LOCAL_CHROME = [
@@ -96,12 +101,16 @@ export async function GET(request: NextRequest) {
        16px regular. So the old hardcoded check did not merely fail to cover Baloo: it
        failed OUTRIGHT on every kids PDF, burned the full five-second timeout, and
        then fell through with no font guarantee at all. */
+    /* The faces each page is actually SET in, Hebrew included — the corpus is
+       Hebrew, and a snapshot taken before Frank Ruhl Libre arrives prints every dish
+       name in a fallback. fonts.check answers "would this face be used at this size",
+       so each family is probed at a size/weight the page really uses. */
     const families = path.startsWith('/print/kids')
-      ? ['Baloo 2']
-      : ['Cormorant Garamond'];
+      ? ['16px "Baloo 2"', '16px "Rubik"']
+      : ['16px "Cormorant Garamond"', '16px "Frank Ruhl Libre"'];
 
     await page.waitForFunction(
-      (names: string[]) => names.every((n) => document.fonts.check(`16px "${n}"`)),
+      (specs: string[]) => specs.every((spec) => document.fonts.check(spec)),
       { timeout: 5000 },
       families,
     ).catch(() => { /* fall through: a fallback face beats no PDF at all */ });
@@ -109,7 +118,9 @@ export async function GET(request: NextRequest) {
     /* ?debug=shot returns what Chromium actually sees, as a PNG. Kept because
        diagnosing a PDF by staring at its bytes is miserable, and the first font
        bug here cost far more time than this branch will. */
-    if (request.nextUrl.searchParams.get('debug') === 'shot') {
+    /* Local only. In production this returned a full-page PNG of any allowed print
+       route to anyone signed in — a debugging convenience wearing an API's clothes. */
+    if (!process.env.VERCEL && request.nextUrl.searchParams.get('debug') === 'shot') {
       const shot = await page.screenshot({ fullPage: true });
       return new NextResponse(shot as unknown as BodyInit, {
         headers: { 'content-type': 'image/png' },
@@ -125,7 +136,9 @@ export async function GET(request: NextRequest) {
     return new NextResponse(pdf as unknown as BodyInit, {
       headers: {
         'content-type': 'application/pdf',
-        'content-disposition': `attachment; filename="${name}.pdf"`,
+        /* Sanitised: the name arrives from the query string, and a raw value in a
+           header is a CRLF/quote injection waiting for a crafted link. */
+        'content-disposition': `attachment; filename="${name.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 80)}.pdf"`,
       },
     });
   } catch (e) {

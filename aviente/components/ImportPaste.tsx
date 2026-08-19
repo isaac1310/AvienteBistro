@@ -7,6 +7,7 @@ import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
+import { useT } from './LangProvider';
 import styles from './ImportPaste.module.css';
 
 
@@ -34,6 +35,7 @@ unit חייב להיות אחד מ: g, kg, ml, l, cup, tbsp, tsp, pcs, pinch, to
 export default function ImportPaste({
   members,
 }: { members: { id: string; name: string }[] }) {
+  const t = useT();
   const router = useRouter();
   const [text, setText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -84,7 +86,7 @@ export default function ImportPaste({
   if (result) {
     return (
       <div className={styles.wrap}>
-        <h1 className={styles.h1}>Imported</h1>
+        <h1 className={styles.h1}>{t('import.done')}</h1>
         <p className={styles.summary}>
           {result.imported.length} added
           {result.replaced.length > 0 && ` · ${result.replaced.length} replaced`}
@@ -138,8 +140,8 @@ export default function ImportPaste({
 
   return (
     <div className={styles.wrap}>
-      <p className="eyebrow">Import</p>
-      <h1 className={styles.h1}>Paste from an AI</h1>
+      <p className="eyebrow">{t('import.eyebrow')}</p>
+      <h1 className={styles.h1}>{t('add.paste')}</h1>
 
       <section className={styles.step}>
         <h2 className={styles.h2}>1 · Give this to ChatGPT or Claude</h2>
@@ -194,7 +196,7 @@ export default function ImportPaste({
           {/* What to do about a recipe already in the book. Skip is the default
               because it is the only one that cannot lose anything. */}
           <fieldset className={styles.dupes}>
-            <legend className={styles.label}>If a recipe is already in the book</legend>
+            <legend className={styles.label}>{t('import.onDuplicate')}</legend>
             {([
               ['skip', 'Skip it', 'leave what is there untouched'],
               ['replace', 'Replace it', 'overwrite it — the old version is kept under ⟲'],

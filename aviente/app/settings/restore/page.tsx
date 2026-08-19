@@ -22,8 +22,8 @@ export default async function RestorePage() {
         <div className={styles.frame}>
           <main className={`shell ${styles.main}`}>
             <BackLink href="/settings" label={t('settings.eyebrow')} />
-            <p className="eyebrow">Restore</p>
-            <h1 className={styles.h1}>This door is the admin&rsquo;s</h1>
+            <p className="eyebrow">{t('restore.eyebrow')}</p>
+            <h1 className={styles.h1}>{t('restore.notYours')}</h1>
             <p className={styles.body}>
               Restoring a backup replaces the whole cookbook at once. Adding or
               fixing a recipe doesn&rsquo;t need it — that all lives under
@@ -41,8 +41,8 @@ export default async function RestorePage() {
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
           <BackLink href="/settings" label={t('settings.eyebrow')} />
-          <p className="eyebrow">Restore</p>
-          <h1 className={styles.h1}>Restore the cookbook from a backup</h1>
+          <p className="eyebrow">{t('restore.eyebrow')}</p>
+          <h1 className={styles.h1}>{t('restore.title')}</h1>
           <RestoreBackup />
         </main>
       </div>

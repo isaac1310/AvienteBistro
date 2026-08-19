@@ -75,7 +75,7 @@ export default function Settings({
   return (
     /* No heading of its own: the only page that renders this is /settings, whose
        own eyebrow already says "Settings" — two in a row read as a bug. */
-    <section className={styles.wrap} aria-label="Preferences">
+    <section className={styles.wrap} aria-label={t('settings.prefs')}>
       <div className={`card ${styles.panel}`}>
         {/* Each person sets their own, so Moran is greeted as Mama without anyone
             editing a row in the Supabase dashboard. It changes the greeting only —
@@ -137,7 +137,11 @@ export default function Settings({
               aria-pressed={lang === 'he'} onClick={() => pickLang('he')}>עברית</button>
             <button type="button" disabled={busy}
               className={lang === 'en' ? styles.on : styles.off}
-              aria-pressed={lang === 'en'} onClick={() => pickLang('en')}>English</button>
+              aria-pressed={lang === 'en'} onClick={() => pickLang('en')}>
+              {/* Each language labels itself, so this is English in both settings —
+                  the same reason עברית is not "Hebrew". */}
+              English
+            </button>
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from './LangProvider';
 import styles from './History.module.css';
 
 /* ⟲ Earlier versions — the other half of the safety net.
@@ -37,6 +38,7 @@ export default function History({
   restore: (id: string) => Promise<void>;
   label?: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [versions, setVersions] = useState<Version[] | null>(null);
@@ -75,9 +77,9 @@ export default function History({
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {open && (
-        <div className={styles.sheet} role="dialog" aria-label="Earlier versions">
+        <div className={styles.sheet} role="dialog" aria-label={t('history.title')}>
           <div className={styles.head}>
-            <strong>Earlier versions</strong>
+            <strong>{t('history.title')}</strong>
             <button type="button" className={styles.close} onClick={() => setOpen(false)}>
               Close
             </button>

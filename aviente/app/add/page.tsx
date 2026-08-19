@@ -29,13 +29,13 @@ export default async function AddPage({
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
           <BackLink href="/" label={t('nav.home')} />
-          <p className="eyebrow">Add</p>
-          <h1 className={styles.h1}>A new recipe</h1>
+          <p className="eyebrow">{t('add.eyebrow')}</p>
+          <h1 className={styles.h1}>{t('add.title')}</h1>
 
           <div className={styles.choices}>
             <Link href="/add?mode=blank" className={`card ${styles.choice}`}>
               <span className={styles.emoji} aria-hidden="true">✍️</span>
-              <span className={styles.choiceName}>Type it out</span>
+              <span className={styles.choiceName}>{t('add.typeIt')}</span>
               <span className={styles.choiceBody}>
                 A blank form — name, ingredients, steps. Best when you are looking
                 at a written recipe or know it by heart.
@@ -44,7 +44,7 @@ export default async function AddPage({
 
             <Link href="/import" className={`card ${styles.choice}`}>
               <span className={styles.emoji} aria-hidden="true">📋</span>
-              <span className={styles.choiceName}>Paste from an AI</span>
+              <span className={styles.choiceName}>{t('add.paste')}</span>
               <span className={styles.choiceBody}>
                 Photograph the recipe in ChatGPT or Claude, ask for JSON, paste the
                 answer here. Handles Hebrew amounts, ranges and notes.

@@ -136,14 +136,44 @@
       rendersIn('חלה לשבת', 'Frank Ruhl Libre') ? true
         : 'Frank Ruhl Libre did not load — Hebrew is falling back to a system font');
 
-    check('Hebrew content is RTL and the chrome is not', () => {
-      const he = document.querySelector('[lang="he"]');
-      if (!he) return skip('no Hebrew content on this page');
-      const bad = css(document.documentElement, 'direction');
-      // The bug: [lang='he'] matched <html>, flipping the whole app -- the category
-      // grid reversed and counts read "RECETTES 5".
-      if (bad !== 'ltr') return `<html> direction is ${bad}; the whole app is flipped`;
-      return eq(css(he, 'direction'), 'rtl', 'Hebrew block direction');
+    /* This check used to assert the OPPOSITE: "Hebrew content is RTL and the chrome
+       is not". That was right when the interface was English with Hebrew blocks
+       inside it, and it is wrong now — the whole document turns with the reader's
+       language. Rewritten rather than deleted: the direction of the page is exactly
+       the sort of thing that regresses silently, and a suite that stopped watching it
+       would be worse than one that watched for the wrong thing. */
+    check('the document direction matches the language', () => {
+      const html = document.documentElement;
+      const lang = html.getAttribute('lang');
+      const dir = css(html, 'direction');
+      if (lang === 'he') return eq(dir, 'rtl', 'direction for lang=he');
+      if (lang === 'en') return eq(dir, 'ltr', 'direction for lang=en');
+      return `<html lang> is ${JSON.stringify(lang)}, expected he or en`;
+    });
+
+    /* Latin runs inside an RTL page have bitten three times: "0.5 cup" became
+       "cup 0.5" in the ingredient table, the kids' week read "AUG 22 - 16", and the
+       schema banner threw its full stop to the front of the sentence. Anything
+       carrying digits-then-Latin has to opt out of the surrounding direction. */
+    check('Latin runs opt out of RTL', () => {
+      if (css(document.documentElement, 'direction') !== 'rtl') {
+        return skip('page is not RTL, so nothing to opt out of');
+      }
+      /* `article` as well as header/main/footer. The recipe page — the one page that
+         actually HAS Latin measure runs — renders an <article> at top level, so the
+         scoping borrowed from the tap-target check found nothing and the assertion
+         skipped itself with "no Latin measure runs on this page" while sitting on a
+         table full of "2 tbsp". A check that passes by exercising nothing is worse
+         than no check. */
+      const suspects = [...document.querySelectorAll('article, header, main, footer')]
+        .flatMap((root) => [...root.querySelectorAll('td, span, p')])
+        .filter((el) => el.children.length === 0
+          && /^[\d\s./–-]+\s?[A-Za-z]{1,6}$/.test((el.textContent || '').trim()));
+      if (!suspects.length) return skip('no Latin measure runs on this page');
+      const wrong = suspects.filter((el) => css(el, 'direction') !== 'ltr');
+      return wrong.length === 0
+        ? true
+        : `${wrong.length} Latin run(s) inherit RTL, e.g. ${JSON.stringify(wrong[0].textContent.trim())}`;
     });
   }
 

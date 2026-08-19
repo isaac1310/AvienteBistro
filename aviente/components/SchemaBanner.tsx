@@ -1,3 +1,4 @@
+import { serverT } from '@/lib/lang';
 import { schemaState } from '@/lib/schema';
 import styles from './SchemaBanner.module.css';
 
@@ -14,7 +15,7 @@ import styles from './SchemaBanner.module.css';
  * broken because they are not logged in would be worse than saying nothing.
  */
 export default async function SchemaBanner() {
-  const state = await schemaState();
+  const [state, t] = await Promise.all([schemaState(), serverT()]);
   if (state.ok || state.reason === 'unknown') return null;
 
   /* Two different problems, two different instructions. Telling someone whose
@@ -26,9 +27,12 @@ export default async function SchemaBanner() {
   if (state.reason === 'untracked') {
     return (
       <div className={styles.bar} role="status">
-        <strong className={styles.title}>The app needs a database update.</strong>{' '}
-        Nothing is lost and browsing still works — Itzik has the steps.
-        <span className={styles.admin}>
+        <strong className={styles.title}>{t('schema.needsUpdate')}</strong>{' '}
+        {t('schema.reassure')}
+        {/* dir="ltr" on the admin half only. It is filenames and English either way,
+            and inside an RTL page the bidi algorithm threw its full stop to the front
+            of the sentence — ".The app needs a database update". */}
+        <span className={styles.admin} dir="ltr">
           {' '}Admin: run <code className={styles.file}>0009_schema_migrations.sql</code>{' '}
           from <code className={styles.file}>supabase/migrations/</code> — it only
           creates the tracking table and changes no recipe data.
@@ -44,10 +48,9 @@ export default async function SchemaBanner() {
 
   return (
     <div className={styles.bar} role="status">
-      <strong className={styles.title}>The app needs a database update.</strong>{' '}
-      Some pages may not work until it runs — nothing is lost, and Itzik has the
-      steps.
-      <span className={styles.admin}>
+      <strong className={styles.title}>{t('schema.needsUpdate')}</strong>{' '}
+      {t('schema.partial')}
+      <span className={styles.admin} dir="ltr">
         {' '}Admin: the database has migration {state.have}; this build needs{' '}
         {state.need}. Run{' '}
         {missing.map((n, i) => (

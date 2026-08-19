@@ -37,18 +37,18 @@ export async function currentMember() {
 
   const { data, error } = await db
     .from('family_members')
-    .select('id, name, display_name, theme, card_language, role')
+    .select('id, name, display_name, theme, language, role')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (data) return data;
 
-  /* card_language arrives in migration 0007. Until it is applied, asking for it
-     makes Postgres reject the whole SELECT — and because this function only
-     returned `data ?? null`, the result was indistinguishable from "not a family
-     member": the greeting disappeared and every page treated the owner as a guest.
-     A missing column is a deployment lag, not a failed login, so fall back to the
-     columns that certainly exist and default the new one. */
+  /* `language` is `card_language` renamed in migration 0014, and `role` arrives in
+     0012. Until those run, asking for them makes Postgres reject the whole SELECT —
+     and because this function once returned only `data ?? null`, the result was
+     indistinguishable from "not a family member": the greeting vanished and every
+     page treated the owner as a guest. A missing column is a deployment lag, not a
+     failed login. */
   if (error?.code === '42703') {
     const { data: legacy } = await db
       .from('family_members')
@@ -58,7 +58,10 @@ export async function currentMember() {
     /* Missing columns default SAFE: everyone is a member until migration 0012 says
        otherwise. An admin who temporarily cannot restore beats a member who
        temporarily can. */
-    return legacy ? { ...legacy, card_language: 'he', role: 'member' } : null;
+    /* Defaults chosen to be safe rather than convenient: Hebrew because it is the
+       app's default language, and 'member' because an admin who temporarily cannot
+       restore a backup beats a member who temporarily can. */
+    return legacy ? { ...legacy, language: 'he', role: 'member' } : null;
   }
 
   return null;

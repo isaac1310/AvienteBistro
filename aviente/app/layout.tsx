@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Jost, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
+import { LangProvider } from '@/components/LangProvider';
 import SchemaBanner from '@/components/SchemaBanner';
 import SelfTest from '@/components/SelfTest';
+import { currentLang } from '@/lib/lang';
 import { APP_VERSION } from '@/lib/version';
 import { currentMember } from '@/lib/supabase/server';
 import './globals.css';
@@ -65,6 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   /* The signed-in member's colour, read here so a reload keeps it. Signed-out
      pages fall back to green rather than failing — /login has no member yet. */
   const member = await currentMember().catch(() => null);
+  const lang = await currentLang();
   const fonts = [cormorant, jost, baloo, frank, heebo].map((f) => f.variable).join(' ');
   return (
     // The chrome is English (French-accented) per §5, so that is what the document
@@ -76,14 +79,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // the classes on <body> the tokens were undefined at :root, --ser collapsed, and
     // every heading silently rendered in Times -- including the Hebrew, which was
     // the one thing the font stack existed to fix.
-    <html lang="en" dir="ltr" data-theme={member?.theme ?? 'green'} className={fonts}>
+    /* lang and dir follow the reader. They were hardcoded en/ltr, with Hebrew
+       flipped per element by a `[lang='he']` rule — so the words ran right-to-left
+       while the page did not, and headings sat hard against the left margin above
+       text that started on the right. A Hebrew interface is a right-to-left
+       document. */
+    <html lang={lang} dir={lang === 'he' ? 'rtl' : 'ltr'}
+          data-theme={member?.theme ?? 'green'} className={fonts}>
       {/* data-version lets the selftest report which build it ran against, so a
           result can never be misattributed to a cached page. */}
       <body data-version={APP_VERSION}>
         {/* Above everything, on every page. A migration nobody ran is the most
             likely reason this app breaks, because running it is a manual step. */}
         <SchemaBanner />
-        {children}
+        <LangProvider lang={lang}>{children}</LangProvider>
         <SelfTest />
       </body>
     </html>

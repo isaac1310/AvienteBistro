@@ -20,6 +20,6 @@ export const APP_VERSION = '0.10.0';
  * Two numbers that mean different things must not share a name. Bump this one in the
  * SAME commit as the migration that needs it.
  */
-export const DB_SCHEMA_VERSION = 13;
+export const DB_SCHEMA_VERSION = 14;
 
 export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${DB_SCHEMA_VERSION}`;

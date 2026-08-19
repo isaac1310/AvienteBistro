@@ -3,6 +3,7 @@ import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
 import Settings from '@/components/Settings';
 import { BUILD_LABEL } from '@/lib/version';
+import { serverT } from '@/lib/lang';
 import { currentMember } from '@/lib/supabase/server';
 import styles from './settings.module.css';
 
@@ -17,20 +18,20 @@ export const metadata = { title: 'Aviente — Settings' };
  * is honest about both: visible at the top level, out of the way until asked for.
  */
 export default async function SettingsPage() {
-  const member = await currentMember();
+  const [member, t] = await Promise.all([currentMember(), serverT()]);
 
   return (
     <>
       <Nav current="/" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/" label="Home" />
-          <p className="eyebrow">Settings</p>
-          <h1 className={styles.h1}>How the app behaves</h1>
+          <BackLink href="/" label={t('nav.home')} />
+          <p className="eyebrow">{t('settings.eyebrow')}</p>
+          <h1 className={styles.h1}>{t('settings.title')}</h1>
 
           <Settings
             theme={(member?.theme as 'green' | 'burgundy') ?? 'green'}
-            cardLanguage={(member?.card_language as 'en' | 'he') ?? 'he'}
+            language={(member?.language as 'en' | 'he') ?? 'he'}
             displayName={member?.display_name ?? member?.name ?? ''}
           />
 
@@ -42,7 +43,7 @@ export default async function SettingsPage() {
               answers is not hidden. */}
           {member?.role === 'admin' && (
             <section className={styles.block} aria-labelledby="backup-h">
-              <h2 className={styles.h2} id="backup-h">Backup</h2>
+              <h2 className={styles.h2} id="backup-h">{t('settings.backup')}</h2>
               <div className={`card ${styles.panel}`}>
                 <p className={styles.body}>
                   The free Supabase tier takes no automated backups, and these recipes
@@ -58,7 +59,7 @@ export default async function SettingsPage() {
                   would have to be rebuilt.
                 </p>
                 <p className={styles.btnRow}>
-                  <a className="btn" href="/api/backup" download>⤓ Download a backup</a>
+                  <a className="btn" href="/api/backup" download>{t('settings.download')}</a>
                   {/* The other half of a backup. Download lived here alone, so restoring
                       meant knowing that the importer doubles as the restore path —
                       which nobody should have to know. Same screen, both directions. */}
@@ -71,7 +72,7 @@ export default async function SettingsPage() {
           {/* A working sheet, not a feature — but findable, because the plates are
               what most of this book looks like. */}
           <p className={styles.aside}>
-            <Link href="/brand">The no-photo plate blueprints</Link>
+            <Link href="/brand">{t('settings.blueprints')}</Link>
           </p>
 
           <p className={styles.build}>{BUILD_LABEL}</p>

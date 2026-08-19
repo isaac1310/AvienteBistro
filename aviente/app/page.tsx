@@ -2,9 +2,11 @@ import Link from 'next/link';
 import Cachet from '@/components/Cachet';
 import Icon from '@/components/Icon';
 import type { IconName } from '@/lib/icons.generated';
+import type { Key } from '@/lib/i18n';
 import Nav from '@/components/Nav';
 import Splash from '@/components/Splash';
 import { categoryCounts } from '@/lib/queries';
+import { serverT } from '@/lib/lang';
 import { currentMember } from '@/lib/supabase/server';
 import { BUILD_LABEL } from '@/lib/version';
 import styles from './page.module.css';
@@ -25,15 +27,15 @@ import styles from './page.module.css';
    the only off-brand thing on the screen — and the gear and the nib did not even
    match each other in weight. The bear stays the one cheerful motif, matching the
    planner it leads to. */
-const ACTIONS: { href: string; icon: IconName; name: string; hint: string; kid?: boolean }[] = [
-  { href: '/kids',      icon: 'kids_bear',   name: 'Kids’ table',   hint: 'Plan the week', kid: true },
-  { href: '/menus/new', icon: 'menu_candle', name: 'Create a menu', hint: 'For a meal or a holiday' },
-  { href: '/add',       icon: 'add_recipe',  name: 'Add a recipe',  hint: 'Write one in, or paste it' },
-  { href: '/settings',  icon: 'settings',    name: 'Settings',      hint: 'Colour, language, backup' },
+const ACTIONS: { href: string; icon: IconName; name: Key; hint: Key; kid?: boolean }[] = [
+  { href: '/kids',      icon: 'kids_bear',   name: 'home.kids',     hint: 'home.kids.hint', kid: true },
+  { href: '/menus/new', icon: 'menu_candle', name: 'home.menu',     hint: 'home.menu.hint' },
+  { href: '/add',       icon: 'add_recipe',  name: 'home.add',      hint: 'home.add.hint' },
+  { href: '/settings',  icon: 'settings',    name: 'home.settings', hint: 'home.settings.hint' },
 ];
 
 export default async function Home() {
-  const [counts, member] = await Promise.all([categoryCounts(), currentMember()]);
+  const [counts, member, t] = await Promise.all([categoryCounts(), currentMember(), serverT()]);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
@@ -51,8 +53,10 @@ export default async function Home() {
         <main className={`shell ${styles.main}`}>
           {member && (
             <p className={styles.greeting}>
-              <span className="eyebrow">Hello, {member.display_name ?? member.name}</span>
-              {total} {total === 1 ? 'recipe' : 'recipes'} in the book
+              <span className="eyebrow">
+                {t('home.greeting', { name: member.display_name ?? member.name })}
+              </span>
+              {total === 1 ? t('home.count.one') : t('home.count.many', { n: total })}
             </p>
           )}
 
@@ -65,8 +69,8 @@ export default async function Home() {
           <form action="/recipes/search" className={styles.search} role="search">
             <input
               type="search" name="q" className={styles.searchField}
-              placeholder="Search a dish or an ingredient…"
-              aria-label="Search recipes"
+              placeholder={t('home.search')}
+              aria-label={t('home.search.label')}
             />
           </form>
 
@@ -81,8 +85,8 @@ export default async function Home() {
                 >
                   <Icon name={a.icon} size={28} strokeWidth={2.2}
                     className={styles.actionIcon} />
-                  <span className={styles.actionName}>{a.name}</span>
-                  <span className={styles.actionHint}>{a.hint}</span>
+                  <span className={styles.actionName}>{t(a.name)}</span>
+                  <span className={styles.actionHint}>{t(a.hint)}</span>
                 </Link>
               </li>
             ))}

@@ -24,6 +24,30 @@ export async function importRecipes(
 ): Promise<ImportResult> {
   const member = await currentMember();
   if (!member) throw new Error('Not a family member.');
+  return runImport(member, recipes, options);
+}
+
+/**
+ * Restore a whole backup — the admin's bulk door, distinct from /import.
+ *
+ * Same engine as importRecipes, different meaning: an import ADDS to the book (and
+ * Skip is its default), a restore REPLACES the book with a file. Moran pasting a
+ * recipe and Itzik overwriting all forty-one are not the same act, so they are not
+ * the same action — this one forces Replace and refuses anyone but the admin,
+ * server-side, because the page being hard to find is a curtain, not a gate.
+ */
+export async function restoreBackup(recipes: RecipeInput[]): Promise<ImportResult> {
+  const member = await currentMember();
+  if (!member) throw new Error('Not a family member.');
+  if (member.role !== 'admin') throw new Error('Restoring a backup is the admin\u2019s job.');
+  return runImport(member, recipes, { onDuplicate: 'replace' });
+}
+
+async function runImport(
+  member: NonNullable<Awaited<ReturnType<typeof currentMember>>>,
+  recipes: RecipeInput[],
+  options: { onDuplicate: OnDuplicate },
+): Promise<ImportResult> {
   const db = await supabaseServer();
 
   const batchId = crypto.randomUUID();

@@ -3,16 +3,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { importRecipes, undoImport, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
+import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
 import styles from './ImportPaste.module.css';
 
-type ParsedIngredient = {
-  name: string; amount?: number | null; amountMax?: number | null;
-  unit?: string | null; note?: string | null; group?: string | null;
-};
-type ParsedStep = { heading?: string | null; body?: string };
 
 /* §3.9 — paste what an AI made of a photograph.
  *
@@ -69,43 +65,15 @@ export default function ImportPaste({
     if (!parsed?.recipes.length) return;
     setBusy(true);
     try {
-      const inputs: RecipeInput[] = parsed.recipes.map((r, i) => ({
-        title: r.title,
-        title_en: r.titleEn,
-        category: overrides[i] ?? r.category,
-        meal_type: r.mealType,
-        description_he: r.descriptionHe,
-        description_en: r.descriptionEn,
-        story: r.story,
-        serving_suggestions: r.servingSuggestions,
-        prep_minutes: r.prepMinutes,
-        cook_minutes: r.cookMinutes,
-        servings: r.servings,
-        yield_text: r.yieldText,
-        /* A per-recipe `source` in the payload wins over the batch dropdown.
-           Applying one source to every recipe destroyed attribution on a backup
-           restore — every dish came back as the same person's. */
-        source_member_id: memberIdFor(r.source) ?? (source || null),
-        /* Carried from the document when it has one — a backup does. AI-pasted
-           recipes never do, so this is null for them, which is correct. */
-        photo_path: r.photoPath ?? null,
-        /* recipeParse.mjs is plain JavaScript, so its output arrives loosely
-           typed. Normalise at this boundary rather than asserting it is already
-           exact — a missing field becomes null here instead of `undefined`
-           reaching Postgres. */
-        ingredients: (r.ingredients as ParsedIngredient[]).map((i) => ({
-          name: i.name,
-          amount: i.amount ?? null,
-          amount_max: i.amountMax ?? null,
-          unit: (i.unit ?? null) as RecipeInput['ingredients'][number]['unit'],
-          note: i.note ?? null,
-          group_label: i.group ?? null,
-        })),
-        steps: (r.steps as ParsedStep[]).map((s) => ({
-          heading: s.heading ?? null,
-          body: s.body ?? '',
-        })).filter((s) => s.body),
-      }));
+      /* Mapped through lib/toRecipeInput, shared with the restore door. It was
+         inlined here, and the restore path grew its own copy for one commit — which
+         is exactly how a field ends up named in one path and dropped in the other.
+         Backups have already lost ingredient groups and photos that way. */
+      const inputs: RecipeInput[] = (parsed.recipes as ParsedRecipe[]).map((r, i) =>
+        toRecipeInput(r, {
+          category: overrides[i] ?? r.category,
+          sourceMemberId: memberIdFor(r.source) ?? (source || null),
+        }));
       setResult(await importRecipes(inputs, { onDuplicate }));
       router.refresh();
     } finally {

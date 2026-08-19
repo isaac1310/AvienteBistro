@@ -1,95 +1,132 @@
+/* The wordmark, from artboards 4A (splash), 4B (header) and 5A (all-muted).
+   Sizes are the artboards' own, scaled by a single --scale so the three variants are
+   one lockup at three sizes rather than three lockups. */
+
 .cachet {
-  position: relative;
-  display: grid;
-  place-items: center;
-  text-align: center;
-}
+  --scale: 1;
+  /* The tiers that carry text default to real ink. 5A overrides them. */
+  --word-ink: var(--ink);
+  --tag-ink: var(--primary);
+  --orn: var(--primary);
+  --orn-opacity: 0.45;
 
-/* ── plaque: the splash and login lockup ─────────────────────────────────── */
-
-.plaque {
-  background: var(--primary);
-  width: 100%;
-  min-height: 100%;
-  padding: clamp(var(--sp-6), 12vw, var(--sp-8));
-}
-
-/* The 1px + 2px double frame, the same construction as the menu card's. */
-.frameOuter,
-.frameInner {
-  position: absolute;
-  pointer-events: none;
-}
-.frameOuter {
-  inset: clamp(14px, 4.5vw, 22px);
-  border: 1px solid rgba(201, 169, 97, 0.45);
-}
-.frameInner {
-  inset: clamp(21px, 6.5vw, 31px);
-  border: 2px solid var(--gold);
-}
-
-.inner {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* The lockup is Latin whichever way the page runs: a wordmark does not mirror. */
+  direction: ltr;
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: calc(12px * var(--scale));
+}
+
+.rule {
+  width: calc(22px * var(--scale));
+  height: 1px;
+  background: var(--orn);
+  opacity: var(--orn-opacity);
 }
 
 .diamond {
-  width: 11px;
-  height: 11px;
-  background: var(--gold);
+  width: calc(5px * var(--scale));
+  height: calc(5px * var(--scale));
+  background: var(--orn);
   transform: rotate(45deg);
-  margin-bottom: var(--sp-5);
-}
-
-.family,
-.est {
-  font-family: var(--san);
-  font-weight: 400;
-  font-size: var(--t-label);
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  margin: 0;
 }
 
 .word {
   font-family: var(--ser);
   font-weight: 400;
+  font-size: calc(62px * var(--scale));
   line-height: 1;
-  letter-spacing: 1px;
-  margin: 0;
+  letter-spacing: calc(13px * var(--scale));
+  /* Balances the trailing letter-space, so the word is optically centred. */
+  text-indent: calc(13px * var(--scale));
+  color: var(--word-ink);
+  margin-top: calc(18px * var(--scale));
+  white-space: nowrap;
 }
 
-.hr {
+.taglineWrap {
+  position: relative;
+  display: inline-block;
+  margin-top: calc(12px * var(--scale));
+}
+
+.tagline {
+  font-family: var(--script);
+  font-size: calc(22px * var(--scale));
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--tag-ink);
+}
+
+.underline {
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 1px;
+  width: 100%;
   height: 1px;
-  background: var(--gold);
-  opacity: 0.7;
-  margin: var(--sp-4) 0 var(--sp-3);
+  transform: rotate(-0.6deg);
+  transform-origin: right center;
+  background: linear-gradient(to left,
+    color-mix(in srgb, var(--tag-ink) 50%, transparent) 0%,
+    color-mix(in srgb, var(--tag-ink) 28%, transparent) 40%,
+    transparent 100%);
 }
 
-.subtitle {
-  font-family: var(--ser);
-  font-style: italic;
-  margin: var(--sp-3) 0 0;
+/* EST. 2018 is small caps at 9-10px. It takes --muted-ink, not the design's
+   #A79A85: that tone is 2.48:1 on this ground, and at 10px the large-text
+   allowance does not apply. Same reasoning that split gold before it. */
+.year {
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: calc(10px * var(--scale));
+  line-height: 1;
+  letter-spacing: calc(3.2px * var(--scale));
+  color: var(--muted-ink);
+  margin-top: calc(26px * var(--scale));
 }
 
-/* On the green plaque the gold is decorative-on-dark, where it measures 5.48:1 --
-   so --gold is legitimate for text here. On cream it would not be; that is what
-   --gold-ink exists for, and the header variant below uses it. */
-.plaque .family,
-.plaque .est { color: var(--gold); }
-.plaque .word { color: var(--page); font-size: clamp(2.75rem, 13vw, 3.75rem); }
-.plaque .hr { width: clamp(110px, 36vw, 150px); }
-.plaque .subtitle { color: rgba(247, 242, 231, 0.72); font-size: 0.9375rem; }
+/* ── 4A · the splash, full size ──────────────────────────────────────────── */
+.splash { --scale: 1; }
+@media (max-width: 420px) {
+  /* The artboard is 412px wide and AVIENTE at 62px with 13px tracking is 400px of
+     it. Below that the word would touch both edges. */
+  .splash { --scale: 0.82; }
+}
 
-/* ── header: the in-app lockup, on the cream page ────────────────────────── */
+/* ── 5A · the same cover, every tier in the muted tone ───────────────────── */
+/* 5A — "all in est. tone": every tier in the muted stone rather than ink and green.
+   Softer, and closer to a printed endpaper.
+   NOTE the design sets all three tiers to #A79A85, which is 2.48:1 on this ground.
+   The ornament keeps that value because it is decoration; the WORD and the TAGLINE
+   take --muted-ink instead, so the cover is still legible. A 1.7-second splash is
+   the most forgiving place in the app for low contrast, but not a licence for it. */
+.est {
+  --word-ink: var(--muted-ink);
+  --tag-ink: var(--muted-ink);
+  --orn: var(--muted);
+  --orn-opacity: 0.6;
+}
 
-.header { padding: var(--sp-5) 0 var(--sp-4); }
-.header .family,
-.header .est { color: var(--gold-ink); letter-spacing: 4px; }
-.header .word { color: var(--primary); font-size: var(--t-display); }
-.header .diamond { margin-bottom: var(--sp-3); }
-.header .hr { width: 140px; margin: var(--sp-3) 0 var(--sp-2); }
-.header .subtitle { color: var(--ink-soft); font-size: 0.9375rem; }
+/* ── 4B · the in-app header ──────────────────────────────────────────────── */
+.header {
+  --scale: 0.42;
+}
+.header .word {
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  margin-top: 0;
+}
+.header .tagline { font-size: 15px; }
+.header .taglineWrap { align-self: flex-end; margin-top: 2px; }
+.header .year { font-size: 9px; letter-spacing: 2.6px; margin-top: 12px; }
+/* The header drops the ornament: 4B is the wordmark alone, because the page
+   underneath already has its own rules and a second one crowds them. */
+.header .ornament { display: none; }

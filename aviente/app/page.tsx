@@ -45,7 +45,7 @@ export default async function Home() {
         <header className={styles.header}>
           <div className="shell">
             <div className={styles.plate}>
-              <Cachet variant="header" subtitle="The Family Recipe Book" />
+              <Cachet variant="header" />
             </div>
           </div>
         </header>

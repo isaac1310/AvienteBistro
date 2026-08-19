@@ -101,7 +101,22 @@ export default async function RecipePage({ params }: Params) {
         <p className="eyebrow">{cat.en}</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
-        {attribution && <p className={styles.attribution}>{attribution}</p>}
+        {/* Whose recipe it is, and how long it has been ours — one block, because
+            they answer the same question. Per the design: "Savta Rina's recipe" then
+            "in the family since 12/04/89".
+            The wording is "in the family", not "in the book": the date is about the
+            dish belonging to these people, and the book is only where it is written
+            down. */}
+        {(attribution || recipe.created_at) && (
+          <p className={styles.attribution}>
+            {attribution && <span className={styles.attributionLine}>{attribution}</span>}
+            {recipe.created_at && (
+              <span className={styles.attributionLine}>
+                in the family since {shortDate(recipe.created_at)}
+              </span>
+            )}
+          </p>
+        )}
 
         {timing.length > 0 && (
           <p className={styles.timing}>{timing.join(' · ')}</p>
@@ -156,21 +171,18 @@ export default async function RecipePage({ params }: Params) {
           <RecipeHistory recipeId={id} />
         </div>
 
-        {/* Two facts, both wanted: when it joined the book, and when it last
-            changed. The exact date sits beside the relative one — "3 days ago" is
-            what you read at a glance, dd/mm/yy is what you need when the question is
-            which of two versions of Savta's recipe came first. */}
+        {/* Who touched it last, then when — exactly. Two lines, per the design.
+            "3 days ago" is what you read at a glance; the dd/mm/yy underneath is what
+            settles which of two versions of Savta's recipe came first, and a relative
+            date alone can never answer that. */}
         <p className={styles.edited}>
-          {recipe.created_at && (
-            <span className={styles.editedLine}>
-              in the book since {shortDate(recipe.created_at)}
-            </span>
-          )}
           <span className={styles.editedLine}>
             {recipe.updated_by_name
-              ? `last edited by ${recipe.updated_by_name} · ${shortDate(recipe.updated_at)}`
-              : `last edited ${shortDate(recipe.updated_at)}`}
-            {' · '}{timeAgo(recipe.updated_at)}
+              ? `last edited by ${recipe.updated_by_name} · ${timeAgo(recipe.updated_at)}`
+              : `last edited ${timeAgo(recipe.updated_at)}`}
+          </span>
+          <span className={styles.editedLine}>
+            last update {shortDate(recipe.updated_at)}
           </span>
         </p>
       </div>

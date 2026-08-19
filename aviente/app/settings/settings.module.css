@@ -58,3 +58,5 @@
   padding: 0 var(--sp-2);
   color: var(--gold-ink);
 }
+
+.btnRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; }

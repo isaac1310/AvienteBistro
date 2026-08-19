@@ -20,14 +20,19 @@ export default async function SchemaBanner() {
   /* Two different problems, two different instructions. Telling someone whose
      database is merely untracked to run every migration from 0001 would be worse
      advice than saying nothing. */
+  /* Two audiences, one banner. Moran has no Supabase access — this is an MVP run by
+     one admin — so a filename is noise to her and the old wording read as "you broke
+     it". The first sentence is for her; the filenames stay for whoever can act. */
   if (state.reason === 'untracked') {
     return (
       <div className={styles.bar} role="status">
-        <strong className={styles.title}>Migrations are not being tracked yet.</strong>{' '}
-        Run <code className={styles.file}>0009_schema_migrations.sql</code> from{' '}
-        <code className={styles.file}>supabase/migrations/</code>. It only creates the
-        table that records which migrations have run and backfills the ones you
-        already have — it changes no recipe data.
+        <strong className={styles.title}>The app needs a database update.</strong>{' '}
+        Nothing is lost and browsing still works — Itzik has the steps.
+        <span className={styles.admin}>
+          {' '}Admin: run <code className={styles.file}>0009_schema_migrations.sql</code>{' '}
+          from <code className={styles.file}>supabase/migrations/</code> — it only
+          creates the tracking table and changes no recipe data.
+        </span>
       </div>
     );
   }
@@ -39,16 +44,21 @@ export default async function SchemaBanner() {
 
   return (
     <div className={styles.bar} role="status">
-      <strong className={styles.title}>The database is behind this build.</strong>{' '}
-      It has migration {state.have}; this version needs {state.need}. Run{' '}
-      {missing.map((n, i) => (
-        <span key={n}>
-          {i > 0 && ', '}
-          <code className={styles.file}>{String(n).padStart(4, '0')}_*.sql</code>
-        </span>
-      ))}{' '}
-      from <code className={styles.file}>supabase/migrations/</code> in the Supabase
-      SQL editor. Pages that use the new columns will fail until you do.
+      <strong className={styles.title}>The app needs a database update.</strong>{' '}
+      Some pages may not work until it runs — nothing is lost, and Itzik has the
+      steps.
+      <span className={styles.admin}>
+        {' '}Admin: the database has migration {state.have}; this build needs{' '}
+        {state.need}. Run{' '}
+        {missing.map((n, i) => (
+          <span key={n}>
+            {i > 0 && ', '}
+            <code className={styles.file}>{String(n).padStart(4, '0')}_*.sql</code>
+          </span>
+        ))}{' '}
+        from <code className={styles.file}>supabase/migrations/</code> in the Supabase
+        SQL editor.
+      </span>
     </div>
   );
 }

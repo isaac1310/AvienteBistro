@@ -19,3 +19,6 @@
   padding: 1px 4px;
   border-radius: 2px;
 }
+
+/* The admin detail reads quieter than the headline: it is there for one person. */
+.admin { opacity: 0.85; }

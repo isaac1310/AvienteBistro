@@ -15,6 +15,49 @@ import styles from './RecipeForm.module.css';
 
 const UNITS: (Unit | '')[] = ['', 'g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'pcs', 'pinch', 'to taste'];
 
+/**
+ * Contiguous runs of ingredients that share a part name.
+ *
+ * The database stores group_label per ingredient, and the recipe page already
+ * renders a heading whenever the label CHANGES — so a part is, in both places, a
+ * consecutive run. This turns that flat list into the runs the editor shows, and is
+ * the reason the change needed no migration.
+ *
+ * `null` means the unnamed run: the ingredients that belong to no part.
+ */
+function groupRuns(rows: Row[]): { group: string | null; rows: Row[] }[] {
+  const runs: { group: string | null; rows: Row[] }[] = [];
+  for (const r of rows) {
+    const g = r.group.trim() === '' ? null : r.group;
+    const last = runs[runs.length - 1];
+    if (last && last.group === g) last.rows.push(r);
+    else runs.push({ group: g, rows: [r] });
+  }
+  /* An empty recipe still needs one run to render into, or the form shows no
+     ingredient fields at all. */
+  return runs.length ? runs : [{ group: null, rows: [] }];
+}
+
+/** Rename every row in a run. Blank clears the heading. */
+function renameRun(rows: Row[], run: { rows: Row[] }, name: string): Row[] {
+  const keys = new Set(run.rows.map((r) => r.key));
+  return rows.map((r) => (keys.has(r.key) ? { ...r, group: name } : r));
+}
+
+/** Append a blank ingredient to the END of a run, inheriting its part name. */
+function addToRun(rows: Row[], run: { group: string | null; rows: Row[] }): Row[] {
+  const blank: Row = {
+    key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '',
+    group: run.group ?? '',
+  };
+  const lastKey = run.rows[run.rows.length - 1]?.key;
+  if (!lastKey) return [...rows, blank];
+  const at = rows.findIndex((r) => r.key === lastKey);
+  /* Inserted after the run's last row rather than at the end of the list, so parts
+     stay contiguous — which is the only thing that makes them parts. */
+  return [...rows.slice(0, at + 1), blank, ...rows.slice(at + 1)];
+}
+
 type Row = { key: string; name: string; amount: string; amountMax: string; unit: string; note: string; group: string };
 type StepRow = { key: string; heading: string; body: string };
 
@@ -245,50 +288,98 @@ export default function RecipeForm({
       </label>
 
       {/* ── ingredients ─────────────────────────────────────────────────── */}
+      {/* Sections are real here, not a field on every row.
+          Each ingredient carried its own "part of…" text box, so "לקציצות" was
+          retyped on all nine of its rows, the box had no label once it held a value
+          (you could not tell what it was), and renaming a part meant editing every
+          row that belonged to it. A part is a property of a RUN of ingredients.
+          The stored shape is unchanged — group_label still lives on each row — so
+          this is a change of interface, not of data: the header writes itself down
+          to the rows underneath it. */}
       <section>
         <h2 className={styles.h2}>Ingredients</h2>
-        <ul className={styles.rows}>
-          {rows.map((r, i) => (
-            <li key={r.key} className={styles.row}>
-              <div className={styles.handle}>
-                <button type="button" aria-label="Move up" className={styles.move}
-                  onClick={() => touch(setRows)(move(rows, i, i - 1))}>↑</button>
-                <button type="button" aria-label="Move down" className={styles.move}
-                  onClick={() => touch(setRows)(move(rows, i, i + 1))}>↓</button>
+
+        {groupRuns(rows).map((run) => (
+          <div key={run.rows[0].key} className={styles.part}>
+            {run.group === null ? (
+              /* The unnamed run at the top: most recipes are only this. Offer the
+                 name rather than demanding it. */
+              <button type="button" className={styles.nameSection}
+                onClick={() => touch(setRows)(renameRun(rows, run, 'לקציצות'))}>
+                ＋ Give this group a name
+              </button>
+            ) : (
+              <div className={styles.partHead}>
+                <label className={styles.partLabel}>
+                  <span className={styles.label}>Part</span>
+                  <input
+                    className={styles.input} value={run.group} lang="he"
+                    placeholder="e.g. לרוטב"
+                    aria-label="Name of this part of the recipe"
+                    /* Renames every row in the run at once — the point of the
+                       change. */
+                    onChange={(e) => touch(setRows)(renameRun(rows, run, e.target.value))}
+                  />
+                </label>
+                <button type="button" className={styles.unname}
+                  aria-label="Remove this part heading"
+                  onClick={() => touch(setRows)(renameRun(rows, run, ''))}>
+                  ✕ heading
+                </button>
               </div>
-              <div className={styles.rowFields}>
-                <input className={styles.input} placeholder="ingredient" value={r.name} lang="he"
-                  onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, name: e.target.value } : x))} />
-                <div className={styles.amounts}>
-                  <input className={styles.small} inputMode="decimal" placeholder="amt" value={r.amount}
-                    onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, amount: e.target.value } : x))} />
-                  <input className={styles.small} inputMode="decimal" placeholder="–max" value={r.amountMax}
-                    onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, amountMax: e.target.value } : x))} />
-                  <select className={styles.small} value={r.unit}
-                    onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, unit: e.target.value } : x))}>
-                    {UNITS.map((u) => <option key={u} value={u}>{u || '—'}</option>)}
-                  </select>
-                </div>
-                <input className={styles.input} placeholder="note (optional)" value={r.note} lang="he"
-                  onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, note: e.target.value } : x))} />
-                {/* The group heading this row sits under, e.g. לרוטב. Blank for
-                    most recipes; repeated on each row that belongs to a part. */}
-                <input className={styles.input} placeholder="part of… (e.g. לרוטב)" value={r.group} lang="he"
-                  onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, group: e.target.value } : x))} />
-              </div>
-              <button type="button" aria-label="Remove ingredient" className={styles.del}
-                onClick={() => touch(setRows)(rows.filter((x) => x.key !== r.key))}>✕</button>
-            </li>
-          ))}
-        </ul>
-        <button type="button" className={styles.add}
+            )}
+
+            <ul className={styles.rows}>
+              {run.rows.map((r) => {
+                const i = rows.findIndex((x) => x.key === r.key);
+                return (
+                  <li key={r.key} className={styles.row}>
+                    <div className={styles.handle}>
+                      <button type="button" aria-label="Move up" className={styles.move}
+                        onClick={() => touch(setRows)(move(rows, i, i - 1))}>↑</button>
+                      <button type="button" aria-label="Move down" className={styles.move}
+                        onClick={() => touch(setRows)(move(rows, i, i + 1))}>↓</button>
+                    </div>
+                    <div className={styles.rowFields}>
+                      <input className={styles.input} placeholder="ingredient" value={r.name} lang="he"
+                        onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, name: e.target.value } : x))} />
+                      <div className={styles.amounts}>
+                        <input className={styles.small} inputMode="decimal" placeholder="amt" value={r.amount}
+                          onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, amount: e.target.value } : x))} />
+                        <input className={styles.small} inputMode="decimal" placeholder="–max" value={r.amountMax}
+                          onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, amountMax: e.target.value } : x))} />
+                        <select className={styles.small} value={r.unit}
+                          onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, unit: e.target.value } : x))}>
+                          {UNITS.map((u) => <option key={u} value={u}>{u || '—'}</option>)}
+                        </select>
+                      </div>
+                      <input className={styles.input} placeholder="note (optional)" value={r.note} lang="he"
+                        onChange={(e) => touch(setRows)(rows.map((x) => x.key === r.key ? { ...x, note: e.target.value } : x))} />
+                    </div>
+                    <button type="button" aria-label="Remove ingredient" className={styles.del}
+                      onClick={() => touch(setRows)(rows.filter((x) => x.key !== r.key))}>✕</button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Adds INTO this part, inheriting its name, so a section can be filled
+                without touching a heading field at all. */}
+            <button type="button" className={styles.add}
+              onClick={() => touch(setRows)(addToRun(rows, run))}>
+              ＋ Add ingredient{run.group ? ` to ${run.group}` : ''}
+            </button>
+          </div>
+        ))}
+
+        {/* A new part, at the end. This is what did not exist: there was no way to
+            say "and now the sauce" without knowing to retype a label per row. */}
+        <button type="button" className={styles.addPart}
           onClick={() => touch(setRows)([...rows, {
             key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '',
-            // A new row inherits the previous row's group, since parts are
-            // entered consecutively and retyping "לרוטב" ten times is a chore.
-            group: rows[rows.length - 1]?.group ?? '',
+            group: 'לרוטב',
           }])}>
-          ＋ Add ingredient
+          ＋ Add another part (sauce, filling…)
         </button>
       </section>
 

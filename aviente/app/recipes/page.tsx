@@ -2,6 +2,8 @@ import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import FillDescriptions from '@/components/FillDescriptions';
 import type { CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
@@ -21,22 +23,27 @@ export default async function RecipesIndex() {
     <>
       <Nav current="/recipes" />
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <BackLink href="/" label={t('nav.home')} />
-            <p className="eyebrow">{t('book.eyebrow')}</p>
-            <h1 className={styles.h1}>{t('book.title')}</h1>
-            <form action="/recipes/search" className={styles.search} role="search">
-              <input
-                type="search" name="q" className={styles.searchField}
-                placeholder={t('home.search')}
-                aria-label={t('home.search.label')}
-              />
-            </form>
-          </div>
-        </header>
+        {/* The back link sits above the band, not inside the panel: the panel is a
+            title card and a navigation control in it reads as part of the name. */}
+        <div className={`shell ${styles.backRow}`}>
+          <BackLink href="/" label={t('nav.home')} />
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('book.eyebrow')}>{t('book.title')}</PageTitle>
+        </PageHeader>
 
         <main className="shell">
+          {/* Search under the band rather than in the panel — it is the page's first
+              action, not part of its title. */}
+          <form action="/recipes/search" className={styles.search} role="search">
+            <input
+              type="search" name="q" className={styles.searchField}
+              placeholder={t('home.search')}
+              aria-label={t('home.search.label')}
+            />
+          </form>
+
           <ul className={styles.list}>
             {CATEGORIES.map((c) => {
               const n = counts[c.key] ?? 0;

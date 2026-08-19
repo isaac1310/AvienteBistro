@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
@@ -27,23 +29,24 @@ export default async function MenusPage({
     <>
       <Nav current="/menus" />
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <BackLink href="/" label={t('nav.home')} />
-            <p className="eyebrow">{t('menus.title')}</p>
-            <h1 className={styles.h1}>{t('menus.history')}</h1>
-            <Link href="/menus/new" className="btn">{t('menus.new')}</Link>
-          </div>
-        </header>
+        {/* Back link above the band; the panel holds the title alone. */}
+        <div className={`shell ${styles.backRow}`}>
+          <BackLink href="/" label={t('nav.home')} />
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('menus.title')}>{t('menus.history')}</PageTitle>
+        </PageHeader>
 
         <main className="shell">
+          {/* The primary action under the band, where the page's actions live. */}
+          <p className={styles.newRow}>
+            <Link href="/menus/new" className="btn">{t('menus.new')}</Link>
+          </p>
           {menus.length === 0 && (
             <div className={`card ${styles.empty}`}>
               <p className={styles.emptyTitle}>{t('menus.none')}</p>
-              <p className={styles.emptyBody}>
-                Build one for this Friday and it will keep — starred menus stay here
-                so you can copy them onto a new date later.
-              </p>
+              <p className={styles.emptyBody}>{t('menus.noneBody')}</p>
             </div>
           )}
 

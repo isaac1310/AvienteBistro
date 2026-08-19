@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import Settings from '@/components/Settings';
 import { BUILD_LABEL } from '@/lib/version';
 import { serverT } from '@/lib/lang';
@@ -24,10 +26,16 @@ export default async function SettingsPage() {
     <>
       <Nav current="/" />
       <div className={styles.frame}>
-        <main className={`shell ${styles.main}`}>
+        {/* Outside main, so the band runs full-bleed. */}
+        <div className={`shell ${styles.backRow}`}>
           <BackLink href="/" label={t('nav.home')} />
-          <p className="eyebrow">{t('settings.eyebrow')}</p>
-          <h1 className={styles.h1}>{t('settings.title')}</h1>
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('settings.eyebrow')}>{t('settings.title')}</PageTitle>
+        </PageHeader>
+
+        <main className={`shell ${styles.main}`}>
 
           <Settings
             theme={(member?.theme as 'green' | 'burgundy') ?? 'green'}
@@ -45,19 +53,7 @@ export default async function SettingsPage() {
             <section className={styles.block} aria-labelledby="backup-h">
               <h2 className={styles.h2} id="backup-h">{t('settings.backup')}</h2>
               <div className={`card ${styles.panel}`}>
-                <p className={styles.body}>
-                  The free Supabase tier takes no automated backups, and these recipes
-                  exist nowhere else. The file below holds{' '}
-                  <strong>every recipe</strong> &mdash; ingredients, groups, steps, notes
-                  and attribution &mdash; and the importer reads it back.
-                  {/* Said plainly. This used to claim "a complete copy — every recipe,
-                      menu and kids' week", which was wrong on both counts: the export is
-                      recipes only, and a version-numbering bug meant the importer
-                      refused its own files. Overstating what a backup covers is worse
-                      than a smaller backup. */}
-                  {' '}Menus and the kids&rsquo; weeks are <em>not</em> included; those
-                  would have to be rebuilt.
-                </p>
+                <p className={styles.body}>{t('settings.backupBody')}</p>
                 <p className={styles.btnRow}>
                   <a className="btn" href="/api/backup" download>{t('settings.download')}</a>
                   {/* The other half of a backup. Download lived here alone, so restoring

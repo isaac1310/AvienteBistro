@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Jost, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
+import { Cormorant_Garamond, Rubik, Petit_Formal_Script, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
 import { LangProvider } from '@/components/LangProvider';
 import SchemaBanner from '@/components/SchemaBanner';
 import SelfTest from '@/components/SelfTest';
@@ -8,22 +8,35 @@ import { APP_VERSION } from '@/lib/version';
 import { currentMember } from '@/lib/supabase/server';
 import './globals.css';
 
-/* Five faces, each with a job (§1):
- *   Cormorant Garamond — titles, dish names, the menu card
- *   Jost              — UI labels, letterspaced small caps
- *   Baloo 2           — the kids' section, and nowhere else
- *   Frank Ruhl Libre  — the Hebrew serif. NOT optional: Cormorant has no Hebrew
- *                       glyphs at all, so without this every Hebrew dish name on
- *                       the printed card falls back to a system font.
- *   Heebo             — the Hebrew sans, same argument for Jost.
+/* Six faces, each with a job (§1, revised by the delivered design):
+ *   Cormorant Garamond  — titles, dish names, the menu card, the AVIENTE wordmark
+ *   Rubik               — UI labels and small caps. REPLACES Jost, and the reason is
+ *                         not taste: Jost contains no Hebrew glyphs, so with a Hebrew
+ *                         interface every label fell through to Heebo and the chrome
+ *                         was set in two unrelated faces. Rubik covers both scripts,
+ *                         which is what makes the Hebrew UI possible at all.
+ *   Petit Formal Script — the wordmark's tagline only. LATIN-ONLY, so it must never
+ *                         be reachable by a Hebrew string; --script exists so that
+ *                         constraint is visible in the token name.
+ *   Baloo 2             — the kids' section, and nowhere else.
+ *   Frank Ruhl Libre    — the Hebrew serif. NOT optional: Cormorant has no Hebrew, so
+ *                         without this every Hebrew dish name on the printed card
+ *                         falls back to a system font.
+ *   Heebo               — the Hebrew sans, kept behind Rubik as a second line.
  */
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'], weight: ['300', '400', '500', '600'],
   style: ['normal', 'italic'], variable: '--font-cormorant', display: 'swap',
 });
-const jost = Jost({
-  subsets: ['latin'], weight: ['300', '400', '500', '600'],
-  variable: '--font-jost', display: 'swap',
+const rubik = Rubik({
+  // Hebrew AND Latin: the whole point of choosing it over Jost.
+  subsets: ['hebrew', 'latin'], weight: ['300', '400', '500', '600'],
+  variable: '--font-rubik', display: 'swap',
+});
+const script = Petit_Formal_Script({
+  // One weight exists, and Latin is all it has — see --script in globals.css.
+  subsets: ['latin'], weight: '400',
+  variable: '--font-script', display: 'swap',
 });
 const baloo = Baloo_2({
   subsets: ['latin'], weight: ['400', '600', '700'],
@@ -54,9 +67,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Matches the splash and header ground, so the phone's status bar sits on green
-  // at launch rather than flashing cream.
-  themeColor: '#1e3a2f',
+  /* Matches the splash ground. The cover is cream now, not green, so a green status
+     bar would frame the launch in a colour the app no longer opens on. */
+  themeColor: '#f7f2e9',
   width: 'device-width',
   initialScale: 1,
   // Never lock zoom -- some of the people using this cookbook need to enlarge it.
@@ -68,7 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      pages fall back to green rather than failing — /login has no member yet. */
   const member = await currentMember().catch(() => null);
   const lang = await currentLang();
-  const fonts = [cormorant, jost, baloo, frank, heebo].map((f) => f.variable).join(' ');
+  const fonts = [cormorant, rubik, script, baloo, frank, heebo].map((f) => f.variable).join(' ');
   return (
     // The chrome is English (French-accented) per §5, so that is what the document
     // declares. Hebrew recipe content marks itself with lang="he" per element,

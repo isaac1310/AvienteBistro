@@ -87,10 +87,19 @@
   function designTokens() {
     group('tokens');
 
-    check('the split gold exists', () =>
-      truthy(token('--gold') && token('--gold-ink'), 'both gold tokens'));
+    /* The palette moved from gold to the delivered design's muted stone, and the
+       SPLIT survived the move because the trap did: --muted is 2.48:1 where the old
+       --gold was 2.09:1. Same class of value, same rule — decoration only. */
+    check('the decorative tone and its text partner both exist', () =>
+      truthy(token('--muted') && token('--muted-ink'), 'both muted tokens'));
 
-    check('gold text colour clears WCAG AA on cream', () => {
+    /* The old names still resolve, aliased, so a dozen stylesheets did not have to be
+       rewritten in the same commit as a palette change. When they are gone, so is
+       this check. */
+    check('the retired gold names still resolve', () =>
+      truthy(token('--gold-ink'), '--gold-ink alias'));
+
+    check('letterspaced label colour clears WCAG AA on the page', () => {
       const probe = document.createElement('p');
       probe.className = 'eyebrow';
       document.body.appendChild(probe);
@@ -98,10 +107,12 @@
       const bg = css(document.body, 'background-color');
       probe.remove();
       const ratio = contrast(fg, bg);
-      // --gold (#c9a961) measures 2.02:1 here and fails; --gold-ink (#8a6d2f) is
-      // 4.37:1. A regression to the decorative gold is invisible to the eye.
+      /* The numbers this guards, measured on the new ground: --muted #A79A85 is
+         2.48:1 and fails; --muted-ink #716551 is 5.11:1 and passes. The design sets
+         these small caps in #A79A85, which is why the check exists — a regression to
+         the decorative tone is invisible to the eye at 11px. */
       return ratio >= 4.5 ? true
-        : `letterspaced label contrast is ${ratio.toFixed(2)}:1, needs 4.5 — is it using --gold instead of --gold-ink?`;
+        : `letterspaced label contrast is ${ratio.toFixed(2)}:1, needs 4.5 — is it using --muted instead of --muted-ink?`;
     });
 
     check('theme switch changes the primary', () => {

@@ -50,8 +50,12 @@ export default async function SettingsPage() {
                 {' '}Menus and the kids&rsquo; weeks are <em>not</em> included; those
                 would have to be rebuilt.
               </p>
-              <p>
+              <p className={styles.btnRow}>
                 <a className="btn" href="/api/backup" download>⤓ Download a backup</a>
+                {/* The other half of a backup. Download lived here alone, so restoring
+                    meant knowing that the importer doubles as the restore path —
+                    which nobody should have to know. Same screen, both directions. */}
+                <Link className="btn btn--ghost" href="/import">⤒ Restore from a backup</Link>
               </p>
             </div>
           </section>

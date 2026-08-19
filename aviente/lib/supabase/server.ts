@@ -37,7 +37,7 @@ export async function currentMember() {
 
   const { data, error } = await db
     .from('family_members')
-    .select('id, name, display_name, theme, card_language')
+    .select('id, name, display_name, theme, card_language, role')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -55,7 +55,10 @@ export async function currentMember() {
       .select('id, name, display_name, theme')
       .eq('user_id', user.id)
       .maybeSingle();
-    return legacy ? { ...legacy, card_language: 'he' } : null;
+    /* Missing columns default SAFE: everyone is a member until migration 0012 says
+       otherwise. An admin who temporarily cannot restore beats a member who
+       temporarily can. */
+    return legacy ? { ...legacy, card_language: 'he', role: 'member' } : null;
   }
 
   return null;

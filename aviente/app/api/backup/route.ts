@@ -20,6 +20,12 @@ import { SCHEMA_VERSION as DOCUMENT_VERSION } from '@/lib/recipeParse.mjs';
 export async function GET() {
   const member = await currentMember();
   if (!member) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
+  /* Admin-only, and here rather than only in the UI: the Settings section is hidden
+     from members, but a route that still answered anyone signed in would make that
+     a curtain, not a door. The export is the entire cookbook in one file. */
+  if (member.role !== 'admin') {
+    return NextResponse.json({ error: 'backups are managed by the admin' }, { status: 403 });
+  }
 
   const db = await supabaseServer();
 

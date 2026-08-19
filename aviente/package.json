@@ -9,12 +9,13 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed:build": "node tools/seed-from-source.mjs --commit",
-    "prepr": "npm run typecheck && npm run build",
+    "prepr": "node tools/check-schema.mjs && npm run typecheck && npm run build",
     "test:clean": "node tools/clean-test-fixtures.mjs",
     "dev:test": "node tools/dev-sandbox.mjs",
     "blueprints": "node tools/build-blueprints.mjs",
     "icons": "node tools/build-icons.mjs",
-    "kids-art": "node tools/build-kids-art.mjs"
+    "kids-art": "node tools/build-kids-art.mjs",
+    "db-check": "node tools/db-check.mjs"
   },
   "dependencies": {
     "@hebcal/core": "^6.9.1",

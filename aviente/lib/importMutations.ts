@@ -24,6 +24,30 @@ export async function importRecipes(
 ): Promise<ImportResult> {
   const member = await currentMember();
   if (!member) throw new Error('Not a family member.');
+  return runImport(member, recipes, options);
+}
+
+/**
+ * Restore a whole backup — the admin's bulk door, distinct from /import.
+ *
+ * Same engine as importRecipes, different meaning: an import ADDS to the book (and
+ * Skip is its default), a restore REPLACES the book with a file. Moran pasting a
+ * recipe and Itzik overwriting all forty-one are not the same act, so they are not
+ * the same action — this one forces Replace and refuses anyone but the admin,
+ * server-side, because the page being hard to find is a curtain, not a gate.
+ */
+export async function restoreBackup(recipes: RecipeInput[]): Promise<ImportResult> {
+  const member = await currentMember();
+  if (!member) throw new Error('Not a family member.');
+  if (member.role !== 'admin') throw new Error('Restoring a backup is the admin\u2019s job.');
+  return runImport(member, recipes, { onDuplicate: 'replace' });
+}
+
+async function runImport(
+  member: NonNullable<Awaited<ReturnType<typeof currentMember>>>,
+  recipes: RecipeInput[],
+  options: { onDuplicate: OnDuplicate },
+): Promise<ImportResult> {
   const db = await supabaseServer();
 
   const batchId = crypto.randomUUID();
@@ -73,6 +97,11 @@ export async function importRecipes(
              silently dropping who the recipe came from is not part of that deal.
              (The edit form had the same bug, for the same reason.) */
           ...(input.source_member_id ? { source_member_id: input.source_member_id } : {}),
+          /* Same rule as attribution: written only when the document names one.
+             An AI-pasted recipe has no photo, and Replace exists to correct
+             ingredients and steps — it must not strip the photograph off a recipe
+             because the paste happened not to mention it. */
+          ...(input.photo_path ? { photo_path: input.photo_path } : {}),
           updated_by: member.id,
           updated_at: new Date().toISOString(),
           import_batch_id: batchId,
@@ -111,6 +140,8 @@ export async function importRecipes(
         // recipe whose source said nothing.
         yield_text: input.servings ? null : (input.yield_text || '—'),
         source_member_id: input.source_member_id,
+        // A restored backup carries the Storage path; a fresh paste carries null.
+        photo_path: input.photo_path ?? null,
         updated_by: member.id,
         import_batch_id: batchId,
       }).select('id').single();

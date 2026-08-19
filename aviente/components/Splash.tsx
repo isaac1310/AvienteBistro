@@ -38,6 +38,12 @@ export default function Splash({ children }: { children: React.ReactNode }) {
      React throws away the server HTML to recover. Starting shown and hiding
      immediately costs one frame; a hydration mismatch costs the whole page. */
   useEffect(() => {
+    /* ?splash=hold wins over the seen-flag. The hold exists so the cover can be
+       screenshotted and looked at on a real phone, and once the once-per-tab flag
+       was added it silently stopped working — the flag was checked first, so the one
+       affordance for INSPECTING the splash was defeated by the optimisation that
+       stops it being a nuisance. */
+    if (new URLSearchParams(location.search).get('splash') === 'hold') return;
     if (sessionStorage.getItem(SEEN)) setPhase('gone');
   }, []);
 
@@ -90,8 +96,14 @@ export default function Splash({ children }: { children: React.ReactNode }) {
           role="status"
           aria-label="Aviente"
         >
-          <Cachet variant="plaque" subtitle="The Family Recipe Book" />
-          <p className={styles.foot}>Chez Nous</p>
+          {/* No "Chez Nous". The new design's lockup is AVIENTE / the tagline /
+              EST. 2018 and nothing else — the French framing belonged to an app whose
+              chrome was English with French accents, and the chrome is Hebrew now. */}
+          {/* 5A — every tier in the muted stone. Chosen over 4A for the cover: softer, and
+              closer to a printed endpaper. The HEADER stays 4A (ink name, green
+              tagline), where the extra contrast is worth having because it sits above
+              real content rather than on a blank field. */}
+          <Cachet variant="est" />
         </div>
       )}
       {children}

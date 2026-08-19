@@ -1,3 +1,4 @@
+import { serverT } from '@/lib/lang';
 import KidsArt from '@/components/KidsArt';
 import PrintExit from '@/components/PrintExit';
 import { ANIMALS, MEALS, getKidsWeek, weekLabel } from '@/lib/kids';
@@ -11,6 +12,7 @@ export const metadata = { title: "Aviente — The Kids' Week", robots: { index: 
 export default async function FridgePrint({
   params,
 }: { params: Promise<{ week: string }> }) {
+  const t = await serverT();
   const { week } = await params;
   // Unauthenticated visitors are refused by RLS, which throws; show an empty
   // grid rather than a 500, the same way the menu print route does.
@@ -23,7 +25,7 @@ export default async function FridgePrint({
     <main className={styles.page}>
       {/* On screen only — a print page with no way out is a dead end, and this one is
           reached from a link that replaces the app. */}
-      <PrintExit href={`/kids?week=${week}`} label="Back to the planner" />
+      <PrintExit href={`/kids?week=${week}`} label={t('common.backToPlanner')} />
 
       {/* The sheet: title, grid and decoration in one positioned box.
           The decoration layer used to be pinned to the whole page, which on a tall

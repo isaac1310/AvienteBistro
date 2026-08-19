@@ -3,16 +3,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { importRecipes, undoImport, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
+import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
+import { useT } from './LangProvider';
 import styles from './ImportPaste.module.css';
 
-type ParsedIngredient = {
-  name: string; amount?: number | null; amountMax?: number | null;
-  unit?: string | null; note?: string | null; group?: string | null;
-};
-type ParsedStep = { heading?: string | null; body?: string };
 
 /* §3.9 — paste what an AI made of a photograph.
  *
@@ -38,6 +35,7 @@ unit חייב להיות אחד מ: g, kg, ml, l, cup, tbsp, tsp, pcs, pinch, to
 export default function ImportPaste({
   members,
 }: { members: { id: string; name: string }[] }) {
+  const t = useT();
   const router = useRouter();
   const [text, setText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -69,41 +67,15 @@ export default function ImportPaste({
     if (!parsed?.recipes.length) return;
     setBusy(true);
     try {
-      const inputs: RecipeInput[] = parsed.recipes.map((r, i) => ({
-        title: r.title,
-        title_en: r.titleEn,
-        category: overrides[i] ?? r.category,
-        meal_type: r.mealType,
-        description_he: r.descriptionHe,
-        description_en: r.descriptionEn,
-        story: r.story,
-        serving_suggestions: r.servingSuggestions,
-        prep_minutes: r.prepMinutes,
-        cook_minutes: r.cookMinutes,
-        servings: r.servings,
-        yield_text: r.yieldText,
-        /* A per-recipe `source` in the payload wins over the batch dropdown.
-           Applying one source to every recipe destroyed attribution on a backup
-           restore — every dish came back as the same person's. */
-        source_member_id: memberIdFor(r.source) ?? (source || null),
-        photo_path: null,
-        /* recipeParse.mjs is plain JavaScript, so its output arrives loosely
-           typed. Normalise at this boundary rather than asserting it is already
-           exact — a missing field becomes null here instead of `undefined`
-           reaching Postgres. */
-        ingredients: (r.ingredients as ParsedIngredient[]).map((i) => ({
-          name: i.name,
-          amount: i.amount ?? null,
-          amount_max: i.amountMax ?? null,
-          unit: (i.unit ?? null) as RecipeInput['ingredients'][number]['unit'],
-          note: i.note ?? null,
-          group_label: i.group ?? null,
-        })),
-        steps: (r.steps as ParsedStep[]).map((s) => ({
-          heading: s.heading ?? null,
-          body: s.body ?? '',
-        })).filter((s) => s.body),
-      }));
+      /* Mapped through lib/toRecipeInput, shared with the restore door. It was
+         inlined here, and the restore path grew its own copy for one commit — which
+         is exactly how a field ends up named in one path and dropped in the other.
+         Backups have already lost ingredient groups and photos that way. */
+      const inputs: RecipeInput[] = (parsed.recipes as ParsedRecipe[]).map((r, i) =>
+        toRecipeInput(r, {
+          category: overrides[i] ?? r.category,
+          sourceMemberId: memberIdFor(r.source) ?? (source || null),
+        }));
       setResult(await importRecipes(inputs, { onDuplicate }));
       router.refresh();
     } finally {
@@ -114,7 +86,7 @@ export default function ImportPaste({
   if (result) {
     return (
       <div className={styles.wrap}>
-        <h1 className={styles.h1}>Imported</h1>
+        <h1 className={styles.h1}>{t('import.done')}</h1>
         <p className={styles.summary}>
           {result.imported.length} added
           {result.replaced.length > 0 && ` · ${result.replaced.length} replaced`}
@@ -168,8 +140,8 @@ export default function ImportPaste({
 
   return (
     <div className={styles.wrap}>
-      <p className="eyebrow">Import</p>
-      <h1 className={styles.h1}>Paste from an AI</h1>
+      <p className="eyebrow">{t('import.eyebrow')}</p>
+      <h1 className={styles.h1}>{t('add.paste')}</h1>
 
       <section className={styles.step}>
         <h2 className={styles.h2}>1 · Give this to ChatGPT or Claude</h2>
@@ -224,7 +196,7 @@ export default function ImportPaste({
           {/* What to do about a recipe already in the book. Skip is the default
               because it is the only one that cannot lose anything. */}
           <fieldset className={styles.dupes}>
-            <legend className={styles.label}>If a recipe is already in the book</legend>
+            <legend className={styles.label}>{t('import.onDuplicate')}</legend>
             {([
               ['skip', 'Skip it', 'leave what is there untouched'],
               ['replace', 'Replace it', 'overwrite it — the old version is kept under ⟲'],

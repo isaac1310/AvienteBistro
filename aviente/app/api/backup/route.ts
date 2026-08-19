@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer, currentMember } from '@/lib/supabase/server';
-import { SCHEMA_VERSION } from '@/lib/version';
+/* The DOCUMENT format version, from the parser that has to read this file back — not
+   the migration counter in lib/version.ts. Importing that one instead stamped every
+   export with schemaVersion 11 while lib/recipeParse.mjs accepts only 1, so the
+   importer refused its own backups. The button whose entire job is disaster recovery
+   was producing files it could not restore. */
+import { SCHEMA_VERSION as DOCUMENT_VERSION } from '@/lib/recipeParse.mjs';
 
 /* Whole-cookbook export (§8).
  *
@@ -15,6 +20,12 @@ import { SCHEMA_VERSION } from '@/lib/version';
 export async function GET() {
   const member = await currentMember();
   if (!member) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
+  /* Admin-only, and here rather than only in the UI: the Settings section is hidden
+     from members, but a route that still answered anyone signed in would make that
+     a curtain, not a door. The export is the entire cookbook in one file. */
+  if (member.role !== 'admin') {
+    return NextResponse.json({ error: 'backups are managed by the admin' }, { status: 403 });
+  }
 
   const db = await supabaseServer();
 
@@ -24,7 +35,8 @@ export async function GET() {
              story, serving_suggestions, prep_minutes, cook_minutes, servings,
              yield_text, external_ref, updated_at,
              source:family_members!recipes_source_member_id_fkey(name),
-             ingredients(position, name, amount, amount_max, unit, note),
+             photo_path,
+             ingredients(position, name, amount, amount_max, unit, note, group_label),
              steps(position, heading, body)`)
     .is('deleted_at', null)
     .order('title');
@@ -37,15 +49,16 @@ export async function GET() {
     story: string | null; serving_suggestions: string | null;
     prep_minutes: number | null; cook_minutes: number | null;
     servings: number | null; yield_text: string | null;
-    external_ref: string | null; updated_at: string;
+    external_ref: string | null; updated_at: string; photo_path: string | null;
     source: { name: string } | null;
     ingredients: { position: number; name: string; amount: number | null;
-                   amount_max: number | null; unit: string | null; note: string | null }[];
+                   amount_max: number | null; unit: string | null; note: string | null;
+                   group_label: string | null }[];
     steps: { position: number; heading: string | null; body: string }[];
   };
 
   const payload = {
-    schemaVersion: SCHEMA_VERSION,
+    schemaVersion: DOCUMENT_VERSION,
     exportedAt: new Date().toISOString(),
     exportedBy: member.name,
     recipes: (recipes as unknown as Row[]).map((r) => ({
@@ -63,12 +76,20 @@ export async function GET() {
       story: r.story,
       servingSuggestions: r.serving_suggestions,
       externalRef: r.external_ref,
+      /* Where the photograph lives in Storage. On its own it does not restore the
+         image — that needs the companion zip from /api/backup/photos — but without it
+         a restore cannot reconnect a recovered file to its recipe. */
+      photoPath: r.photo_path,
       // Sorted here, because child-row order is meaning and the export is the
       // last copy anyone may ever read.
       ingredients: [...r.ingredients].sort((a, b) => a.position - b.position)
         .map((i) => ({
           name: i.name, amount: i.amount, amountMax: i.amount_max,
           unit: i.unit, note: i.note,
+          /* Sub-group headings ("מילוי", "רוטב"). Dropped until now, so a restore
+             flattened every grouped recipe into one undifferentiated list — the same
+             field that silently vanished once already during the markdown import. */
+          group: i.group_label,
         })),
       steps: [...r.steps].sort((a, b) => a.position - b.position)
         .map((s) => ({ heading: s.heading, body: s.body })),

@@ -2,6 +2,7 @@ import MenuCard from '@/components/MenuCard';
 import StripSecret from '@/components/StripSecret';
 import { fetchSharedMenu, occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
+import { serverT } from '@/lib/lang';
 import styles from './guest.module.css';
 
 export const metadata = {
@@ -19,6 +20,7 @@ export default async function SharedMenuPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ k?: string }>;
 }) {
+  const t = await serverT();
   const { id } = await params;
   const { k } = await searchParams;
 
@@ -28,7 +30,7 @@ export default async function SharedMenuPage({
     return (
       <main className={styles.page}>
         <div className={styles.gone}>
-          <p className={styles.goneTitle}>This menu is not available</p>
+          <p className={styles.goneTitle}>{t('guest.gone')}</p>
           <p className={styles.goneBody}>
             The link may have been withdrawn, or it may be incomplete — the address
             needs the whole thing, including the part after the question mark.
@@ -65,7 +67,7 @@ export default async function SharedMenuPage({
       />
 
       <p className={styles.foot}>
-        <a href={`/print/menu/${id}?k=${k}`} className={styles.print}>Save as PDF</a>
+        <a href={`/print/menu/${id}?k=${k}`} className={styles.print}>{t('guest.savePdf')}</a>
       </p>
       <p className={styles.est}>Aviente · Est. 2018</p>
     </main>

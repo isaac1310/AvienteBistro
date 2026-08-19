@@ -1,0 +1,61 @@
+.wrap {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+/* Small caps above the title, in the text-safe tone. Matches LA FAMILLE on the
+   cover, one step smaller. */
+.eyebrow {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.title {
+  position: relative;
+  display: inline-block;
+  margin: 0 0 var(--sp-4);
+  font-family: var(--ser);
+  /* 300, not the browser's bold default for an h1. The cover's AVIENTE is a light
+     letterspaced face and a heavy page title beside it reads as a different app. */
+  font-weight: 300;
+  font-size: var(--t-display);
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  color: var(--muted-ink);
+}
+
+/* The signature stroke, as on the tagline: full ink where the word ends, fading away
+   to nothing. Slightly tilted, so it reads as a pen finishing rather than a border. */
+.stroke {
+  position: absolute;
+  inset-inline-end: -0.18em;
+  bottom: -0.06em;
+  width: calc(100% + 0.18em);
+  height: 1.5px;
+  border-radius: 1px;
+  transform: rotate(-0.7deg);
+  transform-origin: right center;
+  background: linear-gradient(to left,
+    color-mix(in srgb, var(--muted-ink) 70%, transparent) 0%,
+    color-mix(in srgb, var(--muted-ink) 40%, transparent) 30%,
+    color-mix(in srgb, var(--muted-ink) 18%, transparent) 62%,
+    transparent 94%);
+}
+
+/* In an RTL page the stroke starts from the leading edge instead, so it still trails
+   away from the end of the word rather than into it. */
+[dir='rtl'] .stroke {
+  transform: rotate(0.7deg);
+  transform-origin: left center;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--muted-ink) 70%, transparent) 0%,
+    color-mix(in srgb, var(--muted-ink) 40%, transparent) 30%,
+    color-mix(in srgb, var(--muted-ink) 18%, transparent) 62%,
+    transparent 94%);
+}

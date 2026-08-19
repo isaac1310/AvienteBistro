@@ -19,3 +19,18 @@ aviente/supabase/seed.sql
 # Generated import payloads — regenerate with tools/parse-markdown-book.mjs
 metakonim-import.json
 aviente/repairs.json
+aviente/recategorise.json
+aviente/repairs-categories.json
+
+# ── private family data — the repo is a template; the data lives behind auth ──
+# The recipes, the photos and the kids starter are the family's content, not the
+# app's. They were tracked and pushed while the repo was public; removing them here
+# stops NEW commits carrying them, but the pushed history still contains every one
+# until the repo goes private. Cache-removal is not retraction.
+מתכונים.md
+kids-starter.json
+photos/*.jpg
+photos/*.jpeg
+photos/*.png
+my_recipes_gemini.json
+aviente/public/_upload/

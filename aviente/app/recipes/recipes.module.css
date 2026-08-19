@@ -5,7 +5,7 @@
 
 .head {
   padding: var(--sp-6) 0 var(--sp-5);
-  text-align: center;
+  text-align: start;
   border-bottom: 1px solid var(--card-border);
   margin-bottom: var(--sp-5);
 }
@@ -21,10 +21,13 @@
 .searchField {
   font: inherit;
   font-size: 1rem;            /* 16px, or iOS zooms on focus */
-  width: min(100%, 380px);
+  /* Full width, matching the homepage's field. It was capped at 380px inside a
+     centred flex row; under the band it is the page's first control and a short box
+     floating mid-column reads as misplaced. */
+  width: 100%;
   min-height: var(--tap);
   padding: 0 var(--sp-4);
-  text-align: center;
+  text-align: start;
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
@@ -47,7 +50,15 @@
 @media (hover: hover) { .row:hover { border-color: var(--gold-deep); } }
 
 .rowEmoji { font-size: 1.25rem; }
-.rowName { font-family: var(--ser); font-size: 1.375rem; color: var(--primary); }
+/* Light and near-black, not bold green. At 1.375rem in --primary the names read as a
+   row of buttons; the plate beside them is a fine engraving, and the two were arguing.
+   --ink is 13.8:1 so nothing is lost by dropping the colour. */
+.rowName {
+  font-family: var(--ser);
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: var(--ink);
+}
 .rowCount {
   font-family: var(--san);
   font-size: var(--t-label);
@@ -62,3 +73,6 @@
 .settings { margin-top: var(--sp-7); padding-top: var(--sp-5);
   border-top: 1px solid var(--card-border);
   display: grid; gap: var(--sp-4); }
+
+.backRow { padding-top: var(--sp-3); }
+.search { display: block; margin-bottom: var(--sp-5); }

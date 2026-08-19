@@ -389,6 +389,12 @@ export function normalizeRecipe(input, opts = {}) {
     servings: servings ?? null,
     yieldText: servings ? null : yieldText,
     source: nonEmpty(pick(input, 'source', 'author', 'from')),
+    /* Where the photograph lives in Storage, when a backup document carries one.
+       This function rebuilds the object field by field, so anything not named here is
+       silently dropped — which is exactly how `group` and `amountMax` were lost
+       before. A backup that records photoPath and an importer that discards it is a
+       round trip that quietly loses every picture. */
+    photoPath: nonEmpty(pick(input, 'photoPath', 'photo_path')),
     externalRef: nonEmpty(pick(input, 'externalRef', 'external_ref', 'id')) ?? null,
     ingredients, steps,
   };

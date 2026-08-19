@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import { todayIn } from '@/lib/today';
+import PageTitle from '@/components/PageTitle';
+import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
 import styles from './menus.module.css';
@@ -12,11 +16,13 @@ export const metadata = { title: 'Aviente — Menus' };
 export default async function MenusPage({
   searchParams,
 }: { searchParams: Promise<{ all?: string }> }) {
+  const t = await serverT();
   const { all } = await searchParams;
   const showAll = all === '1';
 
   const [menus, rules] = await Promise.all([savedMenus(showAll), occasionRules()]);
-  const today = new Date().toISOString().slice(0, 10);
+  // Today in Jerusalem: a UTC server files tonight's menu under yesterday.
+  const today = todayIn();
   const upcoming = menus.filter((m) => m.date >= today);
   const past = menus.filter((m) => m.date < today);
   const suggestions = upcomingOccasions(rules, 75).slice(0, 4);
@@ -25,29 +31,30 @@ export default async function MenusPage({
     <>
       <Nav current="/menus" />
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <BackLink href="/" label="Home" />
-            <p className="eyebrow">Menus</p>
-            <h1 className={styles.h1}>Menu history</h1>
-            <Link href="/menus/new" className="btn">＋ New menu</Link>
-          </div>
-        </header>
+        {/* Back link above the band; the panel holds the title alone. */}
+        <div className={`shell ${styles.backRow}`}>
+          <BackLink href="/" label={t('nav.home')} />
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('menus.title')}>{t('menus.history')}</PageTitle>
+        </PageHeader>
 
         <main className="shell">
+          {/* The primary action under the band, where the page's actions live. */}
+          <p className={styles.newRow}>
+            <Link href="/menus/new" className="btn">{t('menus.new')}</Link>
+          </p>
           {menus.length === 0 && (
             <div className={`card ${styles.empty}`}>
-              <p className={styles.emptyTitle}>No menus yet</p>
-              <p className={styles.emptyBody}>
-                Build one for this Friday and it will keep — starred menus stay here
-                so you can copy them onto a new date later.
-              </p>
+              <p className={styles.emptyTitle}>{t('menus.none')}</p>
+              <p className={styles.emptyBody}>{t('menus.noneBody')}</p>
             </div>
           )}
 
           {upcoming.length > 0 && (
             <section>
-              <h2 className={styles.h2}>Coming up</h2>
+              <h2 className={styles.h2}>{t('menus.comingUp')}</h2>
               <ul className={styles.list}>
                 {upcoming.map((m) => (
                   <li key={m.id}>
@@ -69,7 +76,7 @@ export default async function MenusPage({
 
           {past.length > 0 && (
             <section>
-              <h2 className={styles.h2}>{showAll ? 'All menus' : '★ Kept'}</h2>
+              <h2 className={styles.h2}>{showAll ? t('menus.all') : t('menus.kept')}</h2>
               <ul className={styles.list}>
                 {past.map((m) => (
                   <li key={m.id}>
@@ -90,13 +97,13 @@ export default async function MenusPage({
 
           <p className={styles.toggle}>
             <Link href={showAll ? '/menus' : '/menus?all=1'}>
-              {showAll ? 'show only the ones we kept' : 'show all menus'}
+              {showAll ? t('menus.showKept') : t('menus.showAll')}
             </Link>
           </p>
 
           {suggestions.length > 0 && (
             <section>
-              <h2 className={styles.h2}>Worth planning</h2>
+              <h2 className={styles.h2}>{t('menus.worth')}</h2>
               <ul className={styles.list}>
                 {suggestions.map((s) => (
                   <li key={s.occasion.title}>
@@ -110,7 +117,7 @@ export default async function MenusPage({
                         {cardDate(s.date)}
                       </span>
                       <span className={styles.name}>{s.occasion.title}</span>
-                      <span className={styles.meta}>plan ahead</span>
+                      <span className={styles.meta}>{t('menus.planAhead')}</span>
                     </Link>
                   </li>
                 ))}

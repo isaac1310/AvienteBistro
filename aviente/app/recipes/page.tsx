@@ -2,8 +2,12 @@ import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import FillDescriptions from '@/components/FillDescriptions';
 import type { CategoryKey } from '@/lib/constants';
+import { categoryName } from '@/lib/i18n';
+import { currentLang, serverT } from '@/lib/lang';
 import { CATEGORIES, categoryCounts } from '@/lib/queries';
 import styles from './recipes.module.css';
 
@@ -13,28 +17,33 @@ export const metadata = { title: 'Aviente — Recipes' };
  * search. It exists so "Recipes" in the nav has somewhere honest to go rather
  * than jumping into one arbitrary category. */
 export default async function RecipesIndex() {
-  const counts = await categoryCounts();
+  const [counts, t, lang] = await Promise.all([categoryCounts(), serverT(), currentLang()]);
 
   return (
     <>
       <Nav current="/recipes" />
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <BackLink href="/" label="Home" />
-            <p className="eyebrow">The Book</p>
-            <h1 className={styles.h1}>Recipes</h1>
-            <form action="/recipes/search" className={styles.search} role="search">
-              <input
-                type="search" name="q" className={styles.searchField}
-                placeholder="Search a dish or an ingredient…"
-                aria-label="Search recipes"
-              />
-            </form>
-          </div>
-        </header>
+        {/* The back link sits above the band, not inside the panel: the panel is a
+            title card and a navigation control in it reads as part of the name. */}
+        <div className={`shell ${styles.backRow}`}>
+          <BackLink href="/" label={t('nav.home')} />
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('book.eyebrow')}>{t('book.title')}</PageTitle>
+        </PageHeader>
 
         <main className="shell">
+          {/* Search under the band rather than in the panel — it is the page's first
+              action, not part of its title. */}
+          <form action="/recipes/search" className={styles.search} role="search">
+            <input
+              type="search" name="q" className={styles.searchField}
+              placeholder={t('home.search')}
+              aria-label={t('home.search.label')}
+            />
+          </form>
+
           <ul className={styles.list}>
             {CATEGORIES.map((c) => {
               const n = counts[c.key] ?? 0;
@@ -46,7 +55,7 @@ export default async function RecipesIndex() {
                         blueprints, and the one place where the two vocabularies sat
                         in the same list. */}
                     <CategoryPlate category={c.key as CategoryKey} size="row" />
-                    <span className={styles.rowName}>{c.en}</span>
+                    <span className={styles.rowName}>{categoryName(c, lang)}</span>
                     <span className={styles.rowCount}>{n || '—'}</span>
                   </Link>
                 </li>

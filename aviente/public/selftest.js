@@ -87,10 +87,19 @@
   function designTokens() {
     group('tokens');
 
-    check('the split gold exists', () =>
-      truthy(token('--gold') && token('--gold-ink'), 'both gold tokens'));
+    /* The palette moved from gold to the delivered design's muted stone, and the
+       SPLIT survived the move because the trap did: --muted is 2.48:1 where the old
+       --gold was 2.09:1. Same class of value, same rule — decoration only. */
+    check('the decorative tone and its text partner both exist', () =>
+      truthy(token('--muted') && token('--muted-ink'), 'both muted tokens'));
 
-    check('gold text colour clears WCAG AA on cream', () => {
+    /* The old names still resolve, aliased, so a dozen stylesheets did not have to be
+       rewritten in the same commit as a palette change. When they are gone, so is
+       this check. */
+    check('the retired gold names still resolve', () =>
+      truthy(token('--gold-ink'), '--gold-ink alias'));
+
+    check('letterspaced label colour clears WCAG AA on the page', () => {
       const probe = document.createElement('p');
       probe.className = 'eyebrow';
       document.body.appendChild(probe);
@@ -98,10 +107,12 @@
       const bg = css(document.body, 'background-color');
       probe.remove();
       const ratio = contrast(fg, bg);
-      // --gold (#c9a961) measures 2.02:1 here and fails; --gold-ink (#8a6d2f) is
-      // 4.37:1. A regression to the decorative gold is invisible to the eye.
+      /* The numbers this guards, measured on the new ground: --muted #A79A85 is
+         2.48:1 and fails; --muted-ink #716551 is 5.11:1 and passes. The design sets
+         these small caps in #A79A85, which is why the check exists — a regression to
+         the decorative tone is invisible to the eye at 11px. */
       return ratio >= 4.5 ? true
-        : `letterspaced label contrast is ${ratio.toFixed(2)}:1, needs 4.5 — is it using --gold instead of --gold-ink?`;
+        : `letterspaced label contrast is ${ratio.toFixed(2)}:1, needs 4.5 — is it using --muted instead of --muted-ink?`;
     });
 
     check('theme switch changes the primary', () => {
@@ -136,14 +147,44 @@
       rendersIn('חלה לשבת', 'Frank Ruhl Libre') ? true
         : 'Frank Ruhl Libre did not load — Hebrew is falling back to a system font');
 
-    check('Hebrew content is RTL and the chrome is not', () => {
-      const he = document.querySelector('[lang="he"]');
-      if (!he) return skip('no Hebrew content on this page');
-      const bad = css(document.documentElement, 'direction');
-      // The bug: [lang='he'] matched <html>, flipping the whole app -- the category
-      // grid reversed and counts read "RECETTES 5".
-      if (bad !== 'ltr') return `<html> direction is ${bad}; the whole app is flipped`;
-      return eq(css(he, 'direction'), 'rtl', 'Hebrew block direction');
+    /* This check used to assert the OPPOSITE: "Hebrew content is RTL and the chrome
+       is not". That was right when the interface was English with Hebrew blocks
+       inside it, and it is wrong now — the whole document turns with the reader's
+       language. Rewritten rather than deleted: the direction of the page is exactly
+       the sort of thing that regresses silently, and a suite that stopped watching it
+       would be worse than one that watched for the wrong thing. */
+    check('the document direction matches the language', () => {
+      const html = document.documentElement;
+      const lang = html.getAttribute('lang');
+      const dir = css(html, 'direction');
+      if (lang === 'he') return eq(dir, 'rtl', 'direction for lang=he');
+      if (lang === 'en') return eq(dir, 'ltr', 'direction for lang=en');
+      return `<html lang> is ${JSON.stringify(lang)}, expected he or en`;
+    });
+
+    /* Latin runs inside an RTL page have bitten three times: "0.5 cup" became
+       "cup 0.5" in the ingredient table, the kids' week read "AUG 22 - 16", and the
+       schema banner threw its full stop to the front of the sentence. Anything
+       carrying digits-then-Latin has to opt out of the surrounding direction. */
+    check('Latin runs opt out of RTL', () => {
+      if (css(document.documentElement, 'direction') !== 'rtl') {
+        return skip('page is not RTL, so nothing to opt out of');
+      }
+      /* `article` as well as header/main/footer. The recipe page — the one page that
+         actually HAS Latin measure runs — renders an <article> at top level, so the
+         scoping borrowed from the tap-target check found nothing and the assertion
+         skipped itself with "no Latin measure runs on this page" while sitting on a
+         table full of "2 tbsp". A check that passes by exercising nothing is worse
+         than no check. */
+      const suspects = [...document.querySelectorAll('article, header, main, footer')]
+        .flatMap((root) => [...root.querySelectorAll('td, span, p')])
+        .filter((el) => el.children.length === 0
+          && /^[\d\s./–-]+\s?[A-Za-z]{1,6}$/.test((el.textContent || '').trim()));
+      if (!suspects.length) return skip('no Latin measure runs on this page');
+      const wrong = suspects.filter((el) => css(el, 'direction') !== 'ltr');
+      return wrong.length === 0
+        ? true
+        : `${wrong.length} Latin run(s) inherit RTL, e.g. ${JSON.stringify(wrong[0].textContent.trim())}`;
     });
   }
 
@@ -389,6 +430,7 @@
     const doc = { schemaVersion: 1, recipes: [{
       title: 'קציצות', titleEn: 'Patties', category: 'mains', servings: 6,
       source: 'Savta', externalRef: 'x#y',
+      photoPath: 'abc-123.webp',
       ingredients: [
         { name: 'דג', amount: 400, amountMax: 500, unit: 'g', note: 'נטו', group: 'לקציצות' },
         { name: 'בצל ירוק' },
@@ -407,6 +449,26 @@
     check('externalRef survives', () => eq(r.externalRef, 'x#y', 'externalRef'));
     check('an ingredient with no quantity is kept', () =>
       r.ingredients.length === 2 ? true : `expected 2 ingredients, got ${r.ingredients.length}`);
+    /* The photograph's Storage path. normalizeRecipe rebuilds the object field by
+       field, so an unnamed field is silently dropped — this is the third time that
+       has bitten (group, amountMax, and now photoPath). */
+    check('photoPath survives', () => eq(r.photoPath, 'abc-123.webp', 'photoPath'));
+
+    /* The document format version, and the reason this group exists at all.
+       /api/backup stamped the DB MIGRATION counter here instead. It read 11 while the
+       importer accepts only 1, so every backup was refused by the app that wrote it —
+       and nothing noticed, because this suite tested the parser against a document it
+       built itself rather than against the number the export actually emits. */
+    check('the exporter and the importer agree on the document version', () => {
+      if (!A.DOCUMENT_VERSION) return skip('exporter version not attached');
+      return A.DOCUMENT_VERSION === 1
+        ? true
+        : `export stamps ${A.DOCUMENT_VERSION}, importer accepts 1`;
+    });
+    check('a document from a FUTURE format is refused, not half-read', () => {
+      const out = A.normalizeDocument({ schemaVersion: 99, recipes: [] });
+      return out.errors.length > 0 ? true : 'schemaVersion 99 was accepted';
+    });
   }
 
   /* ---------- the run ---------- */

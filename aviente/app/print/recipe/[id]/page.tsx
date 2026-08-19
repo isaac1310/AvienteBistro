@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getRecipe } from '@/lib/queries';
 import { scaleAmount } from '@/lib/scale';
+import { serverT } from '@/lib/lang';
 import styles from './printrecipe.module.css';
 
 export const metadata = { title: 'Aviente — Recipe', robots: { index: false } };
@@ -11,6 +12,7 @@ export const metadata = { title: 'Aviente — Recipe', robots: { index: false } 
  * Deliberately plain: one column, no photo, generous leading. This is the sheet
  * you prop against the flour bag, so legibility beats decoration. */
 export default async function PrintRecipe({ params }: { params: Promise<{ id: string }> }) {
+  const t = await serverT();
   const { id } = await params;
   const recipe = await getRecipe(id).catch(() => null);
   if (!recipe) notFound();
@@ -35,7 +37,7 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
 
       <section className={styles.cols}>
         <div>
-          <h2 className={styles.h2}>Ingredients</h2>
+          <h2 className={styles.h2}>{t('recipe.ingredients')}</h2>
           <ul className={styles.ingredients}>
             {recipe.ingredients.map((ing, i) => {
               const amount = scaleAmount(ing, 1);
@@ -53,7 +55,7 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
         </div>
 
         <div>
-          <h2 className={styles.h2}>Method</h2>
+          <h2 className={styles.h2}>{t('recipe.method')}</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id}>

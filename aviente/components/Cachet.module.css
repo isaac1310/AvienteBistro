@@ -1,95 +1,175 @@
+/* The wordmark, from artboards 4A (splash), 4B (header) and 5A (all-muted).
+   Sizes are the artboards' own, scaled by a single --scale so the three variants are
+   one lockup at three sizes rather than three lockups. */
+
 .cachet {
-  position: relative;
-  display: grid;
-  place-items: center;
-  text-align: center;
-}
+  --scale: 1;
+  /* 5A's tone is the DEFAULT: every tier in the muted stone, by choice — the splash
+     and the header wear the same voice. 4A's ink-and-green survives as the .splash
+     variant below, unused for now but one line away.
+     Text tiers take --muted-ink, never --muted: the design's own #A79A85 is 2.48:1
+     on this ground, which is decoration-only territory. */
+  --word-ink: var(--muted-ink);
+  --tag-ink: var(--muted-ink);
+  --orn: var(--muted);
+  --orn-opacity: 0.6;
 
-/* ── plaque: the splash and login lockup ─────────────────────────────────── */
-
-.plaque {
-  background: var(--primary);
-  width: 100%;
-  min-height: 100%;
-  padding: clamp(var(--sp-6), 12vw, var(--sp-8));
-}
-
-/* The 1px + 2px double frame, the same construction as the menu card's. */
-.frameOuter,
-.frameInner {
-  position: absolute;
-  pointer-events: none;
-}
-.frameOuter {
-  inset: clamp(14px, 4.5vw, 22px);
-  border: 1px solid rgba(201, 169, 97, 0.45);
-}
-.frameInner {
-  inset: clamp(21px, 6.5vw, 31px);
-  border: 2px solid var(--gold);
-}
-
-.inner {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* The lockup is Latin whichever way the page runs: a wordmark does not mirror. */
+  direction: ltr;
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: calc(12px * var(--scale));
+}
+
+.rule {
+  width: calc(22px * var(--scale));
+  height: 1px;
+  background: var(--orn);
+  opacity: var(--orn-opacity);
 }
 
 .diamond {
-  width: 11px;
-  height: 11px;
-  background: var(--gold);
+  width: calc(5px * var(--scale));
+  height: calc(5px * var(--scale));
+  background: var(--orn);
   transform: rotate(45deg);
-  margin-bottom: var(--sp-5);
 }
 
-.family,
-.est {
+/* LA FAMILLE — small caps above the name, in the text-safe tone because it is text.
+   Sized against the wordmark rather than fixed, so it holds its proportion at every
+   --scale. */
+.family {
   font-family: var(--san);
-  font-weight: 400;
-  font-size: var(--t-label);
-  letter-spacing: 5px;
+  font-weight: 500;
+  font-size: calc(11px * var(--scale));
+  line-height: 1;
+  letter-spacing: calc(4px * var(--scale));
   text-transform: uppercase;
-  margin: 0;
+  color: var(--muted-ink);
+  margin-top: calc(14px * var(--scale));
 }
 
 .word {
   font-family: var(--ser);
   font-weight: 400;
+  font-size: calc(62px * var(--scale));
   line-height: 1;
-  letter-spacing: 1px;
-  margin: 0;
+  letter-spacing: calc(13px * var(--scale));
+  /* Balances the trailing letter-space, so the word is optically centred. */
+  text-indent: calc(13px * var(--scale));
+  color: var(--word-ink);
+  margin-top: calc(18px * var(--scale));
+  white-space: nowrap;
 }
 
-.hr {
-  height: 1px;
-  background: var(--gold);
-  opacity: 0.7;
-  margin: var(--sp-4) 0 var(--sp-3);
+.taglineWrap {
+  position: relative;
+  display: inline-block;
+  margin-top: calc(12px * var(--scale));
 }
 
-.subtitle {
-  font-family: var(--ser);
-  font-style: italic;
-  margin: var(--sp-3) 0 0;
+.tagline {
+  font-family: var(--script);
+  font-size: calc(22px * var(--scale));
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--tag-ink);
 }
 
-/* On the green plaque the gold is decorative-on-dark, where it measures 5.48:1 --
-   so --gold is legitimate for text here. On cream it would not be; that is what
-   --gold-ink exists for, and the header variant below uses it. */
-.plaque .family,
-.plaque .est { color: var(--gold); }
-.plaque .word { color: var(--page); font-size: clamp(2.75rem, 13vw, 3.75rem); }
-.plaque .hr { width: clamp(110px, 36vw, 150px); }
-.plaque .subtitle { color: rgba(247, 242, 231, 0.72); font-size: 0.9375rem; }
+.underline {
+  position: absolute;
+  /* Overshoots the final k and dips below the baseline, so the line reads as the
+     pen finishing the word — a signature's flourish — rather than as a rule laid
+     under it. The k's tail in Petit Formal Script ends low and right; the stroke
+     picks up from there. */
+  inset-inline-end: calc(-14px * var(--scale));
+  bottom: calc(-2px * var(--scale));
+  width: calc(100% + 14px * var(--scale));
+  height: calc(1.5px * var(--scale));
+  border-radius: 1px;
+  transform: rotate(-1.1deg);
+  transform-origin: right center;
+  /* Full ink where it leaves the k, a long fade to nothing leftwards — one stroke
+     losing pressure, not a border losing opacity evenly. */
+  background: linear-gradient(to left,
+    color-mix(in srgb, var(--tag-ink) 85%, transparent) 0%,
+    color-mix(in srgb, var(--tag-ink) 55%, transparent) 22%,
+    color-mix(in srgb, var(--tag-ink) 25%, transparent) 55%,
+    transparent 92%);
+}
 
-/* ── header: the in-app lockup, on the cream page ────────────────────────── */
+/* EST. 2018 is small caps at 9-10px. It takes --muted-ink, not the design's
+   #A79A85: that tone is 2.48:1 on this ground, and at 10px the large-text
+   allowance does not apply. Same reasoning that split gold before it. */
+.year {
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: calc(10px * var(--scale));
+  line-height: 1;
+  letter-spacing: calc(3.2px * var(--scale));
+  color: var(--muted-ink);
+  margin-top: calc(26px * var(--scale));
+}
 
-.header { padding: var(--sp-5) 0 var(--sp-4); }
-.header .family,
-.header .est { color: var(--gold-ink); letter-spacing: 4px; }
-.header .word { color: var(--primary); font-size: var(--t-display); }
-.header .diamond { margin-bottom: var(--sp-3); }
-.header .hr { width: 140px; margin: var(--sp-3) 0 var(--sp-2); }
-.header .subtitle { color: var(--ink-soft); font-size: 0.9375rem; }
+/* ── the cover, at full size ─────────────────────────────────────────────────
+   Two tone variants of one lockup: .splash is 4A (ink name, green tagline) and .est
+   is 5A (every tier in the muted stone). They share every dimension, so the sizing
+   lives here and only the inks differ below. */
+.splash, .est { --scale: 1; }
+@media (max-width: 460px) {
+  /* The artboard is 412px wide and AVIENTE at 62px with 13px of tracking is about
+     400px of it. Below that the word touches both edges. */
+  .splash, .est { --scale: 0.78; }
+}
+
+/* ── 5A · the same cover, every tier in the muted tone ───────────────────── */
+/* 4A's ink-and-green, kept as the .splash variant should the choice reverse. The
+   muted 5A tone is the default above. */
+.splash {
+  --word-ink: var(--ink);
+  --tag-ink: var(--primary);
+  --orn: var(--primary);
+  --orn-opacity: 0.45;
+}
+.est { /* the default tone — kept as a named variant so callers read clearly */ }
+
+/* ── 4B · the in-app header ──────────────────────────────────────────────── */
+/* Scaled to the viewport in steps, not fixed. The artboard's 26px wordmark was drawn
+   for a 412px phone; on a 1400px screen the header band grew with the display and the
+   lockup did not, so it sat in the field like a stamp.
+   Steps rather than a clamp: --scale is a NUMBER multiplied inside calc(), and CSS
+   cannot mix a number with a vw length — clamp(0.42, 0.28 + 0.045vw, 0.8) is invalid
+   at computed-value time, so the declaration is dropped and nothing anywhere errors.
+   That is exactly what happened on the first attempt, and the only symptom was the
+   lockup staying small. */
+.header { --scale: 0.44; }
+@media (min-width: 700px)  { .header { --scale: 0.62; } }
+@media (min-width: 1100px) { .header { --scale: 0.78; } }
+
+.header .word {
+  font-weight: 500;
+  font-size: calc(62px * var(--scale));
+  letter-spacing: calc(13px * var(--scale));
+  text-indent: calc(13px * var(--scale));
+  margin-top: 0;
+}
+.header .family { font-size: calc(21px * var(--scale)); letter-spacing: calc(7px * var(--scale)); margin-top: 0; }
+.header .tagline { font-size: calc(34px * var(--scale)); }
+/* Centred, not flush right. 4B sets align-items: flex-end so the tagline hangs off
+   the wordmark's right edge — which reads as deliberate on a Latin artboard and as a
+   misalignment in the app, where the header is a centred stack and the page may run
+   right-to-left. */
+.header .taglineWrap { align-self: center; margin-top: 2px; }
+/* The header keeps the signature stroke but tucks the overshoot: at 15px the extra
+   14px tail would poke past the lockup's edge. */
+.header .underline { inset-inline-end: calc(-10px * var(--scale)); width: calc(100% + 10px * var(--scale)); }
+.header .year { font-size: calc(21px * var(--scale)); letter-spacing: calc(6px * var(--scale)); margin-top: calc(28px * var(--scale)); }
+/* The header drops the ornament: 4B is the wordmark alone, because the page
+   underneath already has its own rules and a second one crowds them. */
+.header .ornament { display: none; }

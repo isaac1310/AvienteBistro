@@ -162,3 +162,6 @@
 
 /* Notes, after the method. */
 .notes { margin-top: var(--sp-5); }
+
+/* Both blocks stack their lines rather than running them into one sentence. */
+.editedLine, .attributionLine { display: block; }

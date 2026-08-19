@@ -6,21 +6,27 @@
   .frame { padding-bottom: var(--sp-6); padding-left: 210px; }
 }
 
-/* The header now quotes the printed cookbook cover: a field of kitchen implements
-   with the title floating on a panel above it.
-   Three deliberate departures from the cover, so it reads as ours rather than as
-   a scan of it — the pattern is our gold instead of the cover's brown, it sits at
-   low opacity so it is texture rather than decoration, and the panel keeps the
-   app's 2px corners instead of the cover's soft radius. */
+/* The header quotes the printed cookbook cover: a field of kitchen implements with
+   the title floating on a panel above it.
+   Deliberate departures, so it reads as ours rather than as a scan of the cover — the
+   pattern is the app's muted stone instead of the cover's brown, it sits low enough to
+   be texture rather than decoration, and the panel keeps the app's 2px corners rather
+   than the cover's soft radius.
+   The band is TALL on purpose. At the old height the field was a strip barely deeper
+   than the panel sitting on it, so the pattern read as a border rather than as the
+   cover it is quoting — there was not enough of it to see. */
 .header {
   position: relative;
   background: var(--page);
   border-bottom: 1px solid var(--card-border);
   isolation: isolate;
   overflow: hidden;
-  /* Air above and below, so the panel floats on the field rather than sitting
-     on its edge — the cover gives its title card the same margin. */
-  padding: var(--sp-6) 0 var(--sp-5);
+  /* min-height rather than padding alone: the panel is centred in a field with room
+     above and below it, the way the cover gives its title card a whole page. */
+  min-height: 46vh;
+  display: grid;
+  align-content: center;
+  padding: var(--sp-8) 0;
 }
 
 .header::before {
@@ -60,8 +66,11 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse 70% 66% at 50% 46%,
-    var(--page) 30%, color-mix(in srgb, var(--page) 55%, transparent) 62%, transparent 80%);
+  /* Sized to the panel, not to the band: the field is much deeper now, so a wash
+     scaled to the whole header would erase the pattern instead of clearing a space
+     behind the title. */
+  background: radial-gradient(ellipse 46% 30% at 50% 50%,
+    var(--page) 34%, color-mix(in srgb, var(--page) 55%, transparent) 66%, transparent 82%);
 }
 
 /* The cover's framed title card, in our vocabulary: cream panel, gold hairline,
@@ -78,7 +87,10 @@
 }
 
 @media (max-width: 600px) {
-  .header { padding: var(--sp-5) 0 var(--sp-4); }
+  /* Shorter on a phone, but still a field rather than a strip: 46vh of a 915px
+     screen is most of the first view, and the four cards have to be reachable
+     without scrolling. */
+  .header { min-height: 34vh; padding: var(--sp-6) 0; }
   /* Smaller tile on a phone. At 168px the implements were so large relative to a
      412px viewport that each one arrived cropped, and the field read as fragments
      rather than a pattern. */

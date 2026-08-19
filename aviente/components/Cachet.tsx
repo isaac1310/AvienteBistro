@@ -43,6 +43,11 @@ export default function Cachet({ variant = 'splash' }: Props) {
         <span className={styles.rule} />
       </span>
 
+      {/* LA FAMILLE, restored above the name. The delivered artboards drop it, but
+          it is the tier that says whose book this is — and the lockup reads as a
+          family cookbook rather than a brand with it there. */}
+      <span className={styles.family}>La Famille</span>
+
       {/* The text-indent matches the letter-spacing: letterspacing adds a trailing
           gap after the final E, which pushes an otherwise centred word left by
           exactly one space. The design does the same thing. */}

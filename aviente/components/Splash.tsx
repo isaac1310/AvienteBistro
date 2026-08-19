@@ -99,7 +99,11 @@ export default function Splash({ children }: { children: React.ReactNode }) {
           {/* No "Chez Nous". The new design's lockup is AVIENTE / the tagline /
               EST. 2018 and nothing else — the French framing belonged to an app whose
               chrome was English with French accents, and the chrome is Hebrew now. */}
-          <Cachet variant="splash" />
+          {/* 5A — every tier in the muted stone. Chosen over 4A for the cover: softer, and
+              closer to a printed endpaper. The HEADER stays 4A (ink name, green
+              tagline), where the extra contrast is worth having because it sits above
+              real content rather than on a blank field. */}
+          <Cachet variant="est" />
         </div>
       )}
       {children}

@@ -4,11 +4,15 @@
 
 .cachet {
   --scale: 1;
-  /* The tiers that carry text default to real ink. 5A overrides them. */
-  --word-ink: var(--ink);
-  --tag-ink: var(--primary);
-  --orn: var(--primary);
-  --orn-opacity: 0.45;
+  /* 5A's tone is the DEFAULT: every tier in the muted stone, by choice — the splash
+     and the header wear the same voice. 4A's ink-and-green survives as the .splash
+     variant below, unused for now but one line away.
+     Text tiers take --muted-ink, never --muted: the design's own #A79A85 is 2.48:1
+     on this ground, which is decoration-only territory. */
+  --word-ink: var(--muted-ink);
+  --tag-ink: var(--muted-ink);
+  --orn: var(--muted);
+  --orn-opacity: 0.6;
 
   display: flex;
   flex-direction: column;
@@ -35,6 +39,20 @@
   height: calc(5px * var(--scale));
   background: var(--orn);
   transform: rotate(45deg);
+}
+
+/* LA FAMILLE — small caps above the name, in the text-safe tone because it is text.
+   Sized against the wordmark rather than fixed, so it holds its proportion at every
+   --scale. */
+.family {
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: calc(11px * var(--scale));
+  line-height: 1;
+  letter-spacing: calc(4px * var(--scale));
+  text-transform: uppercase;
+  color: var(--muted-ink);
+  margin-top: calc(14px * var(--scale));
 }
 
 .word {
@@ -66,16 +84,24 @@
 
 .underline {
   position: absolute;
-  inset-inline-end: 0;
-  bottom: 1px;
-  width: 100%;
-  height: 1px;
-  transform: rotate(-0.6deg);
+  /* Overshoots the final k and dips below the baseline, so the line reads as the
+     pen finishing the word — a signature's flourish — rather than as a rule laid
+     under it. The k's tail in Petit Formal Script ends low and right; the stroke
+     picks up from there. */
+  inset-inline-end: calc(-14px * var(--scale));
+  bottom: calc(-2px * var(--scale));
+  width: calc(100% + 14px * var(--scale));
+  height: calc(1.5px * var(--scale));
+  border-radius: 1px;
+  transform: rotate(-1.1deg);
   transform-origin: right center;
+  /* Full ink where it leaves the k, a long fade to nothing leftwards — one stroke
+     losing pressure, not a border losing opacity evenly. */
   background: linear-gradient(to left,
-    color-mix(in srgb, var(--tag-ink) 50%, transparent) 0%,
-    color-mix(in srgb, var(--tag-ink) 28%, transparent) 40%,
-    transparent 100%);
+    color-mix(in srgb, var(--tag-ink) 85%, transparent) 0%,
+    color-mix(in srgb, var(--tag-ink) 55%, transparent) 22%,
+    color-mix(in srgb, var(--tag-ink) 25%, transparent) 55%,
+    transparent 92%);
 }
 
 /* EST. 2018 is small caps at 9-10px. It takes --muted-ink, not the design's
@@ -91,27 +117,27 @@
   margin-top: calc(26px * var(--scale));
 }
 
-/* ── 4A · the splash, full size ──────────────────────────────────────────── */
-.splash { --scale: 1; }
-@media (max-width: 420px) {
-  /* The artboard is 412px wide and AVIENTE at 62px with 13px tracking is 400px of
-     it. Below that the word would touch both edges. */
-  .splash { --scale: 0.82; }
+/* ── the cover, at full size ─────────────────────────────────────────────────
+   Two tone variants of one lockup: .splash is 4A (ink name, green tagline) and .est
+   is 5A (every tier in the muted stone). They share every dimension, so the sizing
+   lives here and only the inks differ below. */
+.splash, .est { --scale: 1; }
+@media (max-width: 460px) {
+  /* The artboard is 412px wide and AVIENTE at 62px with 13px of tracking is about
+     400px of it. Below that the word touches both edges. */
+  .splash, .est { --scale: 0.78; }
 }
 
 /* ── 5A · the same cover, every tier in the muted tone ───────────────────── */
-/* 5A — "all in est. tone": every tier in the muted stone rather than ink and green.
-   Softer, and closer to a printed endpaper.
-   NOTE the design sets all three tiers to #A79A85, which is 2.48:1 on this ground.
-   The ornament keeps that value because it is decoration; the WORD and the TAGLINE
-   take --muted-ink instead, so the cover is still legible. A 1.7-second splash is
-   the most forgiving place in the app for low contrast, but not a licence for it. */
-.est {
-  --word-ink: var(--muted-ink);
-  --tag-ink: var(--muted-ink);
-  --orn: var(--muted);
-  --orn-opacity: 0.6;
+/* 4A's ink-and-green, kept as the .splash variant should the choice reverse. The
+   muted 5A tone is the default above. */
+.splash {
+  --word-ink: var(--ink);
+  --tag-ink: var(--primary);
+  --orn: var(--primary);
+  --orn-opacity: 0.45;
 }
+.est { /* the default tone — kept as a named variant so callers read clearly */ }
 
 /* ── 4B · the in-app header ──────────────────────────────────────────────── */
 .header {
@@ -124,8 +150,16 @@
   text-indent: 6px;
   margin-top: 0;
 }
+.header .family { font-size: 9px; letter-spacing: 3px; margin-top: 0; }
 .header .tagline { font-size: 15px; }
-.header .taglineWrap { align-self: flex-end; margin-top: 2px; }
+/* Centred, not flush right. 4B sets align-items: flex-end so the tagline hangs off
+   the wordmark's right edge — which reads as deliberate on a Latin artboard and as a
+   misalignment in the app, where the header is a centred stack and the page may run
+   right-to-left. */
+.header .taglineWrap { align-self: center; margin-top: 2px; }
+/* The header keeps the signature stroke but tucks the overshoot: at 15px the extra
+   14px tail would poke past the lockup's edge. */
+.header .underline { inset-inline-end: -6px; width: calc(100% + 6px); }
 .header .year { font-size: 9px; letter-spacing: 2.6px; margin-top: 12px; }
 /* The header drops the ornament: 4B is the wordmark alone, because the page
    underneath already has its own rules and a second one crowds them. */

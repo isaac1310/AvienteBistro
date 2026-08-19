@@ -65,7 +65,9 @@ export default function CategoryPlate({
         stroke="currentColor"
         /* Heavier at thumbnail size, as the blueprint README asks: 1.4 disappears
            when the drawing is 44px wide. */
-        strokeWidth={size === 'hero' ? 1.4 : 2.4}
+        /* Heavier only where the drawing is small enough to lose its lines: the 92px
+           thumb needs 2.4, the hero and the 56px row do not. */
+        strokeWidth={size === 'thumb' ? 2.4 : 1.6}
         strokeLinecap="round"
         role="presentation"
         dangerouslySetInnerHTML={{ __html: plate.inner }}

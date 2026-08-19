@@ -83,7 +83,9 @@ export default async function Home() {
                   href={a.href}
                   className={`card ${styles.action} ${a.kid ? styles.kidAction : ''}`}
                 >
-                  <Icon name={a.icon} size={28} strokeWidth={2.2}
+                  {/* Larger and lighter, to match the plates: 28px at 2.2 read as a
+                      bold pictogram beside serif text set twice its size. */}
+                  <Icon name={a.icon} size={34} strokeWidth={1.7}
                     className={styles.actionIcon} />
                   <span className={styles.actionName}>{t(a.name)}</span>
                   <span className={styles.actionHint}>{t(a.hint)}</span>

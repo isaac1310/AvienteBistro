@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import type { IconName } from '@/lib/icons.generated';
 import type { Key } from '@/lib/i18n';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
 import Splash from '@/components/Splash';
 import { categoryCounts } from '@/lib/queries';
 import { serverT } from '@/lib/lang';
@@ -42,13 +43,10 @@ export default async function Home() {
     <Splash>
       <Nav current="/" />
       <div className={styles.frame}>
-        <header className={styles.header}>
-          <div className="shell">
-            <div className={styles.plate}>
-              <Cachet variant="header" />
-            </div>
-          </div>
-        </header>
+        {/* The cover, and the only page that gets the deep field. */}
+        <PageHeader size="cover">
+          <Cachet variant="header" />
+        </PageHeader>
 
         <main className={`shell ${styles.main}`}>
           {member && (

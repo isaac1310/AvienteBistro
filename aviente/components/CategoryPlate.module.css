@@ -49,10 +49,13 @@
    happened to be on.
    56px against a 1.375rem name is the proportion the sheet shows: the drawing reads
    as the row's subject rather than as a bullet beside it. */
+/* 72px. 56 was still reading as an icon beside the name rather than as the row's
+   subject — the drawing has a lot of air inside its own 110x90 frame, so it always
+   looks a size smaller than the box it sits in. */
 .row {
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   background: none;
   border: 0;
   color: var(--primary);
@@ -62,7 +65,8 @@
 .kid.row { color: #c2417e; }
 /* Lighter stroke at this size: 2.4 on a 64 grid is drawn for 92px, and at 56px the
    lines thicken visually until the drawing reads as bold rather than engraved. */
-.row .art { stroke-width: 1.9; }
+/* Thinner again at 72px: the larger the drawing, the finer the line can be. */
+.row .art { stroke-width: 1.6; }
 
 /* The recipe page's wide slot, where the drawing gets its intended size and the
    caption has room. */

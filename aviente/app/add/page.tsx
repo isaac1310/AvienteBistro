@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
+import Icon from '@/components/Icon';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import { serverT } from '@/lib/lang';
 import RecipeForm from '@/components/RecipeForm';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -27,28 +30,31 @@ export default async function AddPage({
     <>
       <Nav current="/add" />
       <div className={styles.frame}>
-        <main className={`shell ${styles.main}`}>
+        {/* Outside main, so the band runs full-bleed. Nested in a shell it would be
+            capped at the content width and stop being a band. */}
+        <div className={`shell ${styles.backRow}`}>
           <BackLink href="/" label={t('nav.home')} />
-          <p className="eyebrow">{t('add.eyebrow')}</p>
-          <h1 className={styles.h1}>{t('add.title')}</h1>
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('add.eyebrow')}>{t('add.title')}</PageTitle>
+        </PageHeader>
+
+        <main className={`shell ${styles.main}`}>
 
           <div className={styles.choices}>
             <Link href="/add?mode=blank" className={`card ${styles.choice}`}>
-              <span className={styles.emoji} aria-hidden="true">✍️</span>
+              {/* Drawn, like everything else. These two were the last emoji left in
+                  the app after the nav, the plates and the kids' section. */}
+              <Icon name="add_recipe" size={34} strokeWidth={1.7} className={styles.emoji} />
               <span className={styles.choiceName}>{t('add.typeIt')}</span>
-              <span className={styles.choiceBody}>
-                A blank form — name, ingredients, steps. Best when you are looking
-                at a written recipe or know it by heart.
-              </span>
+              <span className={styles.choiceBody}>{t('add.typeItBody')}</span>
             </Link>
 
             <Link href="/import" className={`card ${styles.choice}`}>
-              <span className={styles.emoji} aria-hidden="true">📋</span>
+              <Icon name="recipes" size={34} strokeWidth={1.7} className={styles.emoji} />
               <span className={styles.choiceName}>{t('add.paste')}</span>
-              <span className={styles.choiceBody}>
-                Photograph the recipe in ChatGPT or Claude, ask for JSON, paste the
-                answer here. Handles Hebrew amounts, ranges and notes.
-              </span>
+              <span className={styles.choiceBody}>{t('add.pasteBody')}</span>
             </Link>
           </div>
         </main>

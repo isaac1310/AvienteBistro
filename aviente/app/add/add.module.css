@@ -18,6 +18,9 @@
 }
 @media (hover: hover) { .choice:hover { border-color: var(--gold-deep); } }
 
-.emoji { font-size: 1.75rem; }
+/* A drawn icon now, so it needs placing rather than sizing. */
+.emoji { display: block; margin: 0 auto; color: var(--primary); }
 .choiceName { font-family: var(--ser); font-size: var(--t-title); color: var(--primary); }
 .choiceBody { font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }
+
+.backRow { padding-top: var(--sp-3); }

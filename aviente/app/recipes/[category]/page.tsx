@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
 import { categoryName } from '@/lib/i18n';
 import { currentLang, serverT } from '@/lib/lang';
 import type { CategoryKey } from '@/lib/constants';
@@ -34,35 +36,33 @@ export default async function CategoryPage({ params }: Params) {
       <Nav current="/recipes" />
       <Suspense fallback={null}><UndoToast /></Suspense>
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <Link href="/recipes" className={styles.back}>{t('book.back')}</Link>
-            {/* The category's own plate above its name. This was the category emoji —
-                the last of them in the recipe pages, sitting directly above a list of
-                cards that all use the drawn plates, so one header contradicted every
-                row under it. */}
-            <span className={styles.headPlate}>
-              <CategoryPlate category={category as CategoryKey} size="row" />
-            </span>
-            {/* The Hebrew name, not the URL key. This printed `{category}` — the
-                slug — which read "ENTREES" above a heading that says "Starters".
-                It matched only by luck on the categories whose key and label are the
-                same word. The Hebrew name is the one thing the eyebrow can say that
-                the h1 does not. */}
-            {/* The OTHER language's name, as a subtitle: the h1 already says it in
-                the reader's own. In Hebrew that is the English name, and vice versa —
-                which is genuinely useful in a bilingual household. */}
-            <p className="eyebrow" lang={lang === 'he' ? 'en' : 'he'}>
-              {lang === 'he' ? cat.en : cat.he}
-            </p>
-            <h1 className={styles.h1}>{categoryName(cat, lang)}</h1>
-            <p className={styles.count}>
+        <div className={`shell ${styles.backRow}`}>
+          <Link href="/recipes" className={styles.back}>{t('book.back')}</Link>
+        </div>
+
+        <PageHeader>
+          {/* The category's own plate above its name, inside the title panel — it is
+              part of what the page is called. */}
+          <span className={styles.headPlate}>
+            <CategoryPlate category={category as CategoryKey} size="row" />
+          </span>
+          {/* The eyebrow carries the OTHER language's name: the title already says it
+              in the reader's own, and in a bilingual house the second name is
+              genuinely useful rather than decorative. */}
+          <PageTitle eyebrow={lang === 'he' ? cat.en : cat.he}>
+            {categoryName(cat, lang)}
+          </PageTitle>
+        </PageHeader>
+
+        <div className={`shell ${styles.countRow}`}>
+          <p className={styles.count}>
               {recipes.length === 0
-                ? 'no recipes yet'
-                : `${recipes.length} ${recipes.length === 1 ? 'recipe' : 'recipes'}`}
+                ? t('book.noRecipes')
+                : recipes.length === 1
+                  ? t('book.count.one')
+                  : t('book.count.many', { n: recipes.length })}
             </p>
-          </div>
-        </header>
+        </div>
 
         <main className="shell">
           {recipes.length === 0 ? (
@@ -75,8 +75,7 @@ export default async function CategoryPage({ params }: Params) {
               <CategoryPlate category={category as CategoryKey} size="row" />
               <p className={styles.emptyTitle}>{t('book.empty')}</p>
               <p className={styles.emptyBody}>
-                No {cat.en.toLowerCase()} in the book yet. Add the first one, or paste
-                a recipe from a photo on the import screen.
+                {t('book.emptyBody', { category: categoryName(cat, lang) })}
               </p>
               <Link href="/add" className="btn">＋ Add a recipe</Link>
             </div>

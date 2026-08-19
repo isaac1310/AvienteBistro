@@ -1,3 +1,8 @@
+> **Read REMAINING.md first.** This checklist is the original build plan and its
+> boxes reflect the order things were *intended* in, not the state of the app. Where
+> the two disagree, REMAINING.md was written against the code and wins.
+> Reconciled 20 Aug 2026.
+
 # Aviente — build checklist
 
 Every item has the steps to do it and the condition that says it's done. The
@@ -52,7 +57,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       5. Behind `NEXT_PUBLIC_E2E`, a password form for the two test users.
       **Done when:** you can sign in with a real magic link, and with a code.
 
-- [ ] **`family_settings` + per-user theme**
+- [x] **`family_settings` + per-user theme** — shipped; `data-theme` on `<html>`, switch in Settings.
       1. Read `family_members.theme` for the signed-in user; stamp
          `data-theme` on `<html>`.
       2. A theme switch that writes the column.
@@ -116,7 +121,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       query filtering `deleted_at is null`.
 
 - [x] **Search** (§5.1) — recipes only: title, `title_en`, ingredient names, both
-      descriptions. `pg_trgm` similarity against `search_text`. Needs a results
+      descriptions. NOTE: shipped as `ilike` on `search_text`, NOT `pg_trgm` — the extension is not enabled and substring is adequate at 41 recipes. Tracked in REMAINING.md. Needs a results
       screen and an empty state; neither exists in the design file.
 
 ---

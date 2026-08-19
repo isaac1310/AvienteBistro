@@ -1,4 +1,5 @@
 import { HebrewCalendar, HDate } from '@hebcal/core';
+import { todayAnchor } from './today';
 
 /* §6 — occasion rules. Data, not code: the rows live in `occasion_rules` and this
  * module only resolves them against a date.
@@ -131,10 +132,14 @@ export function resolveOccasion(
 }
 
 /** Upcoming occasions in the next `days`, for the "plan ahead" rows on §3.7. */
-export function upcomingOccasions(rules: OccasionRule[], days = 60, from = new Date()) {
+export function upcomingOccasions(rules: OccasionRule[], days = 60, from?: Date) {
+  /* Anchored to today in Jerusalem. With the server's clock this list started a day
+     late between midnight and 03:00 local — the hours when someone might actually be
+     planning next Friday. */
+  const start = from ?? todayAnchor();
   const out: { date: Date; occasion: Occasion }[] = [];
   for (let i = 0; i <= days; i++) {
-    const date = addDays(from, i);
+    const date = addDays(start, i);
     // Only holidays are worth suggesting; every Friday is not news.
     const holidayRules = rules.filter((r) => r.match.hebcal);
     const occasion = resolveOccasion(date, 'evening', holidayRules);

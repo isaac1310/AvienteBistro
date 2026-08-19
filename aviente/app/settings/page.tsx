@@ -34,31 +34,39 @@ export default async function SettingsPage() {
             displayName={member?.display_name ?? member?.name ?? ''}
           />
 
-          <section className={styles.block} aria-labelledby="backup-h">
-            <h2 className={styles.h2} id="backup-h">Backup</h2>
-            <div className={`card ${styles.panel}`}>
-              <p className={styles.body}>
-                The free Supabase tier takes no automated backups, and these recipes
-                exist nowhere else. The file below holds{' '}
-                <strong>every recipe</strong> &mdash; ingredients, groups, steps, notes
-                and attribution &mdash; and the importer reads it back.
-                {/* Said plainly. This used to claim "a complete copy — every recipe,
-                    menu and kids' week", which was wrong on both counts: the export is
-                    recipes only, and a version-numbering bug meant the importer
-                    refused its own files. Overstating what a backup covers is worse
-                    than a smaller backup. */}
-                {' '}Menus and the kids&rsquo; weeks are <em>not</em> included; those
-                would have to be rebuilt.
-              </p>
-              <p className={styles.btnRow}>
-                <a className="btn" href="/api/backup" download>⤓ Download a backup</a>
-                {/* The other half of a backup. Download lived here alone, so restoring
-                    meant knowing that the importer doubles as the restore path —
-                    which nobody should have to know. Same screen, both directions. */}
-                <Link className="btn btn--ghost" href="/import">⤒ Restore from a backup</Link>
-              </p>
-            </div>
-          </section>
+          {/* The back room. Backup and restore move the WHOLE cookbook, so they are
+              the admin's — by decision, and only these. Everything else on this page,
+              and all of /import, stays open to every family member; Moran adds and
+              pastes recipes exactly as before. Hiding the section is the door;
+              /api/backup checks the role server-side, because a URL that still
+              answers is not hidden. */}
+          {member?.role === 'admin' && (
+            <section className={styles.block} aria-labelledby="backup-h">
+              <h2 className={styles.h2} id="backup-h">Backup</h2>
+              <div className={`card ${styles.panel}`}>
+                <p className={styles.body}>
+                  The free Supabase tier takes no automated backups, and these recipes
+                  exist nowhere else. The file below holds{' '}
+                  <strong>every recipe</strong> &mdash; ingredients, groups, steps, notes
+                  and attribution &mdash; and the importer reads it back.
+                  {/* Said plainly. This used to claim "a complete copy — every recipe,
+                      menu and kids' week", which was wrong on both counts: the export is
+                      recipes only, and a version-numbering bug meant the importer
+                      refused its own files. Overstating what a backup covers is worse
+                      than a smaller backup. */}
+                  {' '}Menus and the kids&rsquo; weeks are <em>not</em> included; those
+                  would have to be rebuilt.
+                </p>
+                <p className={styles.btnRow}>
+                  <a className="btn" href="/api/backup" download>⤓ Download a backup</a>
+                  {/* The other half of a backup. Download lived here alone, so restoring
+                      meant knowing that the importer doubles as the restore path —
+                      which nobody should have to know. Same screen, both directions. */}
+                  <Link className="btn btn--ghost" href="/import">⤒ Restore from a backup</Link>
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* A working sheet, not a feature — but findable, because the plates are
               what most of this book looks like. */}

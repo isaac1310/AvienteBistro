@@ -1,5 +1,6 @@
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import RestoreBackup from '@/components/RestoreBackup';
 import { currentMember } from '@/lib/supabase/server';
 import styles from '../settings.module.css';
@@ -11,6 +12,7 @@ export const metadata = { title: 'Aviente — Restore', robots: { index: false }
  * from a backup file and belongs to the admin. The two started out sharing a page,
  * which read as one feature — Itzik's report was exactly that confusion. */
 export default async function RestorePage() {
+  const t = await serverT();
   const member = await currentMember();
 
   if (member?.role !== 'admin') {
@@ -19,7 +21,7 @@ export default async function RestorePage() {
         <Nav current="/" />
         <div className={styles.frame}>
           <main className={`shell ${styles.main}`}>
-            <BackLink href="/settings" label="Settings" />
+            <BackLink href="/settings" label={t('settings.eyebrow')} />
             <p className="eyebrow">Restore</p>
             <h1 className={styles.h1}>This door is the admin&rsquo;s</h1>
             <p className={styles.body}>
@@ -38,7 +40,7 @@ export default async function RestorePage() {
       <Nav current="/" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/settings" label="Settings" />
+          <BackLink href="/settings" label={t('settings.eyebrow')} />
           <p className="eyebrow">Restore</p>
           <h1 className={styles.h1}>Restore the cookbook from a backup</h1>
           <RestoreBackup />

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
 import { COURSES, categoryLabel, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
+import { useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
 
 /* §3.5 — the menu builder. */
@@ -25,6 +26,7 @@ export default function MenuBuilder({
      Friday at lunch — two different answers for one date. */
   occasion: { evening: string | null; day: string | null };
 }) {
+  const t = useT();
   const router = useRouter();
   const byId = useMemo(() => new Map(recipes.map((r) => [r.id, r])), [recipes]);
 
@@ -74,7 +76,7 @@ export default function MenuBuilder({
       || r.course !== initial.items[i]?.course);
 
   function onCancel() {
-    if (dirty && !confirm('Leave without saving? The dishes you picked will be lost.')) return;
+    if (dirty && !confirm(t('menu.leave'))) return;
     /* Back to the menu being edited, or to the list for a new one. history.back()
        is wrong here: arriving from a recipe page's "add to a menu" link would send
        you back into that recipe. */
@@ -111,7 +113,7 @@ export default function MenuBuilder({
   async function onSave() {
     setBusy(true); setError(null);
     try {
-      if (!rows.length) throw new Error('A menu needs at least one dish.');
+      if (!rows.length) throw new Error(t('menu.needsDish'));
       const id = await saveMenu({
         id: initial.id,
         date,
@@ -124,7 +126,7 @@ export default function MenuBuilder({
       router.push(`/menus/${id}`);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save.');
+      setError(e instanceof Error ? e.message : t('menu.cantSave'));
       setBusy(false);
     }
   }
@@ -132,15 +134,15 @@ export default function MenuBuilder({
   return (
     <div className={styles.wrap}>
       <header className={styles.bar}>
-        <span className={styles.editing}>{initial.id ? 'Edit menu' : 'Build a menu'}</span>
+        <span className={styles.editing}>{initial.id ? t('menu.edit') : t('menu.build')}</span>
         <div className={styles.barActions}>
           {/* Cancel first, Save last: the destructive one must not sit where the
               thumb lands on the Ultra. */}
           <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>
-            Cancel
+            {t('form.cancel')}
           </button>
           <button className="btn" onClick={onSave} disabled={busy}>
-            {busy ? 'Saving…' : 'Save menu'}
+            {busy ? t('menu.saving') : t('menu.save')}
           </button>
         </div>
       </header>
@@ -151,56 +153,56 @@ export default function MenuBuilder({
           nothing on this screen showed what the card would be called, and a blank
           field quietly became the occasion name on save. */}
       <div className={styles.preview} aria-live="polite">
-        <span className={styles.previewTag}>On the card</span>
+        <span className={styles.previewTag}>{t('menu.onTheCard')}</span>
         <p className={styles.previewDate}>{cardDate(new Date(`${date}T18:00:00`))}</p>
         <p className={styles.previewTitle}>{effectiveTitle}</p>
         <p className={styles.previewNote}>
           {title.trim()
-            ? `${rows.length} ${rows.length === 1 ? 'dish' : 'dishes'}`
+            ? (rows.length === 1 ? t('menu.dishes.one') : t('menu.dishes.many', { n: rows.length }))
             : suggested
-              ? `Untitled — the card will use “${suggested}”, from the date`
+              ? t('menu.willUse', { title: suggested })
               /* Naming the reason matters here. A Friday EVENING is Shabbat and a
                  Friday lunch is not, so "no occasion" on a Friday looks like a bug
                  unless the screen says which meal it is talking about. */
               : mealTime === 'day' && occasion.evening
-                ? `Untitled — no occasion at lunch. This evening it would be “${occasion.evening}”.`
-                : 'Untitled — give it a name above'}
+                ? t('menu.noneAtLunch', { title: occasion.evening })
+                : t('menu.nameIt')}
         </p>
       </div>
 
       <div className={styles.pair}>
         <label className={styles.field}>
-          <span className={styles.label}>Date</span>
+          <span className={styles.label}>{t('menu.date')}</span>
           <input type="date" className={styles.input} value={date}
             onChange={(e) => setDate(e.target.value)} />
         </label>
         {/* Beside the date, because it is part of WHEN the meal is — and because
             without it nobody could tell why a Friday lunch got no candles. */}
         <div className={styles.field}>
-          <span className={styles.label}>Eaten</span>
-          <div className={styles.seg} role="group" aria-label="Time of day">
+          <span className={styles.label}>{t('menu.eaten')}</span>
+          <div className={styles.seg} role="group" aria-label={t('menu.timeOfDay')}>
             <button type="button" onClick={() => setMealTime('day')}
               aria-pressed={mealTime === 'day'}
-              className={mealTime === 'day' ? styles.segOn : styles.segOff}>Daytime</button>
+              className={mealTime === 'day' ? styles.segOn : styles.segOff}>{t('menu.daytime')}</button>
             <button type="button" onClick={() => setMealTime('evening')}
               aria-pressed={mealTime === 'evening'}
-              className={mealTime === 'evening' ? styles.segOn : styles.segOff}>Evening</button>
+              className={mealTime === 'evening' ? styles.segOn : styles.segOff}>{t('menu.evening')}</button>
           </div>
         </div>
 
         <label className={styles.field}>
-          <span className={styles.label}>Title</span>
+          <span className={styles.label}>{t('menu.title')}</span>
           {/* Left blank on purpose. The placeholder shows what the date suggests
               without putting that text in the field, so a title is only ever
               stored because someone typed it. */}
-          <input className={styles.input} value={title} placeholder={suggested ?? 'Untitled'}
+          <input className={styles.input} value={title} placeholder={suggested ?? t('menu.untitled')}
             onChange={(e) => setTitle(e.target.value)} />
         </label>
       </div>
 
       {/* Language affects the card's DESCRIPTIONS only; course names stay French. */}
       <div className={styles.langRow}>
-        <span className={styles.label}>Card descriptions in</span>
+        <span className={styles.label}>{t('menu.cardLang')}</span>
         <div className={styles.seg}>
           <button type="button" onClick={() => setLanguage('he')}
             className={language === 'he' ? styles.segOn : styles.segOff}>עברית</button>
@@ -219,9 +221,9 @@ export default function MenuBuilder({
               return (
                 <div key={row.key} className={`card ${styles.row}`}>
                   <div className={styles.handle}>
-                    <button type="button" aria-label="Move up" className={styles.move}
+                    <button type="button" aria-label={t('form.moveUp')} className={styles.move}
                       onClick={() => move(row.key, -1)}>↑</button>
-                    <button type="button" aria-label="Move down" className={styles.move}
+                    <button type="button" aria-label={t('form.moveDown')} className={styles.move}
                       onClick={() => move(row.key, 1)}>↓</button>
                   </div>
                   <div className={styles.rowBody}>
@@ -231,38 +233,43 @@ export default function MenuBuilder({
                       {row.recipe.source_name && ` · ${row.recipe.source_name}`}
                     </p>
                   </div>
-                  <button type="button" aria-label="Change this dish" className={styles.swap}
+                  <button type="button" aria-label={t('menu.changeDish')} className={styles.swap}
                     onClick={() => { setSwapping(row.key); setPicking(row.course); }}>↻</button>
-                  <button type="button" aria-label="Remove dish" className={styles.del}
+                  <button type="button" aria-label={t('menu.removeDish')} className={styles.del}
                     onClick={() => setRows(rows.filter((r) => r.key !== row.key))}>✕</button>
                 </div>
               );
             })}
 
             <button type="button" className={styles.add} onClick={() => setPicking(course.key)}>
-              ＋ Add a dish
+              {t('menu.addDish')}
             </button>
           </section>
         );
       })}
 
       <label className={styles.field}>
-        <span className={styles.label}>Chef's notes</span>
+        <span className={styles.label}>{t('menu.chefNotes')}</span>
         <textarea className={styles.area} rows={3} value={notes} lang="he"
           onChange={(e) => setNotes(e.target.value)} />
       </label>
 
       {/* Dish picker */}
       {picking && (
-        <div className={styles.sheet} role="dialog" aria-label="Choose a dish">
+        <div className={styles.sheet} role="dialog" aria-label={t('menu.chooseDish')}>
           <div className={styles.sheetHead}>
             <span className={styles.label}>
-              {swapping ? 'Change this dish' : `Add to ${COURSES.find((c) => c.key === picking)?.en}`}
+              {/* The COURSE name stays as the card spells it — the card is French by
+                  decision, and a picker that renamed the course you are adding to
+                  would disagree with the thing it is building. */}
+              {swapping
+                ? t('menu.changeDish')
+                : t('menu.addTo', { course: COURSES.find((c) => c.key === picking)?.en ?? '' })}
             </span>
             <button type="button" className={styles.close}
-              onClick={() => { setPicking(null); setSwapping(null); }}>Close</button>
+              onClick={() => { setPicking(null); setSwapping(null); }}>{t('common.close')}</button>
           </div>
-          <input className={styles.input} placeholder="Search…" value={query} autoFocus
+          <input className={styles.input} placeholder={t('common.search')} value={query} autoFocus
             onChange={(e) => setQuery(e.target.value)} />
           <ul className={styles.picks}>
             {filtered.map((r) => (
@@ -273,7 +280,7 @@ export default function MenuBuilder({
                 </button>
               </li>
             ))}
-            {filtered.length === 0 && <li className={styles.pickEmpty}>Nothing matches that.</li>}
+            {filtered.length === 0 && <li className={styles.pickEmpty}>{t('common.noMatch')}</li>}
           </ul>
         </div>
       )}

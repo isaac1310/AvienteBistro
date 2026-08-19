@@ -1,6 +1,7 @@
 import KidsPlanner from '@/components/KidsPlanner';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import { getKidsWeek, kidsRecipes, sundayOf } from '@/lib/kids';
 import { supabaseServer } from '@/lib/supabase/server';
 
@@ -9,6 +10,7 @@ export const metadata = { title: "Aviente — The Kids' Table" };
 export default async function KidsPage({
   searchParams,
 }: { searchParams: Promise<{ week?: string }> }) {
+  const t = await serverT();
   const { week } = await searchParams;
   const weekStart = week ?? sundayOf();
 
@@ -22,7 +24,7 @@ export default async function KidsPage({
   return (
     <>
       <Nav current="/" />
-      <div className="shell"><BackLink href="/" label="Home" /></div>
+      <div className="shell"><BackLink href="/" label={t('nav.home')} /></div>
       <KidsPlanner
         weekStart={weekStart}
         meals={meals}

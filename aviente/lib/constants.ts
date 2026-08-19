@@ -111,20 +111,23 @@ export const courseIndex = (key: string) =>
  *
  * `day` is written out because the animal is a decoration, not a label: nobody can be
  * expected to know that the elephant means Wednesday. */
+/* `day` and `dayShort` carry both languages; the HOST NAMES do not. Teddy and Bunny
+   are the animals' names — a child calls them the same thing in either language, the
+   way a pet's name does not translate. */
 export const ANIMALS = [
-  { weekday: 0, day: 'Sunday',    art: 'bear',     host: 'Teddy', colour: '#f4a6c0', shadow: '#d97fa0' },
-  { weekday: 1, day: 'Monday',    art: 'dog',      host: 'Buddy', colour: '#f4c95d', shadow: '#d6a833' },
-  { weekday: 2, day: 'Tuesday',   art: 'cat',      host: 'Mimi',  colour: '#8fb8e8', shadow: '#6b95c9' },
-  { weekday: 3, day: 'Wednesday', art: 'elephant', host: 'Ellie', colour: '#a8d5ba', shadow: '#7bbf9e' },
-  { weekday: 4, day: 'Thursday',  art: 'rabbit',   host: 'Bunny', colour: '#d6b8e8', shadow: '#b492cc' },
-  { weekday: 5, day: 'Friday',    art: 'fox',      host: 'Foxy',  colour: '#f2b48c', shadow: '#d18d63' },
-  { weekday: 6, day: 'Saturday',  art: 'owl',      host: 'Ollie', colour: '#b9c7e8', shadow: '#8fa2cc' },
+  { weekday: 0, day: 'Sunday',    dayHe: 'ראשון',  shortHe: 'א׳', art: 'bear',     host: 'Teddy', colour: '#f4a6c0', shadow: '#d97fa0' },
+  { weekday: 1, day: 'Monday',    dayHe: 'שני',    shortHe: 'ב׳', art: 'dog',      host: 'Buddy', colour: '#f4c95d', shadow: '#d6a833' },
+  { weekday: 2, day: 'Tuesday',   dayHe: 'שלישי',  shortHe: 'ג׳', art: 'cat',      host: 'Mimi',  colour: '#8fb8e8', shadow: '#6b95c9' },
+  { weekday: 3, day: 'Wednesday', dayHe: 'רביעי',  shortHe: 'ד׳', art: 'elephant', host: 'Ellie', colour: '#a8d5ba', shadow: '#7bbf9e' },
+  { weekday: 4, day: 'Thursday',  dayHe: 'חמישי',  shortHe: 'ה׳', art: 'rabbit',   host: 'Bunny', colour: '#d6b8e8', shadow: '#b492cc' },
+  { weekday: 5, day: 'Friday',    dayHe: 'שישי',   shortHe: 'ו׳', art: 'fox',      host: 'Foxy',  colour: '#f2b48c', shadow: '#d18d63' },
+  { weekday: 6, day: 'Saturday',  dayHe: 'שבת',    shortHe: 'ש׳', art: 'owl',      host: 'Ollie', colour: '#b9c7e8', shadow: '#8fa2cc' },
 ] as const;
 
 export const MEALS = [
-  { key: 'breakfast', label: 'Breakfast', colour: '#f4c95d' },
-  { key: 'lunch',     label: 'Lunch',     colour: '#7bbf9e' },
-  { key: 'dinner',    label: 'Dinner',    colour: '#8fb8e8' },
+  { key: 'breakfast', label: 'Breakfast', labelHe: 'בוקר',   colour: '#f4c95d' },
+  { key: 'lunch',     label: 'Lunch',     labelHe: 'צהריים', colour: '#7bbf9e' },
+  { key: 'dinner',    label: 'Dinner',    labelHe: 'ערב',    colour: '#8fb8e8' },
 ] as const;
 
 export type MealKey = (typeof MEALS)[number]['key'];

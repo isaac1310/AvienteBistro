@@ -16,6 +16,20 @@ export async function generateMetadata({ params }: Params) {
 }
 
 /** "3 days ago" without pulling in a date library for one string. */
+/**
+ * dd/mm/yy — the format Itzik asked for, and the one that is unambiguous here.
+ *
+ * Not toLocaleDateString: that follows the SERVER's locale, which on Vercel is
+ * en-US, so a recipe added on the fourth of August would print 8/4 and read as the
+ * eighth of April to everyone who will ever use this app. Built by hand from the
+ * parts so the order cannot drift with a deploy region.
+ */
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${p(d.getFullYear() % 100)}`;
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.round(diff / 60000);
@@ -142,10 +156,22 @@ export default async function RecipePage({ params }: Params) {
           <RecipeHistory recipeId={id} />
         </div>
 
+        {/* Two facts, both wanted: when it joined the book, and when it last
+            changed. The exact date sits beside the relative one — "3 days ago" is
+            what you read at a glance, dd/mm/yy is what you need when the question is
+            which of two versions of Savta's recipe came first. */}
         <p className={styles.edited}>
-          {recipe.updated_by_name
-            ? `last edited by ${recipe.updated_by_name} · ${timeAgo(recipe.updated_at)}`
-            : `added ${timeAgo(recipe.updated_at)}`}
+          {recipe.created_at && (
+            <span className={styles.editedLine}>
+              in the book since {shortDate(recipe.created_at)}
+            </span>
+          )}
+          <span className={styles.editedLine}>
+            {recipe.updated_by_name
+              ? `last edited by ${recipe.updated_by_name} · ${shortDate(recipe.updated_at)}`
+              : `last edited ${shortDate(recipe.updated_at)}`}
+            {' · '}{timeAgo(recipe.updated_at)}
+          </span>
         </p>
       </div>
     </article>

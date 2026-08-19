@@ -162,3 +162,6 @@
 
 /* Notes, after the method. */
 .notes { margin-top: var(--sp-5); }
+
+/* Two lines, so the dates do not run together into one long sentence. */
+.editedLine { display: block; }

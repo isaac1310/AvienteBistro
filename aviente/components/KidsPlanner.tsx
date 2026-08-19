@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ANIMALS, MEALS, addWeeks, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
 import { clearMeal, clearWeek, fillWeek, setChef, setMeal } from '@/lib/kidsMutations';
 import KidsArt from './KidsArt';
+import { useLang, useT } from './LangProvider';
 import styles from './KidsPlanner.module.css';
 
 /* §3.8 — pick a week, pick dishes into a tray, then place them either day by day
@@ -21,6 +22,12 @@ export default function KidsPlanner({
   recipes: Recipe[];
   members: { id: string; name: string }[];
 }) {
+  const t = useT();
+  const lang = useLang();
+  /* The day and meal names in the reader's language. Host names stay as they are —
+     Teddy is a name, not a word. */
+  const dayName = (a: (typeof ANIMALS)[number]) => (lang === 'he' ? a.dayHe : a.day);
+  const mealName = (m: (typeof MEALS)[number]) => (lang === 'he' ? m.labelHe : m.label);
   const router = useRouter();
   const [tray, setTray] = useState<Recipe[]>([]);
   /* Sunday to Thursday on by default — the days there is school tomorrow. Friday and
@@ -49,8 +56,7 @@ export default function KidsPlanner({
     if (!on) { setDays([...days, weekday]); return; }
     const animal = ANIMALS.find((a) => a.weekday === weekday);
     if (planned > 0
-      && !confirm(`Take ${animal?.day} out of the week? Its ${planned} `
-        + `${planned === 1 ? 'meal' : 'meals'} will be cleared.`)) return;
+      && !confirm(t('kids.takeOut', { day: animal?.day ?? '', n: planned }))) return;
     setDays(days.filter((d) => d !== weekday));
     if (planned > 0) {
       run(() => Promise.all(MEALS.map((m) => clearMeal(weekStart, weekday, m.key)))
@@ -70,14 +76,17 @@ export default function KidsPlanner({
       <KidsArt name="butterfly" size={22} className={`${styles.butterfly} ${styles.b2}`} />
 
       <header className={styles.banner}>
-        <h1 className={styles.title}>The Kids&rsquo; Table</h1>
+        <h1 className={styles.title}>{t('kids.title')}</h1>
       </header>
 
       <div className={styles.weekRow}>
-        <button className={styles.arrow} aria-label="Previous week"
+        <button className={styles.arrow} aria-label={t('kids.prevWeek')}
           onClick={() => router.push(`/kids?week=${addWeeks(weekStart, -1)}`)}>◀</button>
-        <span className={styles.week}>{weekLabel(weekStart)}</span>
-        <button className={styles.arrow} aria-label="Next week"
+        {/* dir="ltr": the label is "16 – 22 AUG", a Latin range, and inside an RTL
+            page bidi reordered it to "AUG 22 – 16" — a week that appears to run
+            backwards. */}
+        <span className={styles.week} dir="ltr">{weekLabel(weekStart)}</span>
+        <button className={styles.arrow} aria-label={t('kids.nextWeek')}
           onClick={() => router.push(`/kids?week=${addWeeks(weekStart, 1)}`)}>▶</button>
       </div>
 
@@ -97,11 +106,11 @@ export default function KidsPlanner({
               className={`${styles.bubble} ${on ? '' : styles.bubbleOff}`}
               style={on ? { background: a.colour, boxShadow: `0 3px 0 ${a.shadow}` } : undefined}
               aria-pressed={on}
-              aria-label={`${a.day} — ${a.host}${planned ? `, ${planned} planned` : ''}`}
+              aria-label={`${dayName(a)} — ${a.host}${planned ? `, ${planned}` : ''}`}
               onClick={() => toggleDay(a.weekday, planned)}
             >
               <KidsArt name={a.art} size={30} className={styles.bubbleArt} />
-              <span className={styles.bubbleDay}>{a.day.slice(0, 3)}</span>
+              <span className={styles.bubbleDay}>{lang === 'he' ? a.shortHe : a.day.slice(0, 3)}</span>
               {planned > 0 && <span className={styles.bubbleDot} aria-hidden="true" />}
             </button>
           );
@@ -110,7 +119,7 @@ export default function KidsPlanner({
 
       <div className={styles.trayRow}>
         <button className={styles.pill} onClick={() => setTrayOpen(true)}>
-          ＋ Pick dishes{tray.length > 0 && ` (${tray.length})`}
+          {t('kids.pickDishes')}{tray.length > 0 && ` (${tray.length})`}
         </button>
         <button className={styles.pill} disabled={busy || tray.length === 0}
           onClick={() => run(async () => {
@@ -118,7 +127,7 @@ export default function KidsPlanner({
               MEALS.map((m) => m.key));
             setTray([]);
           })}>
-          ✨ Fill the week
+          {t('kids.fillWeek')}
         </button>
       </div>
 
@@ -127,7 +136,7 @@ export default function KidsPlanner({
           {tray.map((r) => (
             <li key={r.id} className={styles.trayItem}>
               <span lang="he">{r.title}</span>
-              <button aria-label="Remove from tray"
+              <button aria-label={t('kids.removeFromTray')}
                 onClick={() => setTray(tray.filter((t) => t.id !== r.id))}>✕</button>
             </li>
           ))}
@@ -142,14 +151,14 @@ export default function KidsPlanner({
                 week that reads [-1] and prints "undefined". The name is on the record
                 now. */}
             <KidsArt name={a.art} size={26} className={styles.dayArt} />
-            {a.day} &middot; <span className={styles.dayHost}>{a.host}</span>
+            {dayName(a)} &middot; <span className={styles.dayHost}>{a.host}</span>
           </h2>
 
           {MEALS.map((meal) => {
             const placed = mealAt(a.weekday, meal.key);
             return (
               <div key={meal.key} className={styles.meal} style={{ borderColor: meal.colour }}>
-                <span className={styles.mealLabel}>{meal.label}</span>
+                <span className={styles.mealLabel}>{mealName(meal)}</span>
 
                 {placed ? (
                   <>
@@ -160,7 +169,7 @@ export default function KidsPlanner({
                       <select
                         className={styles.chef}
                         value={placed.chef_member_id ?? ''}
-                        aria-label="Who is cooking"
+                        aria-label={t('kids.whoCooks')}
                         onChange={(e) => run(() => setChef(placed.id, e.target.value || null))}
                       >
                         <option value="">👩‍🍳 who?</option>
@@ -168,16 +177,16 @@ export default function KidsPlanner({
                           <option key={m.id} value={m.id}>Chef {m.name}</option>
                         ))}
                       </select>
-                      <button className={styles.swap} aria-label="Swap this meal"
+                      <button className={styles.swap} aria-label={t('kids.swapMeal')}
                         onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>↻</button>
-                      <button className={styles.remove} aria-label="Clear this meal"
+                      <button className={styles.remove} aria-label={t('kids.clearMeal')}
                         onClick={() => run(() => clearMeal(weekStart, a.weekday, meal.key))}>✕</button>
                     </div>
                   </>
                 ) : (
                   <button className={styles.empty}
                     onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>
-                    ＋ add something
+                    {t('kids.addSomething')}
                   </button>
                 )}
               </div>
@@ -196,10 +205,14 @@ export default function KidsPlanner({
 
       {/* Slot picker — used both for an empty slot and for ↻ swap. */}
       {picking && (
-        <div className={styles.sheet} role="dialog" aria-label="Choose a dish">
+        <div className={styles.sheet} role="dialog" aria-label={t('menu.chooseDish')}>
           <div className={styles.sheetHead}>
-            <strong>Pick something for {MEALS.find((m) => m.key === picking.meal)?.label}</strong>
-            <button onClick={() => setPicking(null)}>Close</button>
+            <strong>
+              {t('kids.pickFor', {
+                meal: mealName(MEALS.find((m) => m.key === picking.meal)!),
+              })}
+            </strong>
+            <button onClick={() => setPicking(null)}>{t('common.close')}</button>
           </div>
           <ul className={styles.picks}>
             {/* A dish tagged for another meal still shows, but the matching ones
@@ -228,10 +241,10 @@ export default function KidsPlanner({
 
       {/* Tray picker — multi-select for FILL THE WEEK. */}
       {trayOpen && (
-        <div className={styles.sheet} role="dialog" aria-label="Pick dishes">
+        <div className={styles.sheet} role="dialog" aria-label={t('kids.pickDishes')}>
           <div className={styles.sheetHead}>
-            <strong>Pick dishes for the week</strong>
-            <button onClick={() => setTrayOpen(false)}>Done</button>
+            <strong>{t('kids.pickForWeek')}</strong>
+            <button onClick={() => setTrayOpen(false)}>{t('kids.done')}</button>
           </div>
           <ul className={styles.picks}>
             {recipes.map((r) => {

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import RecipeForm from '@/components/RecipeForm';
 import { supabaseServer } from '@/lib/supabase/server';
 import styles from './add.module.css';
@@ -13,6 +14,7 @@ export const metadata = { title: 'Aviente — Add' };
 export default async function AddPage({
   searchParams,
 }: { searchParams: Promise<{ mode?: string }> }) {
+  const t = await serverT();
   const { mode } = await searchParams;
   const db = await supabaseServer();
   const { data: members } = await db.from('family_members').select('id, name').order('name');
@@ -26,7 +28,7 @@ export default async function AddPage({
       <Nav current="/add" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/" label="Home" />
+          <BackLink href="/" label={t('nav.home')} />
           <p className="eyebrow">Add</p>
           <h1 className={styles.h1}>A new recipe</h1>
 

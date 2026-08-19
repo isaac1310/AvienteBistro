@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
 import styles from './menus.module.css';
@@ -12,6 +13,7 @@ export const metadata = { title: 'Aviente — Menus' };
 export default async function MenusPage({
   searchParams,
 }: { searchParams: Promise<{ all?: string }> }) {
+  const t = await serverT();
   const { all } = await searchParams;
   const showAll = all === '1';
 
@@ -27,7 +29,7 @@ export default async function MenusPage({
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
-            <BackLink href="/" label="Home" />
+            <BackLink href="/" label={t('nav.home')} />
             <p className="eyebrow">Menus</p>
             <h1 className={styles.h1}>Menu history</h1>
             <Link href="/menus/new" className="btn">＋ New menu</Link>

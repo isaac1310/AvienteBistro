@@ -1,6 +1,7 @@
 import BackLink from '@/components/BackLink';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import { CATEGORIES, type CategoryKey } from '@/lib/constants';
 import styles from './brand.module.css';
 
@@ -19,13 +20,14 @@ export const metadata = { title: 'Aviente — Plate blueprints' };
  * Not linked from the nav on purpose. Reachable at /brand, behind the same session
  * as everything else.
  */
-export default function BrandSheet() {
+export default async function BrandSheet() {
+  const t = await serverT();
   return (
     <>
       <Nav current="/" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/settings" label="Settings" />
+          <BackLink href="/settings" label={t('settings.eyebrow')} />
           <p className="eyebrow">Blueprints</p>
           <h1 className={styles.h1}>The no-photo plates</h1>
           <p className={styles.intro}>

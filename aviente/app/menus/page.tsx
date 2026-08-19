@@ -30,16 +30,16 @@ export default async function MenusPage({
         <header className={styles.head}>
           <div className="shell">
             <BackLink href="/" label={t('nav.home')} />
-            <p className="eyebrow">Menus</p>
-            <h1 className={styles.h1}>Menu history</h1>
-            <Link href="/menus/new" className="btn">＋ New menu</Link>
+            <p className="eyebrow">{t('menus.title')}</p>
+            <h1 className={styles.h1}>{t('menus.history')}</h1>
+            <Link href="/menus/new" className="btn">{t('menus.new')}</Link>
           </div>
         </header>
 
         <main className="shell">
           {menus.length === 0 && (
             <div className={`card ${styles.empty}`}>
-              <p className={styles.emptyTitle}>No menus yet</p>
+              <p className={styles.emptyTitle}>{t('menus.none')}</p>
               <p className={styles.emptyBody}>
                 Build one for this Friday and it will keep — starred menus stay here
                 so you can copy them onto a new date later.
@@ -49,7 +49,7 @@ export default async function MenusPage({
 
           {upcoming.length > 0 && (
             <section>
-              <h2 className={styles.h2}>Coming up</h2>
+              <h2 className={styles.h2}>{t('menus.comingUp')}</h2>
               <ul className={styles.list}>
                 {upcoming.map((m) => (
                   <li key={m.id}>
@@ -71,7 +71,7 @@ export default async function MenusPage({
 
           {past.length > 0 && (
             <section>
-              <h2 className={styles.h2}>{showAll ? 'All menus' : '★ Kept'}</h2>
+              <h2 className={styles.h2}>{showAll ? t('menus.all') : t('menus.kept')}</h2>
               <ul className={styles.list}>
                 {past.map((m) => (
                   <li key={m.id}>
@@ -92,13 +92,13 @@ export default async function MenusPage({
 
           <p className={styles.toggle}>
             <Link href={showAll ? '/menus' : '/menus?all=1'}>
-              {showAll ? 'show only the ones we kept' : 'show all menus'}
+              {showAll ? t('menus.showKept') : t('menus.showAll')}
             </Link>
           </p>
 
           {suggestions.length > 0 && (
             <section>
-              <h2 className={styles.h2}>Worth planning</h2>
+              <h2 className={styles.h2}>{t('menus.worth')}</h2>
               <ul className={styles.list}>
                 {suggestions.map((s) => (
                   <li key={s.occasion.title}>
@@ -112,7 +112,7 @@ export default async function MenusPage({
                         {cardDate(s.date)}
                       </span>
                       <span className={styles.name}>{s.occasion.title}</span>
-                      <span className={styles.meta}>plan ahead</span>
+                      <span className={styles.meta}>{t('menus.planAhead')}</span>
                     </Link>
                   </li>
                 ))}

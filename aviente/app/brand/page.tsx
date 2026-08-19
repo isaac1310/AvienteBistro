@@ -28,8 +28,8 @@ export default async function BrandSheet() {
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
           <BackLink href="/settings" label={t('settings.eyebrow')} />
-          <p className="eyebrow">Blueprints</p>
-          <h1 className={styles.h1}>The no-photo plates</h1>
+          <p className="eyebrow">{t('brand.eyebrow')}</p>
+          <h1 className={styles.h1}>{t('brand.title')}</h1>
           <p className={styles.intro}>
             Nine plates on a 110×90 grid, stroked with <code>currentColor</code> so
             they take the theme&rsquo;s ink — the kids&rsquo; plate is exempt and stays

@@ -73,7 +73,7 @@ export default async function CategoryPage({ params }: Params) {
                   of a recipe without a photograph and nonsense about a category with
                   no recipes at all — it read as though the app had lost a picture. */}
               <CategoryPlate category={category as CategoryKey} size="row" />
-              <p className={styles.emptyTitle}>Nothing here yet</p>
+              <p className={styles.emptyTitle}>{t('book.empty')}</p>
               <p className={styles.emptyBody}>
                 No {cat.en.toLowerCase()} in the book yet. Add the first one, or paste
                 a recipe from a photo on the import screen.

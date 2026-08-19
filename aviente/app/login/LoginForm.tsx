@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { safeNext } from '@/lib/safeNext';
+import { useT } from '@/components/LangProvider';
 import styles from './login.module.css';
 
 /* Magic link, and nothing else.
@@ -19,6 +20,7 @@ import styles from './login.module.css';
  * form.
  */
 export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
+  const t = useT();
   const router = useRouter();
   /* Validated, not trusted — see lib/safeNext.ts. */
   const next = safeNext(useSearchParams().get('next'));
@@ -99,7 +101,7 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
   return (
     <>
       <form className={styles.form} onSubmit={sendLink}>
-        <label className={styles.label} htmlFor="email">Your email</label>
+        <label className={styles.label} htmlFor="email">{t('login.email')}</label>
         <input
           id="email" className={styles.field} type="email"
           value={email} onChange={(e) => setEmail(e.target.value)}

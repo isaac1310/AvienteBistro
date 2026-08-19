@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
+import { useT } from './LangProvider';
 import styles from './MenuActions.module.css';
 
 /* Everything you can do with a finished menu: keep it, copy it onto a new date,
@@ -13,6 +14,7 @@ export default function MenuActions({
   id: string; date: string; saved: boolean;
   shareId: string | null; shareSecret: string | null;
 }) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [link, setLink] = useState<string | null>(
@@ -63,9 +65,9 @@ export default function MenuActions({
           Duplicate
         </button>
 
-        <a className="btn btn--ghost" href={`/menus/${id}/edit`}>Edit dishes</a>
+        <a className="btn btn--ghost" href={`/menus/${id}/edit`}>{t('menu.editDishes')}</a>
 
-        <a className="btn btn--ghost" href={`/print/menu/${id}`}>Print</a>
+        <a className="btn btn--ghost" href={`/print/menu/${id}`}>{t('common.print')}</a>
 
         <a className="btn" href={`/api/pdf?path=${encodeURIComponent(`/print/menu/${id}`)}&name=aviente-menu-${date}`}>
           Export PDF

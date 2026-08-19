@@ -1,0 +1,11 @@
+.wrap { display: grid; gap: var(--sp-4); justify-items: start; max-width: 40rem; }
+
+.panel { padding: var(--sp-4); display: grid; gap: var(--sp-2); justify-items: start; width: 100%; }
+
+.head { margin: 0; font-family: var(--ser); font-size: var(--t-title); color: var(--primary); }
+
+.body { margin: 0; font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }
+
+.hint { margin: 0; font-size: var(--t-small); font-style: italic; color: var(--ink-soft); }
+
+.fail { margin: 0; font-size: var(--t-small); color: #8c2b2b; }

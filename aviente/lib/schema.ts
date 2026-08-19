@@ -30,6 +30,16 @@ export const schemaState = cache(async (): Promise<SchemaState> => {
   const need = DB_SCHEMA_VERSION;
   try {
     const db = await supabaseServer();
+
+    /* No session → no evidence. RLS filters schema_migrations to family members,
+       but Supabase's default grants give `anon` SELECT on new tables — so a
+       signed-out visitor gets 200 with an empty array, not an error. Read as
+       "version 0", that told anyone on /login to re-run every migration from 0001
+       against a healthy database. An empty result from a reader whose rows are
+       filtered is not a measurement, so a guest gets 'unknown' and no banner. */
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) return { ok: false, have: -1, need, reason: 'unknown' };
+
     const { data, error } = await db
       .from('schema_migrations')
       .select('version')
@@ -52,7 +62,13 @@ export const schemaState = cache(async (): Promise<SchemaState> => {
       return { ok: false, have: -1, need, reason: 'unknown' };
     }
 
-    const have = data?.version ?? 0;
+    /* Signed in and still no rows: the table exists (no error) but holds nothing
+       this member can see. For a family member the policy shows everything, so an
+       empty table means 0009's backfill has not run — 'untracked', whose message
+       points at 0009 alone, never "re-run 0001". */
+    if (data?.version == null) return { ok: false, have: 0, need, reason: 'untracked' };
+
+    const have = data.version;
     return have >= need ? { ok: true, have, need } : { ok: false, have, need, reason: 'behind' };
   } catch {
     return { ok: false, have: -1, need, reason: 'unknown' };

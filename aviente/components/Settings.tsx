@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setTheme, setCardLanguage, setDisplayName } from '@/lib/mutations';
+import { setTheme, setLanguage, setDisplayName } from '@/lib/mutations';
+import { useT } from './LangProvider';
 import styles from './Settings.module.css';
 
 /**
@@ -16,11 +17,12 @@ import styles from './Settings.module.css';
  * the write fails, so the screen never shows a setting the database disagrees with.
  */
 export default function Settings({
-  theme, cardLanguage, displayName,
-}: { theme: 'green' | 'burgundy'; cardLanguage: 'en' | 'he'; displayName: string }) {
+  theme, language, displayName,
+}: { theme: 'green' | 'burgundy'; language: 'en' | 'he'; displayName: string }) {
   const router = useRouter();
+  const t = useT();
   const [colour, setColour] = useState(theme);
-  const [lang, setLang] = useState(cardLanguage);
+  const [lang, setLang] = useState(language);
   const [name, setName] = useState(displayName);
   const [savedName, setSavedName] = useState(displayName);
   const [busy, setBusy] = useState(false);
@@ -48,7 +50,7 @@ export default function Settings({
     setLang(next);
     setBusy(true); setError(null);
     try {
-      await setCardLanguage(next);
+      await setLanguage(next);
       router.refresh();
     } catch {
       setLang(previous);
@@ -81,15 +83,15 @@ export default function Settings({
             recipe" cannot be broken from here. */}
         <div className={styles.row}>
           <div className={styles.text}>
-            <span className={styles.name}>What the app calls you</span>
-            <span className={styles.hint}>Used in the greeting on the homepage.</span>
+            <span className={styles.name}>{t('settings.displayName')}</span>
+            <span className={styles.hint}>{t('settings.displayHint')}</span>
           </div>
           <input
             className={styles.field}
             value={name}
             disabled={busy}
             maxLength={40}
-            aria-label="What the app calls you"
+            aria-label={t('settings.displayName')}
             onChange={(e) => setName(e.target.value)}
             onBlur={saveName}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
@@ -100,16 +102,19 @@ export default function Settings({
 
         <div className={styles.row}>
           <div className={styles.text}>
-            <span className={styles.name}>Colour</span>
-            <span className={styles.hint}>Yours only — it does not change Moran&rsquo;s.</span>
+            <span className={styles.name}>{t('settings.colour')}</span>
+            <span className={styles.hint}>{t('settings.colourHint')}</span>
           </div>
-          <div className={styles.seg} role="group" aria-label="Colour theme">
-            {(['green', 'burgundy'] as const).map((t) => (
-              <button key={t} type="button" disabled={busy}
-                className={t === colour ? styles.on : styles.off}
-                aria-pressed={t === colour} onClick={() => pickColour(t)}>
-                <span className={`${styles.dot} ${styles[t]}`} aria-hidden="true" />
-                {t === 'green' ? 'Green' : 'Burgundy'}
+          <div className={styles.seg} role="group" aria-label={t('settings.colour')}>
+            {/* The loop variable is `c`, not `t`: `t` is the dictionary now, and
+                shadowing it here silently turned every label into a call on a
+                string. */}
+            {(['green', 'burgundy'] as const).map((c) => (
+              <button key={c} type="button" disabled={busy}
+                className={c === colour ? styles.on : styles.off}
+                aria-pressed={c === colour} onClick={() => pickColour(c)}>
+                <span className={`${styles.dot} ${styles[c]}`} aria-hidden="true" />
+                {c === 'green' ? t('settings.green') : t('settings.burgundy')}
               </button>
             ))}
           </div>
@@ -119,15 +124,14 @@ export default function Settings({
 
         <div className={styles.row}>
           <div className={styles.text}>
-            <span className={styles.name}>Menu card language</span>
-            {/* Said plainly, because the honest scope is narrower than the words
-                "language setting" suggest and a vague label would mislead. */}
-            <span className={styles.hint}>
-              Which language a new card&rsquo;s dish descriptions start in. Course
-              names stay French, and the app itself is in English.
-            </span>
+            <span className={styles.name}>{t('settings.language')}</span>
+            {/* The scope, said plainly. It used to read "the app itself is in
+                English", which is no longer true — this now changes the whole
+                interface, and the one exception is worth naming rather than
+                discovering. */}
+            <span className={styles.hint}>{t('settings.languageHint')}</span>
           </div>
-          <div className={styles.seg} role="group" aria-label="Menu card language">
+          <div className={styles.seg} role="group" aria-label={t('settings.language')}>
             <button type="button" disabled={busy} lang="he"
               className={lang === 'he' ? styles.on : styles.off}
               aria-pressed={lang === 'he'} onClick={() => pickLang('he')}>עברית</button>

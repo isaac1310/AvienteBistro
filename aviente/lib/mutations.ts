@@ -305,18 +305,20 @@ export async function setDisplayName(displayName: string) {
 }
 
 /**
- * Which language a NEW menu card starts in, per person.
+ * The language of the interface, per person.
  *
- * Narrow on purpose: this is not a UI language switch. The interface is English
- * only, and pretending otherwise with a half-translated app would be worse than
- * not offering it. What it does control is the one place the app really is
- * bilingual — the descriptions on a menu card.
+ * This used to be `setCardLanguage`, and the comment here said the app was English
+ * only and would stay that way. That was wrong about this family: the book is Hebrew,
+ * the cooking is Hebrew, and an English interface over Hebrew content made the app
+ * feel like a translation of itself. Hebrew is now the default and this decides
+ * everything except the menu card (French course titles, by decision) and the
+ * AVIENTE wordmark (Latin, the way a logo is).
  */
-export async function setCardLanguage(language: 'en' | 'he') {
+export async function setLanguage(language: 'en' | 'he') {
   const member = await requireMember();
   const db = await supabaseServer();
   const { error } = await db
-    .from('family_members').update({ card_language: language }).eq('id', member.id);
+    .from('family_members').update({ language }).eq('id', member.id);
   if (error) throw new Error(error.message);
   revalidatePath('/', 'layout');
 }

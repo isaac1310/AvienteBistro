@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import { categoryName } from '@/lib/i18n';
+import { currentLang, serverT } from '@/lib/lang';
 import type { CategoryKey } from '@/lib/constants';
 import SelectableList from '@/components/SelectableList';
 import UndoToast from '@/components/UndoToast';
@@ -24,6 +26,7 @@ export default async function CategoryPage({ params }: Params) {
   if (!CATEGORIES.some((c) => c.key === category)) notFound();
 
   const cat = categoryLabel(category);
+  const [t, lang] = await Promise.all([serverT(), currentLang()]);
   const recipes = await recipesInCategory(category);
 
   return (
@@ -33,7 +36,7 @@ export default async function CategoryPage({ params }: Params) {
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
-            <Link href="/recipes" className={styles.back}>← The Book</Link>
+            <Link href="/recipes" className={styles.back}>{t('book.back')}</Link>
             {/* The category's own plate above its name. This was the category emoji —
                 the last of them in the recipe pages, sitting directly above a list of
                 cards that all use the drawn plates, so one header contradicted every
@@ -46,8 +49,13 @@ export default async function CategoryPage({ params }: Params) {
                 It matched only by luck on the categories whose key and label are the
                 same word. The Hebrew name is the one thing the eyebrow can say that
                 the h1 does not. */}
-            <p className="eyebrow" lang="he">{cat.he}</p>
-            <h1 className={styles.h1}>{cat.en}</h1>
+            {/* The OTHER language's name, as a subtitle: the h1 already says it in
+                the reader's own. In Hebrew that is the English name, and vice versa —
+                which is genuinely useful in a bilingual household. */}
+            <p className="eyebrow" lang={lang === 'he' ? 'en' : 'he'}>
+              {lang === 'he' ? cat.en : cat.he}
+            </p>
+            <h1 className={styles.h1}>{categoryName(cat, lang)}</h1>
             <p className={styles.count}>
               {recipes.length === 0
                 ? 'no recipes yet'

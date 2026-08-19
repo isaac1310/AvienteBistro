@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import RecipeHistory from '@/components/RecipeHistory';
 import type { CategoryKey } from '@/lib/constants';
+import { categoryName } from '@/lib/i18n';
+import { currentLang, serverT } from '@/lib/lang';
 import { categoryLabel, getRecipe } from '@/lib/queries';
 import styles from './recipe.module.css';
 
@@ -11,7 +13,7 @@ type Params = { params: Promise<{ category: string; id: string }> };
 
 export async function generateMetadata({ params }: Params) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const [recipe, t, lang] = await Promise.all([getRecipe(id), serverT(), currentLang()]);
   return { title: recipe ? `Aviente — ${recipe.title}` : 'Aviente' };
 }
 
@@ -46,19 +48,21 @@ function timeAgo(iso: string): string {
 /* Recipe view (§3.3). */
 export default async function RecipePage({ params }: Params) {
   const { category, id } = await params;
-  const recipe = await getRecipe(id);
+  const [recipe, t, lang] = await Promise.all([getRecipe(id), serverT(), currentLang()]);
   if (!recipe) notFound();
 
   const cat = categoryLabel(recipe.category);
-  const attribution = recipe.source_name ? `${recipe.source_name}'s recipe` : null;
+  const attribution = recipe.source_name
+    ? t('recipe.attribution', { name: recipe.source_name })
+    : null;
 
   /* Timing strip: every real recipe has these, and any null part is omitted
      rather than printed as "0 min". */
   const timing = [
-    recipe.prep_minutes && `PREP ${recipe.prep_minutes} min`,
-    recipe.cook_minutes && `COOK ${recipe.cook_minutes} min`,
+    recipe.prep_minutes && t('recipe.prep', { n: recipe.prep_minutes }),
+    recipe.cook_minutes && t('recipe.cook', { n: recipe.cook_minutes }),
     recipe.servings
-      ? `${recipe.servings} ${recipe.servings === 1 ? 'SERVING' : 'SERVINGS'}`
+      ? (recipe.servings === 1 ? t('recipe.serving') : t('recipe.servings', { n: recipe.servings }))
       : null,
   ].filter(Boolean) as string[];
 
@@ -81,13 +85,13 @@ export default async function RecipePage({ params }: Params) {
            is asking for. */
         <Link href={`/recipes/${category}/${id}/edit`} className={styles.heroPlate}>
           <CategoryPlate category={recipe.category as CategoryKey} size="hero"
-            caption={cat.en} />
+            caption={categoryName(cat, lang)} />
         </Link>
       )}
 
       <div className={styles.overlay}>
         <Link href={`/recipes/${category}`} className={styles.chip}>←</Link>
-        <Link href={`/recipes/${category}/${id}/edit`} className={styles.chip}>Edit</Link>
+        <Link href={`/recipes/${category}/${id}/edit`} className={styles.chip}>{t('recipe.edit')}</Link>
       </div>
 
       {/* RTL for the whole recipe, not per element.
@@ -98,7 +102,7 @@ export default async function RecipePage({ params }: Params) {
           not, which is why this starts here and not on <html>. */}
       <div className={`shell ${styles.body}`} dir={hebrew ? 'rtl' : 'ltr'}
            lang={hebrew ? 'he' : 'en'}>
-        <p className="eyebrow">{cat.en}</p>
+        <p className="eyebrow">{categoryName(cat, lang)}</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {/* Whose recipe it is, and how long it has been ours — one block, because
@@ -112,7 +116,7 @@ export default async function RecipePage({ params }: Params) {
             {attribution && <span className={styles.attributionLine}>{attribution}</span>}
             {recipe.created_at && (
               <span className={styles.attributionLine}>
-                in the family since {shortDate(recipe.created_at)}
+                {t('recipe.since', { date: shortDate(recipe.created_at) })}
               </span>
             )}
           </p>
@@ -129,7 +133,7 @@ export default async function RecipePage({ params }: Params) {
         />
 
         <section>
-          <h2 className={styles.h2}>Method</h2>
+          <h2 className={styles.h2}>{t('recipe.method')}</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id} className={styles.step}>
@@ -142,7 +146,7 @@ export default async function RecipePage({ params }: Params) {
 
         {recipe.serving_suggestions && (
           <section className={styles.serve}>
-            <h2 className={styles.h2}>To Serve</h2>
+            <h2 className={styles.h2}>{t('recipe.serve')}</h2>
             {/* Stored as newline-joined text; each line is its own suggestion. */}
             <ul className={styles.serveList}>
               {recipe.serving_suggestions.split('\n').filter(Boolean).map((line: string, i: number) => (
@@ -157,14 +161,14 @@ export default async function RecipePage({ params }: Params) {
             the page to read. A note is what you read AFTER cooking it, or once. */}
         {recipe.story && (
           <section className={styles.notes}>
-            <h2 className={styles.h2}>Notes</h2>
+            <h2 className={styles.h2}>{t('recipe.notes')}</h2>
             <blockquote className={styles.story} lang="he">{recipe.story}</blockquote>
           </section>
         )}
 
         <div className={styles.actions}>
-          <Link href={`/menus/new?dish=${id}`} className="btn">Add to menu</Link>
-          <a href={`/print/recipe/${id}`} className="btn btn--ghost">Export PDF</a>
+          <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
+          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('recipe.exportPdf')}</a>
         </div>
 
         <div className={styles.history}>
@@ -178,11 +182,11 @@ export default async function RecipePage({ params }: Params) {
         <p className={styles.edited}>
           <span className={styles.editedLine}>
             {recipe.updated_by_name
-              ? `last edited by ${recipe.updated_by_name} · ${timeAgo(recipe.updated_at)}`
-              : `last edited ${timeAgo(recipe.updated_at)}`}
+              ? t('recipe.editedBy', { name: recipe.updated_by_name, ago: timeAgo(recipe.updated_at) })
+              : t('recipe.edited', { ago: timeAgo(recipe.updated_at) })}
           </span>
           <span className={styles.editedLine}>
-            last update {shortDate(recipe.updated_at)}
+            {t('recipe.lastUpdate', { date: shortDate(recipe.updated_at) })}
           </span>
         </p>
       </div>

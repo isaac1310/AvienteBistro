@@ -42,6 +42,10 @@ export default function SelfTest() {
         normalizeRecipe: parse.normalizeRecipe,
         normalizeDocument: parse.normalizeDocument,
         parsePastedJson: parse.parsePastedJson,
+        /* The version /api/backup stamps on an export. Exposed so the suite can
+           compare the two ends of the round trip rather than only testing the parser
+           against itself — which is how the version collision went unnoticed. */
+        DOCUMENT_VERSION: parse.SCHEMA_VERSION,
         splitTitle: parse.splitTitle,
         mapCategory: parse.mapCategory,
         parseAmount: parse.parseAmount,

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Icon from './Icon';
 import NavPending from './NavPending';
+import { serverT } from '@/lib/lang';
 import styles from './Nav.module.css';
 
 /* Bottom bar on phone, sidebar from 1024px (§0). One component, two layouts —
@@ -8,16 +9,19 @@ import styles from './Nav.module.css';
 
 /* Drawn, not typographic. ⌂ ☰ ❧ ＋ came from four different type traditions and
    rendered at four different weights depending on the platform's fallback. */
+/* Labels come from the dictionary by key, not as English text with a translation
+   beside it — the key is the identity of the destination. */
 const LINKS = [
-  { href: '/',        label: 'Home',    icon: 'home' },
-  { href: '/recipes', label: 'Recipes', icon: 'recipes' },
-  { href: '/menus',   label: 'Menus',   icon: 'menus' },
-  { href: '/add',     label: 'Add',     icon: 'add' },
+  { href: '/',        key: 'nav.home',    icon: 'home' },
+  { href: '/recipes', key: 'nav.recipes', icon: 'recipes' },
+  { href: '/menus',   key: 'nav.menus',   icon: 'menus' },
+  { href: '/add',     key: 'nav.add',     icon: 'add' },
 ] as const;
 
-export default function Nav({ current }: { current?: string }) {
+export default async function Nav({ current }: { current?: string }) {
+  const t = await serverT();
   return (
-    <nav className={styles.nav} aria-label="Main">
+    <nav className={styles.nav} aria-label={t('nav.main')}>
       <ul className={styles.list}>
         {LINKS.map((l) => {
           const active = current === l.href;
@@ -29,7 +33,7 @@ export default function Nav({ current }: { current?: string }) {
                 aria-current={active ? 'page' : undefined}
               >
                 <Icon name={l.icon} size={20} strokeWidth={2.2} className={styles.icon} />
-                <span className={styles.label}>{l.label}</span>
+                <span className={styles.label}>{t(l.key)}</span>
                 {/* Must be inside the Link — useLinkStatus reads the enclosing one. */}
                 <NavPending />
               </Link>

@@ -209,7 +209,7 @@ real recipes.
    SUPABASE_DEV_SERVICE_ROLE_KEY=<dev project's service role key>
    ```
    The service-role key **is** wanted here — this one is local-only tooling, never
-   deployed. `npm run test:reset` refuses to run unless the ref looks like a dev
+   deployed. `npm run test:clean` removes any `__test__` fixture a crashed run leaves behind. (An earlier `test:reset` that truncated tables was removed: there is one database and it holds the family's only copy of these recipes.) It refuses to run unless the ref looks like a dev
    database, precisely because it deletes everything.
 
 ## 7 · Redirect URLs  ← do this now, the domain exists

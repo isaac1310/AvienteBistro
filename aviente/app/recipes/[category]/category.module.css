@@ -66,3 +66,11 @@
   color: var(--ink-soft);
   line-height: 1.6;
 }
+
+/* The plate needs a wrapper to centre it: CategoryPlate's own classes are hashed
+   inside its module, so they cannot be reached from here, and `text-align: center`
+   on the header does nothing to a grid box. */
+.headPlate { display: grid; justify-items: center; margin-bottom: var(--sp-2); }
+
+.backRow { padding-top: var(--sp-3); }
+.countRow { text-align: center; }

@@ -1,6 +1,8 @@
 import BackLink from '@/components/BackLink';
+import Cachet from '@/components/Cachet';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import { serverT } from '@/lib/lang';
 import { CATEGORIES, type CategoryKey } from '@/lib/constants';
 import styles from './brand.module.css';
 
@@ -19,16 +21,17 @@ export const metadata = { title: 'Aviente — Plate blueprints' };
  * Not linked from the nav on purpose. Reachable at /brand, behind the same session
  * as everything else.
  */
-export default function BrandSheet() {
+export default async function BrandSheet() {
+  const t = await serverT();
   return (
     <>
       <Nav current="/" />
       <div className={styles.frame}>
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/settings" label="Settings" />
-          <p className="eyebrow">Blueprints</p>
-          <h1 className={styles.h1}>The no-photo plates</h1>
-          <p className={styles.intro}>
+          <BackLink href="/settings" label={t('settings.eyebrow')} />
+          <p className="eyebrow">{t('brand.eyebrow')}</p>
+          <h1 className={styles.h1}>{t('brand.title')}</h1>
+          <p className={styles.intro} dir="ltr">
             Nine plates on a 110×90 grid, stroked with <code>currentColor</code> so
             they take the theme&rsquo;s ink — the kids&rsquo; plate is exempt and stays
             pink. Every recipe without a photograph shows one, which in this book is
@@ -38,9 +41,38 @@ export default function BrandSheet() {
             changing one.
           </p>
 
+          {/* The two splash variants side by side, which is the only way to choose
+              between them: 4A has hierarchy, 5A is one uniform tone. Both are the
+              same component at different --scale and ink. */}
+          <section className={styles.block}>
+            <h2 className={styles.h2}>The wordmark</h2>
+            <p className={styles.note} dir="ltr">
+              <strong>4A</strong> puts the name in ink and the tagline in green;
+              <strong> 5A</strong> sets every tier in the muted stone. 5A is softer
+              and closer to a printed endpaper — but the design&rsquo;s own
+              <code> #A79A85</code> is 2.48:1 on this ground, so the word and tagline
+              here take <code>--muted-ink</code> instead. The ornament keeps the
+              lighter tone, because it is decoration and carries no text.
+            </p>
+            <ul className={styles.heroes}>
+              <li className={styles.hero}>
+                <span className={styles.card}><Cachet variant="splash" /></span>
+                <span className={styles.heroName}>4A · splash</span>
+              </li>
+              <li className={styles.hero}>
+                <span className={styles.card}><Cachet variant="est" /></span>
+                <span className={styles.heroName}>5A · all in est. tone</span>
+              </li>
+              <li className={styles.hero}>
+                <span className={styles.card}><Cachet variant="header" /></span>
+                <span className={styles.heroName}>4B · header</span>
+              </li>
+            </ul>
+          </section>
+
           <section className={styles.block}>
             <h2 className={styles.h2}>In the list, at 92px</h2>
-            <p className={styles.note}>
+            <p className={styles.note} dir="ltr">
               The size that matters: this is what a category page is made of.
             </p>
             <ul className={styles.rows}>
@@ -58,7 +90,7 @@ export default function BrandSheet() {
 
           <section className={styles.block}>
             <h2 className={styles.h2}>Enlarged, for the drawing itself</h2>
-            <p className={styles.note}>
+            <p className={styles.note} dir="ltr">
               The same drawings at 130px with their captions, as they appear on a
               recipe. Weight and balance are easier to judge here; whether a line
               survives the 92px thumbnail is only answerable above.

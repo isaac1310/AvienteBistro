@@ -43,17 +43,30 @@
    The framed plate stands in for a PHOTOGRAPH. A contents list has no photograph to
    stand in for, so nine framed panels down a column would read as nine empty slots
    rather than as nine categories. */
+/* Green, and larger. It was the muted stone at 40px, which is why /recipes did not
+   look like /brand — the sheet renders the framed thumb (green ink) and the index
+   rendered this one (stone). Two tones for one drawing, decided by which page you
+   happened to be on.
+   56px against a 1.375rem name is the proportion the sheet shows: the drawing reads
+   as the row's subject rather than as a bullet beside it. */
+/* 72px. 56 was still reading as an icon beside the name rather than as the row's
+   subject — the drawing has a lot of air inside its own 110x90 frame, so it always
+   looks a size smaller than the box it sits in. */
 .row {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   background: none;
   border: 0;
-  color: var(--gold-deep);
+  color: var(--primary);
 }
 .row::before, .row::after { display: none; }
 .row .art { width: 100%; height: 100%; }
 .kid.row { color: #c2417e; }
+/* Lighter stroke at this size: 2.4 on a 64 grid is drawn for 92px, and at 56px the
+   lines thicken visually until the drawing reads as bold rather than engraved. */
+/* Thinner again at 72px: the larger the drawing, the finer the line can be. */
+.row .art { stroke-width: 1.6; }
 
 /* The recipe page's wide slot, where the drawing gets its intended size and the
    caption has room. */

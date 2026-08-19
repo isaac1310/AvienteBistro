@@ -47,13 +47,34 @@ const yieldFromHeader = (l) => {
  * always a soup, עוגה is always a cake. Anything else becomes `other` and gets
  * flagged, so the import screen shows a dropdown rather than a silent guess.
  * A wrong guess is worse than no guess, so the list stays deliberately short. */
+/* Order matters: first match wins, so specific beats general.
+ *
+ * Two traps, both hit on the first attempt:
+ *
+ *  - **No `\b` anywhere.** `\b` is defined against `\w` = `[A-Za-z0-9_]`, and Hebrew
+ *    letters are not word characters, so `/\bמרק\b/` can never match a Hebrew title.
+ *    It looked correct in the source and matched nothing, which is why five soups sat
+ *    in `other` while the rule meant to catch them appeared to exist.
+ *  - **Short patterns match inside longer words.** `/באו/` (bao buns) matches
+ *    `באורז` — so "עוף באורז", chicken and rice, was filed as bread. Anything under
+ *    four letters needs an anchor or a following space.
+ *
+ * A sauce is only a sauce when the title STARTS with one. "רוטב" appearing anywhere
+ * hijacked every dish that merely comes with a sauce: fish patties in red sauce, and
+ * yakitori in satay sauce, both became components.
+ */
 const CATEGORY_HINTS = [
-  [/\bמרק\b/,                              'soups'],
-  [/סלט/,                                    'salads'],
-  [/עוגה|עוגת|קינוח|מלבי|מוס|פאי|טארט|בראוני/, 'desserts'],
-  [/לחם|חלה|לחמני|פיתה|מאפה|בורקס|פוקצ/,      'breads'],
-  [/פירה|אורז|תוספת|ירקות בתנור/,             'sides'],
-  [/רוטב|ממרח|מטבל/,                          'other'],
+  [/מרק|בורשט/,                                'soups'],
+  // Anchored: a sauce FOR a salad is not a salad.
+  [/^סלט|כבוש|חמוצים/,                          'salads'],
+  [/עוגה|עוגת|קינוח|מלבי|מוס|פאי|טארט|בראוני|פלאן|נוקרל/, 'desserts'],
+  [/לחם|חלה|לחמני|פיתה|מאפה|בורקס|פוקצ|גזלמה|באו\s/,      'breads'],
+  /* Proteins outrank both sauces and starches: "in red sauce" must not beat "fish
+     patties", and "עוף באורז" is a chicken dish, not a rice one. */
+  [/עוף|בשר|אסאדו|סלמון|דג|קציצות|ממולא|קרפעלך|יקיטורי|אושפלאו|סופריטו|פרגיות/, 'mains'],
+  [/פירה|אורז|תוספת|ירקות בתנור|אטריות/,        'sides'],
+  // Components, and only when the title leads with one.
+  [/^רוטב|^ממרח|^מטבל|^בלילה|^חלוז/,            'other'],
 ];
 
 function guessCategory(title) {

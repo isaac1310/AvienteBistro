@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
+import Icon from '@/components/Icon';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
+import { serverT } from '@/lib/lang';
 import RecipeForm from '@/components/RecipeForm';
 import { supabaseServer } from '@/lib/supabase/server';
 import styles from './add.module.css';
@@ -13,6 +17,7 @@ export const metadata = { title: 'Aviente — Add' };
 export default async function AddPage({
   searchParams,
 }: { searchParams: Promise<{ mode?: string }> }) {
+  const t = await serverT();
   const { mode } = await searchParams;
   const db = await supabaseServer();
   const { data: members } = await db.from('family_members').select('id, name').order('name');
@@ -25,28 +30,31 @@ export default async function AddPage({
     <>
       <Nav current="/add" />
       <div className={styles.frame}>
+        {/* Outside main, so the band runs full-bleed. Nested in a shell it would be
+            capped at the content width and stop being a band. */}
+        <div className={`shell ${styles.backRow}`}>
+          <BackLink href="/" label={t('nav.home')} />
+        </div>
+
+        <PageHeader>
+          <PageTitle eyebrow={t('add.eyebrow')}>{t('add.title')}</PageTitle>
+        </PageHeader>
+
         <main className={`shell ${styles.main}`}>
-          <BackLink href="/" label="Home" />
-          <p className="eyebrow">Add</p>
-          <h1 className={styles.h1}>A new recipe</h1>
 
           <div className={styles.choices}>
             <Link href="/add?mode=blank" className={`card ${styles.choice}`}>
-              <span className={styles.emoji} aria-hidden="true">✍️</span>
-              <span className={styles.choiceName}>Type it out</span>
-              <span className={styles.choiceBody}>
-                A blank form — name, ingredients, steps. Best when you are looking
-                at a written recipe or know it by heart.
-              </span>
+              {/* Drawn, like everything else. These two were the last emoji left in
+                  the app after the nav, the plates and the kids' section. */}
+              <Icon name="add_recipe" size={34} strokeWidth={1.7} className={styles.emoji} />
+              <span className={styles.choiceName}>{t('add.typeIt')}</span>
+              <span className={styles.choiceBody}>{t('add.typeItBody')}</span>
             </Link>
 
             <Link href="/import" className={`card ${styles.choice}`}>
-              <span className={styles.emoji} aria-hidden="true">📋</span>
-              <span className={styles.choiceName}>Paste from an AI</span>
-              <span className={styles.choiceBody}>
-                Photograph the recipe in ChatGPT or Claude, ask for JSON, paste the
-                answer here. Handles Hebrew amounts, ranges and notes.
-              </span>
+              <Icon name="recipes" size={34} strokeWidth={1.7} className={styles.emoji} />
+              <span className={styles.choiceName}>{t('add.paste')}</span>
+              <span className={styles.choiceBody}>{t('add.pasteBody')}</span>
             </Link>
           </div>
         </main>

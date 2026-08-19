@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { movePhoto, recipesWithoutPhoto } from '@/lib/mutations';
 import { categoryLabel } from '@/lib/constants';
+import { useT } from './LangProvider';
 import styles from './MovePhoto.module.css';
 
 /* "This photo belongs to a different recipe" — the correction you actually need
@@ -14,6 +15,7 @@ import styles from './MovePhoto.module.css';
  * tap and behaves identically on the Ultra and on a desktop.
  */
 export default function MovePhoto({ recipeId }: { recipeId: string }) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<{ id: string; title: string; category: string }[]>([]);
@@ -61,7 +63,7 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {open && (
-        <div className={styles.sheet} role="dialog" aria-label="Move photo">
+        <div className={styles.sheet} role="dialog" aria-label={t('photo.move')}>
           <div className={styles.head}>
             <strong>Which recipe is this a photo of?</strong>
             <button type="button" className={styles.close} onClick={() => setOpen(false)}>
@@ -70,7 +72,7 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
           </div>
 
           <input
-            className={styles.search} placeholder="Search…" value={query} autoFocus
+            className={styles.search} placeholder={t('common.search')} value={query} autoFocus
             onChange={(e) => setQuery(e.target.value)}
           />
 

@@ -40,6 +40,56 @@ const SUMMARY_COLUMNS =
 
 type SummaryRow = Omit<RecipeSummary, 'source_name'> & { source: { name: string } | null };
 
+/**
+ * Run a select, and survive a column the database does not have yet.
+ *
+ * This exists because it has now happened three times: `menus.meal_time` took /menus
+ * down in production, `recipes.photo_path` took every recipe page down, and
+ * `recipes.created_at` took the edit page down while this very fix was being written.
+ * Each time the code was correct and merged, the migration simply had not run — and
+ * each time the app's answer was a 500 rather than a page missing one field.
+ *
+ * On Postgres 42703 the missing column's NAME is in the message, so it is removed
+ * from the list and the query is retried. The result is a page that renders without
+ * the new field instead of a page that does not render. Reads only: a WRITE must
+ * still fail loudly, because silently dropping what someone typed is not degrading,
+ * it is losing.
+ *
+ * Bounded to a handful of attempts so a genuinely broken query cannot loop.
+ */
+async function selectTolerant<T>(
+  label: string,
+  columns: string,
+  run: (columns: string) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>,
+): Promise<{ rows: T[]; dropped: string[] }> {
+  let cols = columns;
+  const dropped: string[] = [];
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const { data, error } = await run(cols);
+    if (!error) return { rows: (data ?? []) as T[], dropped };
+
+    /* "column recipes.created_at does not exist" → created_at. Quoted forms appear
+       too, depending on how the column was written. */
+    const missing = error.code === '42703'
+      ? error.message.match(/column\s+"?(?:[\w]+\.)?"?([\w]+)"?\s+does not exist/i)?.[1]
+      : undefined;
+    if (!missing) throw new Error(`${label}: ${error.message}`);
+
+    const next = cols
+      .split(',')
+      .filter((c) => c.trim() !== missing && !c.trim().startsWith(`${missing}:`))
+      .join(',');
+    /* If the name is not in the list it is inside an embed we cannot safely edit —
+       better to fail with the real message than to loop. */
+    if (next === cols) throw new Error(`${label}: ${error.message}`);
+
+    dropped.push(missing);
+    cols = next;
+  }
+  throw new Error(`${label}: too many missing columns to recover`);
+}
+
 const flatten = (r: SummaryRow): RecipeSummary => {
   const { source, ...rest } = r;
   return { ...rest, source_name: source?.name ?? null };
@@ -47,43 +97,45 @@ const flatten = (r: SummaryRow): RecipeSummary => {
 
 export async function recipesInCategory(category: string): Promise<RecipeSummary[]> {
   const db = await supabaseServer();
-  const { data, error } = await db
-    .from('recipes')
-    .select(SUMMARY_COLUMNS)
-    .eq('category', category)
-    .is('deleted_at', null)
-    .order('title');
+  const { rows } = await selectTolerant<SummaryRow>('recipesInCategory', SUMMARY_COLUMNS,
+    (cols) => db
+      .from('recipes')
+      .select(cols)
+      .eq('category', category)
+      .is('deleted_at', null)
+      .order('title'));
 
-  if (error) throw new Error(`recipesInCategory: ${error.message}`);
   /* Sign the stored paths for this request. See lib/photos.ts — the alternative was
      a one-year signed URL frozen into the row at upload time. */
-  return attachPhotoUrls(db, (data as unknown as SummaryRow[]).map(flatten));
+  return attachPhotoUrls(db, rows.map(flatten));
 }
 
 export async function getRecipe(id: string): Promise<Recipe | null> {
   const db = await supabaseServer();
-  const { data, error } = await db
-    .from('recipes')
-    .select(
+  const DETAIL_COLUMNS =
       `${SUMMARY_COLUMNS}, source_member_id, meal_type,
        description_en, description_he, story, serving_suggestions,
-       updated_at,
+       updated_at, created_at,
        editor:family_members!recipes_updated_by_fkey(name),
        ingredients(id, position, name, amount, amount_max, unit, note, group_label),
-       steps(id, position, heading, body)`,
-    )
-    .eq('id', id)
-    .is('deleted_at', null)
-    .maybeSingle();
+       steps(id, position, heading, body)`;
 
-  if (error) throw new Error(`getRecipe: ${error.message}`);
+  const { rows } = await selectTolerant<Record<string, unknown>>('getRecipe', DETAIL_COLUMNS,
+    (cols) => db
+      .from('recipes')
+      .select(cols)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .limit(1));
+  const data = rows[0] ?? null;
+
   if (!data) return null;
 
   const row = data as unknown as SummaryRow & {
     source_member_id: string | null; meal_type: string | null;
     description_en: string | null; description_he: string | null;
     story: string | null; serving_suggestions: string | null;
-    updated_at: string; editor: { name: string } | null;
+    updated_at: string; created_at: string | null; editor: { name: string } | null;
     ingredients: Ingredient[]; steps: Step[];
   };
 
@@ -96,6 +148,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
     story: row.story,
     serving_suggestions: row.serving_suggestions,
     updated_at: row.updated_at,
+    created_at: row.created_at,
     updated_by_name: row.editor?.name ?? null,
     // Sort here rather than in the query: PostgREST cannot order embedded rows
     // reliably across versions, and getting this wrong scrambles a recipe.
@@ -109,14 +162,14 @@ export async function searchRecipes(query: string): Promise<RecipeSummary[]> {
   const q = query.trim();
   if (!q) return [];
   const db = await supabaseServer();
-  const { data, error } = await db
-    .from('recipes')
-    .select(SUMMARY_COLUMNS)
-    .is('deleted_at', null)
-    .ilike('search_text', `%${q}%`)
-    .order('title')
-    .limit(50);
+  const { rows } = await selectTolerant<SummaryRow>('searchRecipes', SUMMARY_COLUMNS,
+    (cols) => db
+      .from('recipes')
+      .select(cols)
+      .is('deleted_at', null)
+      .ilike('search_text', `%${q}%`)
+      .order('title')
+      .limit(50));
 
-  if (error) throw new Error(`searchRecipes: ${error.message}`);
-  return attachPhotoUrls(db, (data as unknown as SummaryRow[]).map(flatten));
+  return attachPhotoUrls(db, rows.map(flatten));
 }

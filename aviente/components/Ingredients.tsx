@@ -3,6 +3,7 @@
 import { Fragment, useState } from 'react';
 import type { Ingredient } from '@/lib/constants';
 import { scaleAmount, scaleFactor, servingOptions } from '@/lib/scale';
+import { useT } from './LangProvider';
 import styles from './Ingredients.module.css';
 
 /* The ingredient list with its scale control (§3.3, §5.2).
@@ -16,6 +17,7 @@ export default function Ingredients({
   servings: number | null;
   yieldText: string | null;
 }) {
+  const t = useT();
   const options = servingOptions(servings);
   const [target, setTarget] = useState(servings ?? 0);
   const factor = scaleFactor(target, servings);
@@ -24,18 +26,18 @@ export default function Ingredients({
   return (
     <section className={styles.wrap}>
       <div className={styles.head}>
-        <h2 className={styles.h2}>Ingredients</h2>
+        <h2 className={styles.h2}>{t('recipe.ingredients')}</h2>
 
         {/* No portion count means nothing to scale against, so the control is
             absent rather than present-and-inert. */}
         {options.length > 1 ? (
           <label className={styles.scale}>
-            <span className={styles.scaleLabel}>pour</span>
+            <span className={styles.scaleLabel}>{t('recipe.for')}</span>
             <select
               className={styles.select}
               value={target}
               onChange={(e) => setTarget(Number(e.target.value))}
-              aria-label="Scale for how many people"
+              aria-label={t('recipe.scaleLabel')}
             >
               {options.map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -56,11 +58,11 @@ export default function Ingredients({
           <table> rather than a grid of divs because it IS tabular data: a screen
           reader announces "500 g, flour" as one row, and column headers exist. */}
       <table className={styles.table}>
-        <caption className="visually-hidden">Ingredients</caption>
+        <caption className="visually-hidden">{t('recipe.ingredients')}</caption>
         <thead>
           <tr>
-            <th scope="col" className={styles.thAmount}>Amount</th>
-            <th scope="col" className={styles.thName}>Ingredient</th>
+            <th scope="col" className={styles.thAmount}>{t('recipe.amount')}</th>
+            <th scope="col" className={styles.thName}>{t('recipe.ingredient')}</th>
           </tr>
         </thead>
         <tbody>
@@ -108,8 +110,7 @@ export default function Ingredients({
           someone follow "add the 200g of flour" at double quantity. */}
       {scaled && (
         <p className={styles.warn}>
-          Amounts scaled for {target}. The written steps still quote the original
-          quantities.
+          {t('recipe.scaled', { n: target })}
         </p>
       )}
     </section>

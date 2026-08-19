@@ -80,3 +80,23 @@
   color: var(--ink-soft);
   text-align: center;
 }
+
+/* A card ground behind each wordmark, so the variants are judged on the surface they
+   actually sit on rather than on the page. */
+.card {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  padding: var(--sp-5);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Scaled to fit the comparison card. AVIENTE at its real 62px with 13px of tracking
+   is about 400px wide — the size of a phone screen, which is exactly what the
+   artboard is — so at full size it overflowed these narrower cards and was clipped.
+   Reaching into the component's scale rather than shrinking with transform keeps the
+   letter-spacing proportional. */
+.card > * { --scale: 0.55; }

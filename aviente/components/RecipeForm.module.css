@@ -147,3 +147,44 @@
   color: #8c2b2b;
   cursor: pointer;
 }
+
+/* ── ingredient parts ──────────────────────────────────────────────────────
+   A part is a run of ingredients under one heading. Boxed lightly so it reads as
+   "these belong together" without becoming a card inside a card. */
+.part {
+  border-inline-start: 2px solid var(--card-border);
+  padding-inline-start: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.partHead {
+  display: flex;
+  align-items: end;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.partLabel { display: grid; gap: 2px; flex: 1 1 auto; }
+
+/* Both of these are quiet: naming a part is optional, and unnaming it must not look
+   like the way to delete the ingredients. */
+.nameSection, .unname, .addPart {
+  font: inherit;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 1px;
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  background: none;
+  border: 0;
+  color: var(--gold-ink);
+  cursor: pointer;
+}
+.nameSection:hover, .unname:hover, .addPart:hover { color: var(--primary); }
+
+.addPart {
+  border: 1px dashed var(--card-border);
+  border-radius: var(--radius);
+  width: 100%;
+  margin-top: var(--sp-2);
+}

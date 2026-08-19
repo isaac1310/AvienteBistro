@@ -1,7 +1,13 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
+import PageHeader from '@/components/PageHeader';
+import PageTitle from '@/components/PageTitle';
+import { categoryName } from '@/lib/i18n';
+import { currentLang, serverT } from '@/lib/lang';
+import type { CategoryKey } from '@/lib/constants';
 import SelectableList from '@/components/SelectableList';
 import UndoToast from '@/components/UndoToast';
 import { CATEGORIES, categoryLabel, recipesInCategory } from '@/lib/queries';
@@ -22,6 +28,7 @@ export default async function CategoryPage({ params }: Params) {
   if (!CATEGORIES.some((c) => c.key === category)) notFound();
 
   const cat = categoryLabel(category);
+  const [t, lang] = await Promise.all([serverT(), currentLang()]);
   const recipes = await recipesInCategory(category);
 
   return (
@@ -29,29 +36,46 @@ export default async function CategoryPage({ params }: Params) {
       <Nav current="/recipes" />
       <Suspense fallback={null}><UndoToast /></Suspense>
       <div className={styles.frame}>
-        <header className={styles.head}>
-          <div className="shell">
-            <Link href="/recipes" className={styles.back}>← The Book</Link>
-            <p className="eyebrow">{cat.emoji} {category}</p>
-            <h1 className={styles.h1}>{cat.en}</h1>
-            <p className={styles.count}>
+        <div className={`shell ${styles.backRow}`}>
+          <Link href="/recipes" className={styles.back}>{t('book.back')}</Link>
+        </div>
+
+        <PageHeader>
+          {/* The category's own plate above its name, inside the title panel — it is
+              part of what the page is called. */}
+          <span className={styles.headPlate}>
+            <CategoryPlate category={category as CategoryKey} size="row" />
+          </span>
+          {/* The eyebrow carries the OTHER language's name: the title already says it
+              in the reader's own, and in a bilingual house the second name is
+              genuinely useful rather than decorative. */}
+          <PageTitle eyebrow={lang === 'he' ? cat.en : cat.he}>
+            {categoryName(cat, lang)}
+          </PageTitle>
+        </PageHeader>
+
+        <div className={`shell ${styles.countRow}`}>
+          <p className={styles.count}>
               {recipes.length === 0
-                ? 'no recipes yet'
-                : `${recipes.length} ${recipes.length === 1 ? 'recipe' : 'recipes'}`}
+                ? t('book.noRecipes')
+                : recipes.length === 1
+                  ? t('book.count.one')
+                  : t('book.count.many', { n: recipes.length })}
             </p>
-          </div>
-        </header>
+        </div>
 
         <main className="shell">
           {recipes.length === 0 ? (
             /* Empty state, drawn deliberately (§1). Four of nine categories are
                empty at launch, so this is a screen people will actually see. */
             <div className={`card ${styles.empty}`}>
-              <p className={styles.emptyEmoji} aria-hidden="true">{cat.emoji}</p>
-              <p className={styles.emptyTitle}>Nothing here yet</p>
+              {/* No caption here. The hero caption ends "NO PHOTO YET", which is true
+                  of a recipe without a photograph and nonsense about a category with
+                  no recipes at all — it read as though the app had lost a picture. */}
+              <CategoryPlate category={category as CategoryKey} size="row" />
+              <p className={styles.emptyTitle}>{t('book.empty')}</p>
               <p className={styles.emptyBody}>
-                No {cat.en.toLowerCase()} in the book yet. Add the first one, or paste
-                a recipe from a photo on the import screen.
+                {t('book.emptyBody', { category: categoryName(cat, lang) })}
               </p>
               <Link href="/add" className="btn">＋ Add a recipe</Link>
             </div>

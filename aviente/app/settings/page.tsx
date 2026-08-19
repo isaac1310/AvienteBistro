@@ -39,8 +39,16 @@ export default async function SettingsPage() {
             <div className={`card ${styles.panel}`}>
               <p className={styles.body}>
                 The free Supabase tier takes no automated backups, and these recipes
-                exist nowhere else. The file below is a complete copy — every recipe,
-                menu and kids&rsquo; week — and the importer reads it back.
+                exist nowhere else. The file below holds{' '}
+                <strong>every recipe</strong> &mdash; ingredients, groups, steps, notes
+                and attribution &mdash; and the importer reads it back.
+                {/* Said plainly. This used to claim "a complete copy — every recipe,
+                    menu and kids' week", which was wrong on both counts: the export is
+                    recipes only, and a version-numbering bug meant the importer
+                    refused its own files. Overstating what a backup covers is worse
+                    than a smaller backup. */}
+                {' '}Menus and the kids&rsquo; weeks are <em>not</em> included; those
+                would have to be rebuilt.
               </p>
               <p>
                 <a className="btn" href="/api/backup" download>⤓ Download a backup</a>

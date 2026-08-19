@@ -86,7 +86,9 @@ export default function ImportPaste({
            Applying one source to every recipe destroyed attribution on a backup
            restore — every dish came back as the same person's. */
         source_member_id: memberIdFor(r.source) ?? (source || null),
-        photo_path: null,
+        /* Carried from the document when it has one — a backup does. AI-pasted
+           recipes never do, so this is null for them, which is correct. */
+        photo_path: r.photoPath ?? null,
         /* recipeParse.mjs is plain JavaScript, so its output arrives loosely
            typed. Normalise at this boundary rather than asserting it is already
            exact — a missing field becomes null here instead of `undefined`

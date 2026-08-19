@@ -5,16 +5,21 @@
  *
  * major = schema change · minor = features · patch = fixes
  */
-export const APP_VERSION = '0.9.0';
+export const APP_VERSION = '0.10.0';
 
 /**
  * The highest migration this build requires.
  *
- * No longer decorative. lib/schema.ts compares it to what the database actually
- * reports in `schema_migrations`, and the app says so when it is behind — 0008 was
- * merged without being run and took /menus down in production with a 500 that named
- * nothing. Bump this in the SAME commit as the migration that needs it.
+ * Named DB_SCHEMA_VERSION, not SCHEMA_VERSION, and the name is the fix for a real
+ * bug. `lib/recipeParse.mjs` exports its own SCHEMA_VERSION meaning "the version of
+ * the backup DOCUMENT FORMAT", which is 1 and changes almost never. The backup route
+ * imported THIS constant instead, so bumping the migration counter 1 → 11 stamped
+ * every export with a document version the importer refuses — a backup that cannot be
+ * restored, produced by the button whose entire job is disaster recovery.
+ *
+ * Two numbers that mean different things must not share a name. Bump this one in the
+ * SAME commit as the migration that needs it.
  */
-export const SCHEMA_VERSION = 11;
+export const DB_SCHEMA_VERSION = 11;
 
-export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${SCHEMA_VERSION}`;
+export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${DB_SCHEMA_VERSION}`;

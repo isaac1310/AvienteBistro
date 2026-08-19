@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { supabaseServer } from './supabase/server';
-import { SCHEMA_VERSION } from './version';
+import { DB_SCHEMA_VERSION } from './version';
 
 /**
  * Does the database have the migrations this build needs?
@@ -27,7 +27,7 @@ export type SchemaState =
 
 /** Cached per request: the layout asks, and so may a page. */
 export const schemaState = cache(async (): Promise<SchemaState> => {
-  const need = SCHEMA_VERSION;
+  const need = DB_SCHEMA_VERSION;
   try {
     const db = await supabaseServer();
     const { data, error } = await db

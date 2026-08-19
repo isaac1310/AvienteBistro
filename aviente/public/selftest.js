@@ -389,6 +389,7 @@
     const doc = { schemaVersion: 1, recipes: [{
       title: 'קציצות', titleEn: 'Patties', category: 'mains', servings: 6,
       source: 'Savta', externalRef: 'x#y',
+      photoPath: 'abc-123.webp',
       ingredients: [
         { name: 'דג', amount: 400, amountMax: 500, unit: 'g', note: 'נטו', group: 'לקציצות' },
         { name: 'בצל ירוק' },
@@ -407,6 +408,26 @@
     check('externalRef survives', () => eq(r.externalRef, 'x#y', 'externalRef'));
     check('an ingredient with no quantity is kept', () =>
       r.ingredients.length === 2 ? true : `expected 2 ingredients, got ${r.ingredients.length}`);
+    /* The photograph's Storage path. normalizeRecipe rebuilds the object field by
+       field, so an unnamed field is silently dropped — this is the third time that
+       has bitten (group, amountMax, and now photoPath). */
+    check('photoPath survives', () => eq(r.photoPath, 'abc-123.webp', 'photoPath'));
+
+    /* The document format version, and the reason this group exists at all.
+       /api/backup stamped the DB MIGRATION counter here instead. It read 11 while the
+       importer accepts only 1, so every backup was refused by the app that wrote it —
+       and nothing noticed, because this suite tested the parser against a document it
+       built itself rather than against the number the export actually emits. */
+    check('the exporter and the importer agree on the document version', () => {
+      if (!A.DOCUMENT_VERSION) return skip('exporter version not attached');
+      return A.DOCUMENT_VERSION === 1
+        ? true
+        : `export stamps ${A.DOCUMENT_VERSION}, importer accepts 1`;
+    });
+    check('a document from a FUTURE format is refused, not half-read', () => {
+      const out = A.normalizeDocument({ schemaVersion: 99, recipes: [] });
+      return out.errors.length > 0 ? true : 'schemaVersion 99 was accepted';
+    });
   }
 
   /* ---------- the run ---------- */

@@ -50,6 +50,7 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
               description_he: i.dish_description_he,
               credit_name: i.credit_name,
             }))}
+            courseOrder={menu.course_order}
           />
         </div>
 

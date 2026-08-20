@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
-import { COURSES, categoryLabel, type CourseKey, type RecipeSummary } from '@/lib/constants';
+import { COURSES, DEFAULT_COURSE_ORDER, categoryLabel, courseLabelEn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import { useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
@@ -25,6 +25,7 @@ export default function MenuBuilder({
   initial: {
     id?: string; date: string; meal_time: 'evening' | 'day'; title: string | null;
     language: 'en' | 'he'; chef_notes: string | null;
+    course_order: CourseKey[] | null;
     items: { recipe_id: string; course: CourseKey; note?: string | null }[];
   };
   /* The occasion for this date, resolved BOTH ways on the server. A Jewish day
@@ -48,6 +49,12 @@ export default function MenuBuilder({
         note: i.note ?? '',
       }))
       .filter((r) => r.recipe),
+  );
+  /* Which courses this menu runs, in order. A Friday dinner opens with challah and
+     runs six; a Tuesday lunch is a main and a salad. The app already knows which is
+     being planned, so it stopped being a global decision. */
+  const [order, setOrder] = useState<CourseKey[]>(
+    initial.course_order?.length ? initial.course_order : DEFAULT_COURSE_ORDER,
   );
   const [picking, setPicking] = useState<CourseKey | null>(null);
   /* When set, the picker REPLACES this row instead of appending. Changing a dish
@@ -83,6 +90,8 @@ export default function MenuBuilder({
     || title !== (initial.title ?? '')
     || language !== initial.language
     || notes !== (initial.chef_notes ?? '')
+    || order.join() !== (initial.course_order?.length
+      ? initial.course_order : DEFAULT_COURSE_ORDER).join()
     || rows.length !== initial.items.length
     || rows.some((r, i) => r.recipe.id !== initial.items[i]?.recipe_id
       || r.course !== initial.items[i]?.course
@@ -114,6 +123,40 @@ export default function MenuBuilder({
     setQuery('');
   }
 
+  /* Which sections the builder shows: the chosen order, plus any course that holds
+     dishes without being in it. Exactly what the card will print — the same helper,
+     so the builder cannot promise an arrangement the card does not honour. */
+  const shownCourses = coursesForMenu(order, rows.map((r) => r.course));
+  const hidden = COURSES.map((c) => c.key).filter((k) => !shownCourses.includes(k));
+
+  function moveCourse(key: CourseKey, delta: number) {
+    /* Reordering acts on the CHOSEN order, not on what is displayed. A course only
+       shown because it holds dishes has no place in the list to swap with, so moving
+       it adds it first — which is also the honest reading of the gesture: arranging a
+       section is choosing to have it. */
+    const base = order.includes(key) ? order : [...order, key];
+    const i = base.indexOf(key);
+    const j = i + delta;
+    if (j < 0 || j >= base.length) return;
+    const copy = [...base];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setOrder(copy);
+  }
+
+  function hideCourse(key: CourseKey) {
+    /* Turning off a section that holds dishes asks first, the way turning off a
+       populated kids day does. And it does NOT remove the dishes: they keep printing,
+       appended at the end, because hiding is not deleting. Saying so is the point —
+       silently dropping somebody's dish off a printed card is the worst thing this
+       app could do. */
+    const held = rows.filter((r) => r.course === key).length;
+    const ask = held === 1
+      ? t('menu.courseHasDishes.one')
+      : t('menu.courseHasDishes', { n: held });
+    if (held && !confirm(ask)) return;
+    setOrder(order.filter((k) => k !== key));
+  }
+
   function move(key: string, delta: number) {
     const i = rows.findIndex((r) => r.key === key);
     const j = i + delta;
@@ -134,6 +177,9 @@ export default function MenuBuilder({
         title: title.trim() || suggested,
         language,
         chef_notes: notes,
+        /* Stored only when it differs from the default, so a menu nobody rearranged
+           keeps following the app rather than freezing today's default into a row. */
+        course_order: order.join() === DEFAULT_COURSE_ORDER.join() ? null : order,
         items: rows.map((r) => ({
           recipe_id: r.recipe.id, course: r.course, note: r.note.trim() || null,
         })),
@@ -226,11 +272,29 @@ export default function MenuBuilder({
         </div>
       </div>
 
-      {COURSES.map((course) => {
-        const dishes = rows.filter((r) => r.course === course.key);
+      {shownCourses.map((key, ci) => {
+        const dishes = rows.filter((r) => r.course === key);
+        /* A course NOT in the order but holding dishes is still shown — the same rule
+           the card follows. It is marked, because otherwise a section that reappears
+           after being turned off looks like the toggle failed. */
+        const extra = !order.includes(key);
         return (
-          <section key={course.key} className={styles.course}>
-            <h2 className={styles.courseName}>{course.en}</h2>
+          <section key={key} className={styles.course}>
+            <div className={styles.courseHead}>
+              <h2 className={styles.courseName}>
+                {courseLabelEn(key)}
+                {extra && <span className={styles.courseFlag}>{t('menu.courseKept')}</span>}
+              </h2>
+              <div className={styles.courseTools}>
+                <button type="button" className={styles.move} aria-label={t('menu.courseUp')}
+                  disabled={ci === 0} onClick={() => moveCourse(key, -1)}>↑</button>
+                <button type="button" className={styles.move} aria-label={t('menu.courseDown')}
+                  disabled={ci === shownCourses.length - 1}
+                  onClick={() => moveCourse(key, 1)}>↓</button>
+                <button type="button" className={styles.move} aria-label={t('menu.courseOff')}
+                  onClick={() => hideCourse(key)}>✕</button>
+              </div>
+            </div>
 
             {dishes.map((row) => {
               return (
@@ -270,12 +334,28 @@ export default function MenuBuilder({
               );
             })}
 
-            <button type="button" className={styles.add} onClick={() => setPicking(course.key)}>
+            <button type="button" className={styles.add} onClick={() => setPicking(key)}>
               {t('menu.addDish')}
             </button>
           </section>
         );
       })}
+
+      {/* Bringing a course back. Only ever lists what is not already on screen, so it
+          disappears once the menu runs all six. */}
+      {hidden.length > 0 && (
+        <div className={styles.addCourse}>
+          <span className={styles.label}>{t('menu.addCourse')}</span>
+          <div className={styles.addCourseRow}>
+            {hidden.map((key) => (
+              <button key={key} type="button" className={styles.courseChip}
+                onClick={() => setOrder([...order, key])}>
+                ＋ {courseLabelEn(key)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className={styles.field}>
         <span className={styles.label}>{t('menu.chefNotes')}</span>

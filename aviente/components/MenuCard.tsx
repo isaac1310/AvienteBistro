@@ -1,4 +1,4 @@
-import { COURSES, courseLabel } from '@/lib/constants';
+import { courseLabel, coursesForMenu } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import Motif from './Motif';
 import type { MotifName } from '@/lib/motifs.generated';
@@ -47,7 +47,7 @@ export type CardItem = {
 };
 
 export default function MenuCard({
-  date, title, subtitle, ornament, language, chefNotes, items,
+  date, title, subtitle, ornament, language, chefNotes, items, courseOrder,
 }: {
   date: string;
   title: string | null;
@@ -56,13 +56,21 @@ export default function MenuCard({
   language: 'en' | 'he';
   chefNotes: string | null;
   items: CardItem[];
+  /** This menu's running order, or null/absent for the app default. */
+  courseOrder?: string[] | null;
 }) {
   const when = cardDate(new Date(`${date}T12:00:00`));
 
-  /* A course with no dishes is omitted entirely. Printing an empty heading makes
-     the card look like something failed to load. */
-  const courses = COURSES
-    .map((c) => ({ ...c, dishes: items.filter((i) => i.course === c.key) }))
+  /* The order comes from the MENU now, not from the catalogue. coursesForMenu also
+     carries the safety rule: a course holding dishes prints even when it is not in
+     the chosen order, appended rather than silently dropped.
+     A course with no dishes is still omitted entirely — printing an empty heading
+     makes the card look like something failed to load. */
+  const courses = coursesForMenu(courseOrder, items.map((i) => i.course))
+    .map((key) => ({
+      key,
+      dishes: items.filter((i) => i.course === key),
+    }))
     .filter((c) => c.dishes.length > 0);
 
   return (

@@ -46,9 +46,13 @@
 .dishMeta { margin: 0; font-size: 0.75rem; color: var(--ink-soft); }
 
 .handle { display: grid; gap: 2px; }
-.move { font: inherit; min-width: 30px; min-height: 30px; background: transparent;
+/* --tap tall, like every other control in main. It was 30px, which the selftest's
+   tap-target check refuses at phone width — and it was right to: these arrows now
+   also reorder whole COURSES, where a mistap rearranges the card. */
+.move { font: inherit; min-width: 36px; min-height: var(--tap); background: transparent;
   border: 1px solid var(--card-border); border-radius: var(--radius);
   color: var(--ink-soft); cursor: pointer; }
+.move:disabled { opacity: 0.4; cursor: default; }
 .swap { font: inherit; min-width: var(--tap); min-height: var(--tap); background: none;
   border: 0; color: var(--gold-ink); cursor: pointer; }
 .del { font: inherit; min-width: var(--tap); min-height: var(--tap); background: none;
@@ -128,4 +132,54 @@
   outline: none;
   border-bottom-color: var(--primary);
   background: var(--card);
+}
+
+/* ── arranging the courses of one menu ────────────────────────────────────────
+   The heading gained tools, so it became a row. */
+.courseHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.courseHead .courseName { margin: 0; }
+
+/* Said out loud rather than implied: a section only on screen because it holds
+   dishes needs to explain why it came back after being turned off. */
+.courseFlag {
+  margin-inline-start: var(--sp-2);
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.courseTools { display: flex; gap: 2px; flex: 0 0 auto; }
+
+.addCourse { margin-top: var(--sp-6); }
+
+.addCourseRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.courseChip {
+  font-family: var(--san);
+  font-size: var(--t-small);
+  /* 44px, like every other control in main. */
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  background: var(--card);
+  color: var(--primary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .courseChip:hover { border-color: var(--primary); }
 }

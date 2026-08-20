@@ -64,6 +64,7 @@ export default async function SharedMenuPage({
         language={menu.language}
         chefNotes={menu.chef_notes}
         items={menu.items ?? []}
+        courseOrder={menu.course_order}
       />
 
       <p className={styles.foot}>

@@ -1,26 +1,45 @@
 .wrap {
   display: grid;
   justify-items: center;
-  gap: var(--sp-6);
-  padding: var(--sp-8) var(--sp-4);
-  min-height: 40dvh;
-  align-content: start;
+  gap: var(--sp-5);
+  align-content: center;
+  color: var(--muted-ink);
 }
 
-/* The app's divider diamond, breathing. Not a spinner: a rotating circle says
-   "generic web app", the diamond says this one. */
-.diamond {
-  width: 13px;
-  height: 13px;
-  background: var(--gold);
-  transform: rotate(45deg);
+/* A page boundary: centred in the space the content will fill, not hugging the top.
+   The old loader sat at the top of a tall empty page, which read as a stalled header
+   rather than as the page loading. */
+.page {
+  min-height: 52dvh;
+  padding: var(--sp-8) var(--sp-4);
+}
+
+.page .motif { width: 132px; height: 108px; }
+
+/* Inside a control — an uploading photo, a PDF being built. */
+.inline {
+  min-height: 0;
+  gap: var(--sp-2);
+  padding: 0;
+}
+
+.inline .motif { width: 54px; height: 44px; }
+
+.motif { display: block; }
+
+/* Only the steam moves. Drifting the dash offset animates the LINE rather than the
+   element, so the loaf never shifts — nothing jitters at the centre of a page that is
+   about to be replaced anyway. */
+.motif :global(.steam) {
+  stroke-dasharray: 5 7;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .diamond { animation: breathe 1.4s ease-in-out infinite; }
+  .motif :global(.steam) { animation: rise 2.6s linear infinite; }
 }
-@keyframes breathe {
-  0%, 100% { opacity: 0.25; transform: rotate(45deg) scale(0.82); }
-  50%      { opacity: 1;    transform: rotate(45deg) scale(1); }
+@keyframes rise {
+  from { stroke-dashoffset: 24; opacity: 0.25; }
+  50%  { opacity: 0.85; }
+  to   { stroke-dashoffset: 0; opacity: 0.25; }
 }
 
 /* Skeleton rows in the real card geometry, so nothing jumps when content lands. */

@@ -21,6 +21,7 @@ const KEYS = [
   'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'link_off',
   'sparkle',
   'warning',
+  'menu_card',
   /* One per course, for the menu card. Five borrow their drawing from the category
      plate of the same food, so a course on the card and its shelf in the book are
      recognisably the same object; only the wine glass had no plate to borrow from.

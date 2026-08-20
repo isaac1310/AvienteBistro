@@ -70,4 +70,11 @@ if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
 await db.from('menus').delete().like('title', `${FIXTURE_TAG}%`);
 
 console.log(`✓ removed ${doomed.length} test recipe(s) and any test menus.`);
-console.log('  the 13 real recipes are untouched — they carry no fixture tag.');
+
+/* Counted, not remembered. This line used to read "the 13 real recipes are
+   untouched" — a number hardcoded when the book held 13 recipes, printed as
+   reassurance long after it held forty. A delete tool that states a stale count is
+   worse than one that states none: the one thing it is for is being trusted. */
+const { count } = await db
+  .from('recipes').select('id', { count: 'exact', head: true }).is('deleted_at', null);
+console.log(`  ${count ?? '?'} real recipes untouched — they carry no fixture tag.`);

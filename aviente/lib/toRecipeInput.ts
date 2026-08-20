@@ -31,10 +31,13 @@ export type ParsedRecipe = {
 
 export function toRecipeInput(
   r: ParsedRecipe,
-  opts: { category?: string; sourceMemberId?: string | null } = {},
+  opts: { category?: string; sourceMemberId?: string | null; title?: string } = {},
 ): RecipeInput {
   return {
-    title: r.title,
+    /* An overridden title, when the preview card was corrected before importing.
+       It matters more than it looks: Skip and Replace both match on TITLE, so fixing
+       an AI's spelling beforehand changes which branch the recipe takes. */
+    title: opts.title?.trim() || r.title,
     title_en: r.titleEn ?? null,
     category: (opts.category ?? r.category) as RecipeInput['category'],
     meal_type: (r.mealType ?? null) as RecipeInput['meal_type'],

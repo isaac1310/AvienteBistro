@@ -173,6 +173,8 @@ const DICT = {
      confirm blind. */
   /* The delete toast was English on a Hebrew screen, which mattered more once
      deleting became one tap from every card rather than a trip into the edit form. */
+  'import.editTitle':  { he: 'שם המתכון',      en: 'Recipe name' },
+  'import.goToRecipe': { he: 'למתכון ←',        en: 'Go to the recipe →' },
   'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
   'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import type { SortKey } from '@/lib/queries';
+import Loading from './Loading';
 import { useT } from './LangProvider';
 import styles from './SortSelect.module.css';
 
@@ -14,7 +15,10 @@ import styles from './SortSelect.module.css';
  *
  * `useTransition` keeps the select responsive while the server re-renders the list —
  * without it the control freezes on the old value for the length of the round trip
- * and reads as though the tap missed.
+ * and reads as though the tap missed. The transition is also long enough to need
+ * saying so: the sort is a database round trip, so the baguette appears beside the
+ * select while it runs. No wordmark and no caption here — this is a control, and the
+ * page it is on has not gone anywhere.
  */
 export default function SortSelect({ value }: { value: SortKey }) {
   const t = useT();
@@ -44,6 +48,11 @@ export default function SortSelect({ value }: { value: SortKey }) {
         <option value="updated">{t('sort.updated')}</option>
         <option value="created">{t('sort.created')}</option>
       </select>
+      {/* Reserved space, not an appearing element: a loader that pops into the row
+          shifts the count beside it every time the sort changes. */}
+      <span className={styles.spinner} aria-hidden={!pending}>
+        {pending && <Loading size="inline" label={t('sort.label')} />}
+      </span>
     </label>
   );
 }

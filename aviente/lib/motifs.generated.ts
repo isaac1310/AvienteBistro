@@ -15,7 +15,7 @@ export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   },
   candle: {
     viewBox: "0 0 110 90",
-    inner: "<path d=\"M46 34 h18 v34 H46z\"></path><path d=\"M42 68 h26\" stroke-width=\"1.2\"></path><path d=\"M55 30 q-6 -6 0 -13 q6 7 0 13z\"></path><path d=\"M50 42 h10 M50 52 h10\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+    inner: "<!-- Drawn to fill its frame. It used to occupy a 26x51 patch in the middle of the     110x90 box, so every size= made the empty air bigger and the candle stayed a     mark you could miss — flanking a 40px title it read as punctuation. --><path d=\"M41 27 h28 v53 H41z\"></path><path d=\"M35 80 h40\" stroke-width=\"1.2\"></path><path d=\"M55 23 q-9 -9 0 -19 q9 10 0 19z\"></path><path d=\"M46 41 h18 M46 56 h18\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
   },
   apple: {
     viewBox: "0 0 110 90",

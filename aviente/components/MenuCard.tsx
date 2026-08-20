@@ -67,14 +67,13 @@ export default function MenuCard({
 
   return (
     <article className={styles.card}>
-      {/* The notched double frame: one rule inset from another, each stopping short of
-          the corner so the corners read as brackets. Four spans rather than a border,
-          because a border cannot leave its own corners open. */}
+      {/* Two continuous rules, the inner one with its corners clipped — the sample's
+          frame is a rectangle whose corners are notched, not four separate brackets
+          floating near the corners, which is what the first attempt drew and why it
+          looked unaligned. clip-path cuts the border with the box, so the corner
+          openings are the notch. */}
       <div className={styles.frameOuter} aria-hidden="true" />
-      <span className={`${styles.bracket} ${styles.tl}`} aria-hidden="true" />
-      <span className={`${styles.bracket} ${styles.tr}`} aria-hidden="true" />
-      <span className={`${styles.bracket} ${styles.bl}`} aria-hidden="true" />
-      <span className={`${styles.bracket} ${styles.br}`} aria-hidden="true" />
+      <div className={styles.frameInner} aria-hidden="true" />
 
       <div className={styles.inner}>
         {/* Top corner, small — the sample's placement. dir="ltr" because the date is
@@ -147,13 +146,17 @@ export default function MenuCard({
   );
 }
 
-/** A drawn candle: flame, wax, base. No image, so it prints at any resolution. */
+/**
+ * The Shabbat candle, from the blueprint set.
+ *
+ * It was three solid-filled CSS boxes — a cream stem, a gold base and a gradient
+ * flame. Solid fills are the one thing the drawing language does not do: every plate,
+ * icon and motif in this app is stroke-only at one weight, so the candles read as
+ * borrowed from somewhere else. Same drawing as the menus list uses for an occasion.
+ */
 function Candle() {
-  return (
-    <span className={styles.candle} aria-hidden="true">
-      <span className={styles.flame} />
-      <span className={styles.wax} />
-      <span className={styles.base} />
-    </span>
-  );
+  /* 46px, not 30. At 30 the drawing was smaller than the title's cap height and read
+     as punctuation rather than as an ornament flanking it — the motif has a lot of air
+     inside its own 110x90 frame, so it always looks a size smaller than its box. */
+  return <Motif name="candle" size={52} strokeWidth={1.5} className={styles.candle} />;
 }

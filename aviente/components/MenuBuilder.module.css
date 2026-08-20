@@ -106,3 +106,26 @@
 
 .previewNote { margin: var(--sp-2) 0 0; font-family: var(--ser); font-style: italic;
   font-size: var(--t-small); color: var(--ink-soft); }
+
+/* The per-dish card description. Quiet, because most dishes will not have one and a
+   prominent empty field on every row would make the builder look unfinished. */
+.noteField {
+  font: inherit;
+  font-family: var(--ser);
+  font-style: italic;
+  font-size: var(--t-small);
+  width: 100%;
+  min-height: 34px;
+  margin-top: var(--sp-1);
+  padding: 0 var(--sp-2);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed var(--card-border);
+  color: var(--ink-soft);
+}
+.noteField::placeholder { color: var(--muted-ink); opacity: 0.7; }
+.noteField:focus-visible {
+  outline: none;
+  border-bottom-color: var(--primary);
+  background: var(--card);
+}

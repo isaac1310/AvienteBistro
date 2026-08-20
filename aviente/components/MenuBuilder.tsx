@@ -10,7 +10,13 @@ import styles from './MenuBuilder.module.css';
 
 /* §3.5 — the menu builder. */
 
-type Row = { key: string; recipe: RecipeSummary; course: CourseKey };
+type Row = {
+  key: string;
+  recipe: RecipeSummary;
+  course: CourseKey;
+  /** The italic line under the dish on the card. Per-meal, not per-recipe. */
+  note: string;
+};
 
 export default function MenuBuilder({
   recipes, initial, occasion,
@@ -19,7 +25,7 @@ export default function MenuBuilder({
   initial: {
     id?: string; date: string; meal_time: 'evening' | 'day'; title: string | null;
     language: 'en' | 'he'; chef_notes: string | null;
-    items: { recipe_id: string; course: CourseKey }[];
+    items: { recipe_id: string; course: CourseKey; note?: string | null }[];
   };
   /* The occasion for this date, resolved BOTH ways on the server. A Jewish day
      begins at sundown, so the same Friday is Shabbat in the evening and an ordinary
@@ -37,7 +43,10 @@ export default function MenuBuilder({
   const [notes, setNotes] = useState(initial.chef_notes ?? '');
   const [rows, setRows] = useState<Row[]>(
     initial.items
-      .map((i) => ({ key: crypto.randomUUID(), recipe: byId.get(i.recipe_id)!, course: i.course }))
+      .map((i) => ({
+        key: crypto.randomUUID(), recipe: byId.get(i.recipe_id)!, course: i.course,
+        note: i.note ?? '',
+      }))
       .filter((r) => r.recipe),
   );
   const [picking, setPicking] = useState<CourseKey | null>(null);
@@ -73,7 +82,8 @@ export default function MenuBuilder({
     || notes !== (initial.chef_notes ?? '')
     || rows.length !== initial.items.length
     || rows.some((r, i) => r.recipe.id !== initial.items[i]?.recipe_id
-      || r.course !== initial.items[i]?.course);
+      || r.course !== initial.items[i]?.course
+      || r.note !== (initial.items[i]?.note ?? ''));
 
   function onCancel() {
     if (dirty && !confirm(t('menu.leave'))) return;
@@ -95,7 +105,7 @@ export default function MenuBuilder({
       setRows(rows.map((r) => (r.key === swapping ? { ...r, recipe } : r)));
       setSwapping(null);
     } else {
-      setRows([...rows, { key: crypto.randomUUID(), recipe, course }]);
+      setRows([...rows, { key: crypto.randomUUID(), recipe, course, note: '' }]);
     }
     setPicking(null);
     setQuery('');
@@ -121,7 +131,9 @@ export default function MenuBuilder({
         title: title.trim() || suggested,
         language,
         chef_notes: notes,
-        items: rows.map((r) => ({ recipe_id: r.recipe.id, course: r.course })),
+        items: rows.map((r) => ({
+          recipe_id: r.recipe.id, course: r.course, note: r.note.trim() || null,
+        })),
       });
       router.push(`/menus/${id}`);
       router.refresh();
@@ -232,6 +244,20 @@ export default function MenuBuilder({
                       {categoryLabel(row.recipe.category).en}
                       {row.recipe.source_name && ` · ${row.recipe.source_name}`}
                     </p>
+                    {/* The line that appears in italic under the dish on the card.
+                        It could not be written anywhere before: saveMenu copied the
+                        recipe's own description, so the only way to change what the
+                        card said was to edit the recipe — which rewrites it on every
+                        card that dish has ever appeared on. */}
+                    <input
+                      className={styles.noteField}
+                      value={row.note}
+                      lang="he"
+                      placeholder={t('menu.dishNote')}
+                      aria-label={t('menu.dishNote')}
+                      onChange={(e) => setRows(rows.map((x) =>
+                        x.key === row.key ? { ...x, note: e.target.value } : x))}
+                    />
                   </div>
                   <button type="button" aria-label={t('menu.changeDish')} className={styles.swap}
                     onClick={() => { setSwapping(row.key); setPicking(row.course); }}>↻</button>

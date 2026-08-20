@@ -48,7 +48,15 @@ if (!url || !key) {
    MAINTENANCE RULE, stated where it bites: a new migration that adds a column adds
    a probe here in the same commit — that is what prepr then enforces for everyone
    after you. */
+/* WHAT THIS CANNOT SEE, stated where it bites: these probes ask for COLUMNS, because
+   this script runs with the anon key and RLS hides schema_migrations from anyone
+   without a session. A migration that only rewrites a FUNCTION adds no column, so it
+   is invisible here — migration 16 rewrote fetch_shared_menu and is covered by
+   tools/db-check.mjs instead, which has the service key and reads schema_migrations
+   directly. Hence 16 maps to 15's column: reaching 15 is all this gate can prove, and
+   claiming more would be the fail-open behaviour the block below exists to prevent. */
 const PROBES = [
+  [16, 'menus?select=id,course_order&limit=1'],
   [15, 'menus?select=id,course_order&limit=1'],
   [14, 'family_members?select=id,language&limit=1'],
   [13, 'recipes?select=id,created_at&limit=1'],

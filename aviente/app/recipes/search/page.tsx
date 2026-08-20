@@ -5,6 +5,7 @@ import RecipeCard from '@/components/RecipeCard';
 import { searchRecipes } from '@/lib/queries';
 import { serverT } from '@/lib/lang';
 import styles from '../[category]/category.module.css';
+import Arrow from '@/components/Arrow';
 
 export const metadata = { title: 'Aviente — Search' };
 
@@ -24,7 +25,7 @@ export default async function SearchPage({
       <div className={styles.frame}>
         <header className={styles.head}>
           <div className="shell">
-            <Link href="/recipes" className={styles.back}>← The Book</Link>
+            <Link href="/recipes" className={styles.back}><Arrow /> {t('book.back')}</Link>
             <p className="eyebrow">{t('search.title')}</p>
             <h1 className={styles.h1} lang="he">{query || '—'}</h1>
             <p className={styles.count}>

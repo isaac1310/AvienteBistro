@@ -105,13 +105,17 @@ export default function KidsPlanner({
 
       <div className={styles.weekRow}>
         <button className={styles.arrow} aria-label={t('kids.prevWeek')}
-          onClick={() => router.push(`/kids?week=${addWeeks(weekStart, -1)}`)}>◀</button>
+          onClick={() => router.push(`/kids?week=${addWeeks(weekStart, -1)}`)}>
+          {lang === 'he' ? '▶' : '◀'}
+        </button>
         {/* dir="ltr": the label is "16 – 22 AUG", a Latin range, and inside an RTL
             page bidi reordered it to "AUG 22 – 16" — a week that appears to run
             backwards. */}
         <span className={styles.week} dir="ltr">{weekLabel(weekStart)}</span>
         <button className={styles.arrow} aria-label={t('kids.nextWeek')}
-          onClick={() => router.push(`/kids?week=${addWeeks(weekStart, 1)}`)}>▶</button>
+          onClick={() => router.push(`/kids?week=${addWeeks(weekStart, 1)}`)}>
+          {lang === 'he' ? '◀' : '▶'}
+        </button>
       </div>
 
       {/* One bubble per day, Sunday to Saturday.

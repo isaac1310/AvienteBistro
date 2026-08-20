@@ -54,7 +54,10 @@ const DICT = {
   // ── the book ────────────────────────────────────────────────────────────
   'book.eyebrow':      { he: 'הספר',        en: 'The Book' },
   'book.title':        { he: 'מתכונים',     en: 'Recipes' },
-  'book.back':         { he: '← לספר',      en: '← The Book' },
+  /* No arrows in translation strings. They were '← לספר' and '← The Book' — one
+     glyph serving two reading directions, and a Hebrew reader was told to go BACK by
+     an arrow pointing forwards. The glyph is now the Arrow component's job. */
+  'book.back':         { he: 'לספר',        en: 'The Book' },
   'book.empty':        { he: 'אין כאן כלום עדיין', en: 'Nothing here yet' },
   'book.noRecipes':    { he: 'אין מתכונים', en: 'no recipes yet' },
   'book.count.one':    { he: 'מתכון אחד',   en: '1 recipe' },
@@ -63,7 +66,7 @@ const DICT = {
   'book.emptyBody':    { he: 'אין עדיין {category} בספר. אפשר להוסיף את הראשון, או להדביק מתכון מצילום במסך הייבוא.',
                           en: 'No {category} in the book yet. Add the first one, or paste a recipe from a photo on the import screen.' },
   'book.selected':     { he: '{n} נבחרו',   en: '{n} selected' },
-  'book.buildMenu':    { he: 'בניית תפריט →', en: 'Build menu →' },
+  'book.buildMenu':    { he: 'בניית תפריט', en: 'Build menu' },
   'book.here':         { he: '{n} כאן · אפשר להמשיך בקטגוריה אחרת',
                          en: '{n} here · keep going in another category' },
   'book.cancel':       { he: 'ביטול',       en: 'Cancel' },
@@ -174,7 +177,7 @@ const DICT = {
   /* The delete toast was English on a Hebrew screen, which mattered more once
      deleting became one tap from every card rather than a trip into the edit form. */
   'import.editTitle':  { he: 'שם המתכון',      en: 'Recipe name' },
-  'import.goToRecipe': { he: 'למתכון ←',        en: 'Go to the recipe →' },
+  'import.goToRecipe': { he: 'למתכון',       en: 'Go to the recipe' },
   'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
   'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },
@@ -310,7 +313,7 @@ const DICT = {
   'guest.gone':       { he: 'התפריט הזה אינו זמין', en: 'This menu is not available' },
   'guest.savePdf':    { he: 'שמירה כ־PDF', en: 'Save as PDF' },
   'brand.title':      { he: 'הצלחות ללא תמונה', en: 'The no-photo plates' },
-  'common.backToPlanner': { he: '← חזרה לתכנון', en: '← Back to the planner' },
+  'common.backToPlanner': { he: 'חזרה לתכנון', en: 'Back to the planner' },
   'common.print':     { he: 'הדפסה',  en: 'Print' },
   'menus.title':      { he: 'תפריטים', en: 'Menus' },
   'menus.history':    { he: 'היסטוריית תפריטים', en: 'Menu history' },

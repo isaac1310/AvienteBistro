@@ -89,6 +89,15 @@ export default async function BrandSheet() {
               <code>prefers-reduced-motion</code>, where the curls stay drawn rather
               than disappearing.
             </p>
+            <p className={styles.note} dir="ltr">
+              The inline size drops the wordmark and takes <code>currentColor</code>
+              {' '}for all three tones, so it stays legible on a filled button. It is
+              used by the photo upload, the PDF export and the category sort — and
+              there it is held on screen for a minimum of 500ms, because a sort
+              finishes in under 100ms on a warm connection and the drawing was
+              appearing and vanishing inside a frame. Present in the DOM, invisible to
+              a person, and a flicker reads as a glitch rather than an answer.
+            </p>
             <ul className={styles.heroes}>
               <li className={styles.hero}>
                 <span className={styles.card}><Loading /></span>

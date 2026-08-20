@@ -1,0 +1,5 @@
+/* Never squeezed by a long label, and never split from it across a line break. */
+.arrow {
+  flex: 0 0 auto;
+  line-height: 1;
+}

@@ -54,6 +54,10 @@ export type RecipeSummary = {
   servings: number | null; yield_text: string | null;
   prep_minutes: number | null; cook_minutes: number | null;
   source_name: string | null;
+  /* Only the sort control needs these, and only the list query selects them —
+     optional so nothing else has to pretend to have them. */
+  updated_at?: string | null;
+  created_at?: string | null;
 };
 
 export type Recipe = RecipeSummary & {

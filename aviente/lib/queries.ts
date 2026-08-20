@@ -36,7 +36,8 @@ export async function categoryCounts(): Promise<Record<string, number>> {
    flattened here rather than leaking the shape into every component. */
 const SUMMARY_COLUMNS =
   'id, title, title_en, category, photo_url, photo_path, servings, yield_text, ' +
-  'prep_minutes, cook_minutes, source:family_members!recipes_source_member_id_fkey(name)';
+  'prep_minutes, cook_minutes, updated_at, created_at, ' +
+  'source:family_members!recipes_source_member_id_fkey(name)';
 
 type SummaryRow = Omit<RecipeSummary, 'source_name'> & { source: { name: string } | null };
 
@@ -95,14 +96,46 @@ const flatten = (r: SummaryRow): RecipeSummary => {
   return { ...rest, source_name: source?.name ?? null };
 };
 
-export async function recipesInCategory(category: string): Promise<RecipeSummary[]> {
+/**
+ * How a category page can be ordered.
+ *
+ * Deliberately three, and deliberately not "by chef": the chef is a NESTED join
+ * (`source:family_members(name)`), not a column on `recipes`, so `.order('chef')`
+ * would not fail at build — it would fail at runtime, on the page, for the one
+ * person using it. Ordering by a joined table needs PostgREST's referencedTable
+ * form and is worth doing once these three are proven.
+ *
+ * The keys are what appear in the URL, so they are part of the app's surface: a
+ * bookmarked ?sort= has to keep meaning the same thing.
+ */
+export const SORTS = {
+  title:   { column: 'title',      ascending: true },
+  updated: { column: 'updated_at', ascending: false },
+  created: { column: 'created_at', ascending: false },
+} as const;
+
+export type SortKey = keyof typeof SORTS;
+
+export function isSortKey(v: string | undefined): v is SortKey {
+  return !!v && v in SORTS;
+}
+
+export async function recipesInCategory(
+  category: string, sort: SortKey = 'title',
+): Promise<RecipeSummary[]> {
   const db = await supabaseServer();
+  const order = SORTS[sort] ?? SORTS.title;
   const { rows } = await selectTolerant<SummaryRow>('recipesInCategory', SUMMARY_COLUMNS,
     (cols) => db
       .from('recipes')
       .select(cols)
       .eq('category', category)
       .is('deleted_at', null)
+      /* Title second, always. Ordering by a date alone leaves rows with the same
+         timestamp — every recipe from one import — in whatever order Postgres
+         happens to return, which changes between requests and makes the list look
+         like it is shuffling itself. */
+      .order(order.column, { ascending: order.ascending, nullsFirst: false })
       .order('title'));
 
   /* Sign the stored paths for this request. See lib/photos.ts — the alternative was

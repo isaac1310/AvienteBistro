@@ -55,3 +55,17 @@
 @media (hover: hover) {
   .card:hover { border-color: var(--gold-deep); }
 }
+
+/* ── the card is a container now, not a link ──────────────────────────────────
+   It became one so the edit and delete buttons could exist at all: a <button>
+   inside an <a> is invalid HTML and browsers navigate instead of acting, so a tap
+   on delete would have opened the recipe. */
+.link {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  flex: 1 1 auto;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}

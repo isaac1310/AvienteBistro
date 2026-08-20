@@ -168,6 +168,19 @@ const DICT = {
   'loading.baking':    { he: 'באפייה עוד רגע..', en: 'STILL BAKING' },
   /* The PDF export. The route boots headless Chromium, so the wait is real and the
      failure modes are worth naming rather than saying "that did not work". */
+  /* Icon-only buttons, so the label is the only thing a screen reader has — it names
+     the recipe, because "delete" on a list of forty is not an action anyone can
+     confirm blind. */
+  /* The delete toast was English on a Hebrew screen, which mattered more once
+     deleting became one tap from every card rather than a trip into the edit form. */
+  'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
+  'undo.undo':         { he: 'ביטול',           en: 'Undo' },
+  'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },
+  'card.delete':       { he: 'מחיקת {title}',   en: 'Delete {title}' },
+  'sort.label':        { he: 'סדר',            en: 'Sort' },
+  'sort.title':        { he: 'לפי שם',          en: 'By name' },
+  'sort.updated':      { he: 'עודכנו לאחרונה',  en: 'Recently updated' },
+  'sort.created':      { he: 'נוספו לאחרונה',   en: 'Recently added' },
   'pdf.working':       { he: 'מכינים PDF…',    en: 'Building the PDF…' },
   'pdf.failed':        { he: 'ה־PDF לא נוצר',  en: 'The PDF could not be made' },
   'pdf.timeout':       { he: 'לקח יותר מדי זמן. אפשר להשתמש בכפתור ההדפסה, שלא צריך שרת.',

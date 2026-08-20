@@ -73,4 +73,13 @@
 .headPlate { display: grid; justify-items: center; margin-bottom: var(--sp-2); }
 
 .backRow { padding-top: var(--sp-3); }
-.countRow { text-align: center; }
+/* The count and the sort control on one line, and centred as a pair. On a phone they
+   wrap rather than squeezing the select down to a mistappable width. */
+.countRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2) var(--sp-4);
+  text-align: center;
+}

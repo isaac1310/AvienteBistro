@@ -10,10 +10,14 @@ import { currentLang, serverT } from '@/lib/lang';
 import type { CategoryKey } from '@/lib/constants';
 import SelectableList from '@/components/SelectableList';
 import UndoToast from '@/components/UndoToast';
-import { CATEGORIES, categoryLabel, recipesInCategory } from '@/lib/queries';
+import SortSelect from '@/components/SortSelect';
+import { CATEGORIES, categoryLabel, isSortKey, recipesInCategory } from '@/lib/queries';
 import styles from './category.module.css';
 
-type Params = { params: Promise<{ category: string }> };
+type Params = {
+  params: Promise<{ category: string }>;
+  searchParams: Promise<{ sort?: string }>;
+};
 
 export async function generateMetadata({ params }: Params) {
   const { category } = await params;
@@ -21,15 +25,20 @@ export async function generateMetadata({ params }: Params) {
 }
 
 /* Category browse (§3.2). */
-export default async function CategoryPage({ params }: Params) {
+export default async function CategoryPage({ params, searchParams }: Params) {
   const { category } = await params;
+  const { sort } = await searchParams;
   // An unknown slug is a 404, not an empty list — otherwise a typo looks like an
   // empty category and sends someone hunting for missing recipes.
   if (!CATEGORIES.some((c) => c.key === category)) notFound();
 
   const cat = categoryLabel(category);
   const [t, lang] = await Promise.all([serverT(), currentLang()]);
-  const recipes = await recipesInCategory(category);
+  /* An unrecognised ?sort= falls back to the default rather than erroring. A stale
+     bookmark is not worth a 500, and the guard is also what keeps a hand-typed value
+     out of an .order() call. */
+  const order = isSortKey(sort) ? sort : 'title';
+  const recipes = await recipesInCategory(category, order);
 
   return (
     <>
@@ -62,6 +71,9 @@ export default async function CategoryPage({ params }: Params) {
                   ? t('book.count.one')
                   : t('book.count.many', { n: recipes.length })}
             </p>
+          {/* Only when there is something to order. One recipe sorted three ways is
+              one recipe, and the control would be furniture. */}
+          {recipes.length > 1 && <SortSelect value={order} />}
         </div>
 
         <main className="shell">

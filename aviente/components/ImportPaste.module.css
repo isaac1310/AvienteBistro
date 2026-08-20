@@ -75,3 +75,28 @@
 .dupe { display: flex; align-items: baseline; gap: var(--sp-3);
   font-size: var(--t-small); line-height: 1.5; cursor: pointer; min-height: 32px; }
 .dupe input { accent-color: var(--primary); width: 18px; height: 18px; flex: 0 0 auto; }
+
+/* The preview title, editable in place. It reads as the heading it replaced until
+   focused — a field that announces itself as a field on every row would make the
+   preview look like a form to fill in rather than a list to check. */
+.titleField {
+  font: inherit;
+  font-family: var(--ser);
+  font-size: 1.125rem;
+  color: var(--primary);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--sp-2);
+  margin: 0 0 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+.titleField:hover { border-color: var(--card-border); }
+.titleField:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--card);
+}
+
+.rowLink { color: var(--primary); }

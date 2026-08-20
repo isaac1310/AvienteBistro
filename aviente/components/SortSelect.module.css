@@ -25,3 +25,12 @@
   min-height: 38px;
 }
 .select:disabled { opacity: 0.6; }
+
+/* Fixed width, so the row does not jump when the drawing arrives and leaves. */
+.spinner {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  color: var(--muted-ink);
+}

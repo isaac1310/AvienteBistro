@@ -1,26 +1,127 @@
 .wrap {
   display: grid;
   justify-items: center;
-  gap: var(--sp-6);
-  padding: var(--sp-8) var(--sp-4);
-  min-height: 40dvh;
-  align-content: start;
+  gap: var(--sp-5);
+  align-content: center;
 }
 
-/* The app's divider diamond, breathing. Not a spinner: a rotating circle says
-   "generic web app", the diamond says this one. */
-.diamond {
-  width: 13px;
-  height: 13px;
-  background: var(--gold);
-  transform: rotate(45deg);
+/* A page boundary: centred in the space the content will fill, not hugging the top.
+   The first loader sat at the top of a tall empty page, which read as a stalled
+   header rather than as the page loading. */
+.page {
+  min-height: 52dvh;
+  padding: var(--sp-8) var(--sp-4);
+  gap: var(--sp-6);
 }
+
+.page .art { width: 240px; height: 207px; }
+
+/* Inside a control — an uploading photo, a PDF being built. */
+.inline {
+  min-height: 0;
+  gap: var(--sp-2);
+  padding: 0;
+}
+
+/* A variable, so a host can ask for a bigger drawing without fighting specificity.
+   `.spinner svg` loses to `.inline .art` — two classes beat one — and the fix is not
+   to escalate selectors across module boundaries but to expose the knob. */
+.inline .art {
+  width: var(--loader-inline-w, 34px);
+  height: var(--loader-inline-h, 30px);
+}
+
+/* Inside a control the drawing takes the CONTROL's colour, all three tones.
+   Verified wrong first: on the burgundy Export button the crust is --ink, so a dark
+   loaf sat on a dark ground and only the pale scores showed. A loader that is
+   invisible exactly while it matters is worse than no loader. */
+.inline .crust,
+.inline .score,
+.inline .fume { stroke: currentColor; }
+.inline .score { opacity: 0.55; }
+.inline .fume { opacity: 0.7; }
+
+/* The steam leaves the box on its way up, and the topmost curl is drawn touching the
+   top edge already. */
+.art { display: block; overflow: visible; }
+
+/* ── the drawing ───────────────────────────────────────────────────────────
+   Three tones doing three jobs, per the artboard: the crust is the app's ink, the
+   scores and the ground are decorative, and the steam is the THEME colour — green by
+   default, burgundy on Itzik's, so the loader belongs to whichever palette is on. */
+.crust {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.score {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+.ground {
+  stroke: var(--muted);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 5;
+  opacity: 0.35;
+}
+
+.fume {
+  stroke: var(--primary);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+/* Only the steam moves, and it moves the way steam does: fading in low, rising,
+   thinning out. The loaf itself never shifts — nothing should jitter at the centre of
+   a page that is about to be replaced anyway.
+   The curls sit at opacity 0 until the animation runs, so with motion disabled they
+   would vanish and the bread would look cold. Hence the static opacity here and the
+   animation confined to the query below. */
 @media (prefers-reduced-motion: no-preference) {
-  .diamond { animation: breathe 1.4s ease-in-out infinite; }
+  .fume path {
+    opacity: 0;
+    animation: fume 2.8s ease-out infinite;
+  }
+}
+@keyframes fume {
+  0%   { opacity: 0;    transform: translateY(6px)   scaleY(0.9); }
+  30%  { opacity: 0.85; }
+  100% { opacity: 0;    transform: translateY(-22px) scaleY(1.15); }
+}
+
+/* ── the wordmark ──────────────────────────────────────────────────────────── */
+.mark { display: grid; justify-items: center; gap: var(--sp-2); }
+
+.word {
+  font-family: var(--ser);
+  font-size: 22px;
+  letter-spacing: 6px;
+  /* Letter-spacing adds its space AFTER the last letter too, so a centred tracked
+     word sits half a space left of true centre. */
+  text-indent: 6px;
+  color: var(--ink);
+}
+
+.caption {
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: 9.5px;
+  line-height: 1;
+  /* --muted-ink, not --muted: this is text. The artboard uses one gold for the scores
+     and for this line, and at 2.48:1 the line would fail AA. */
+  color: var(--muted-ink);
+}
+.tracked { letter-spacing: 3.2px; text-indent: 3.2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .caption { animation: breathe 2.2s ease-in-out infinite; }
 }
 @keyframes breathe {
-  0%, 100% { opacity: 0.25; transform: rotate(45deg) scale(0.82); }
-  50%      { opacity: 1;    transform: rotate(45deg) scale(1); }
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
 }
 
 /* Skeleton rows in the real card geometry, so nothing jumps when content lands. */

@@ -58,6 +58,8 @@ export default async function NewMenuPage({
         title: null,
         language: 'he',
         chef_notes: null,
+        /* null = follow the app default; see DEFAULT_COURSE_ORDER. */
+        course_order: null,
         /* ?dish= carries one id from a recipe page, or several from a category
            selection. Everything lands as a main — the usual case, and one tap
            from anything else in the builder. */

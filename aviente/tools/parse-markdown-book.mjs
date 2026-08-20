@@ -13,7 +13,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseAmountCell, splitTitle, SCHEMA_VERSION } from '../lib/recipeParse.mjs';
+import { guessCategoryFromTitle, parseAmountCell, splitTitle, SCHEMA_VERSION } from '../lib/recipeParse.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = resolve(root, '../מתכונים.md');
@@ -40,47 +40,9 @@ const yieldFromHeader = (l) => {
   return m ? m[1].trim() : null;
 };
 
-/* A light guess at the category from the dish name, falling back to `other`.
- *
- * The document states no category anywhere, and 22 dropdowns is a chore. These
- * patterns only fire on words that are unambiguous in a recipe title — מרק is
- * always a soup, עוגה is always a cake. Anything else becomes `other` and gets
- * flagged, so the import screen shows a dropdown rather than a silent guess.
- * A wrong guess is worse than no guess, so the list stays deliberately short. */
-/* Order matters: first match wins, so specific beats general.
- *
- * Two traps, both hit on the first attempt:
- *
- *  - **No `\b` anywhere.** `\b` is defined against `\w` = `[A-Za-z0-9_]`, and Hebrew
- *    letters are not word characters, so `/\bמרק\b/` can never match a Hebrew title.
- *    It looked correct in the source and matched nothing, which is why five soups sat
- *    in `other` while the rule meant to catch them appeared to exist.
- *  - **Short patterns match inside longer words.** `/באו/` (bao buns) matches
- *    `באורז` — so "עוף באורז", chicken and rice, was filed as bread. Anything under
- *    four letters needs an anchor or a following space.
- *
- * A sauce is only a sauce when the title STARTS with one. "רוטב" appearing anywhere
- * hijacked every dish that merely comes with a sauce: fish patties in red sauce, and
- * yakitori in satay sauce, both became components.
- */
-const CATEGORY_HINTS = [
-  [/מרק|בורשט/,                                'soups'],
-  // Anchored: a sauce FOR a salad is not a salad.
-  [/^סלט|כבוש|חמוצים/,                          'salads'],
-  [/עוגה|עוגת|קינוח|מלבי|מוס|פאי|טארט|בראוני|פלאן|נוקרל/, 'desserts'],
-  [/לחם|חלה|לחמני|פיתה|מאפה|בורקס|פוקצ|גזלמה|באו\s/,      'breads'],
-  /* Proteins outrank both sauces and starches: "in red sauce" must not beat "fish
-     patties", and "עוף באורז" is a chicken dish, not a rice one. */
-  [/עוף|בשר|אסאדו|סלמון|דג|קציצות|ממולא|קרפעלך|יקיטורי|אושפלאו|סופריטו|פרגיות/, 'mains'],
-  [/פירה|אורז|תוספת|ירקות בתנור|אטריות/,        'sides'],
-  // Components, and only when the title leads with one.
-  [/^רוטב|^ממרח|^מטבל|^בלילה|^חלוז/,            'other'],
-];
-
-function guessCategory(title) {
-  for (const [re, key] of CATEGORY_HINTS) if (re.test(title)) return { category: key, guessed: true };
-  return { category: 'other', guessed: false };
-}
+/* The hint table moved to lib/recipeParse.mjs, so this tool and the paste-from-AI
+ * path guess the same way. It was only ever here. */
+const guessCategory = guessCategoryFromTitle;
 
 /** `| a | b | c |` → ['a','b','c'], or null for separator rows. */
 function cells(line) {

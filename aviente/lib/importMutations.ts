@@ -8,9 +8,13 @@ import type { RecipeInput } from './mutations';
  * transaction-shaped operation over many recipes, and it must report per row
  * rather than failing the batch on one bad entry. */
 
+/** A row the report can LINK to. The category is part of a recipe's URL, so a report
+ *  that carries only title and id can name what it did and not offer to show it. */
+export type ImportedRow = { title: string; id: string; category: string };
+
 export type ImportResult = {
-  imported: { title: string; id: string }[];
-  replaced: { title: string; id: string }[];
+  imported: ImportedRow[];
+  replaced: ImportedRow[];
   skipped: { title: string; why: string }[];
   failed: { title: string; why: string }[];
   batchId: string;
@@ -120,7 +124,7 @@ async function runImport(
             input.steps.map((st, position) => ({ ...st, recipe_id: existingId, position })),
           );
         }
-        result.replaced.push({ title, id: existingId });
+        result.replaced.push({ title, id: existingId, category: input.category });
         continue;
       }
 
@@ -160,7 +164,7 @@ async function runImport(
       }
 
       byTitle.set(title, data.id as string);
-      result.imported.push({ title, id: data.id as string });
+      result.imported.push({ title, id: data.id as string, category: input.category });
     } catch (e) {
       // One bad row must never abort the batch — that is the difference between
       // importing 47 of 50 and importing none.

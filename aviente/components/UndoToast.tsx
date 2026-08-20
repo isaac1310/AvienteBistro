@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { restoreRecipe } from '@/lib/mutations';
+import { useT } from './LangProvider';
 import styles from './UndoToast.module.css';
 
 /* The ten seconds after a delete.
@@ -15,6 +16,7 @@ import styles from './UndoToast.module.css';
  * so it survives the redirect that follows a delete.
  */
 export default function UndoToast() {
+  const t = useT();
   const router = useRouter();
   const id = useSearchParams().get('undo');
   const [left, setLeft] = useState(10);
@@ -31,7 +33,7 @@ export default function UndoToast() {
 
   return (
     <div className={styles.toast} role="status">
-      <span className={styles.text}>Deleted.</span>
+      <span className={styles.text}>{t('undo.deleted')}</span>
       <button
         type="button"
         className={styles.undo}
@@ -41,7 +43,7 @@ export default function UndoToast() {
           router.refresh();
         }}
       >
-        Undo
+        {t('undo.undo')}
       </button>
       {/* The count is shown, not just implied: a disappearing button with no
           warning is how people miss their only chance to undo. */}

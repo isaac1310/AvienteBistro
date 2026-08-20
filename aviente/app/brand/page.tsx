@@ -1,5 +1,6 @@
 import BackLink from '@/components/BackLink';
 import Cachet from '@/components/Cachet';
+import Loading from '@/components/Loading';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
 import { serverT } from '@/lib/lang';
@@ -66,6 +67,45 @@ export default async function BrandSheet() {
               <li className={styles.hero}>
                 <span className={styles.card}><Cachet variant="header" /></span>
                 <span className={styles.heroName}>4B · header</span>
+              </li>
+            </ul>
+          </section>
+
+          {/* The loader lives here because it IS design-system work now, and because
+              a route boundary flashes for 200ms — there is nowhere else it can be
+              looked at properly. */}
+          <section className={styles.block}>
+            <h2 className={styles.h2}>The loader</h2>
+            <p className={styles.note} dir="ltr">
+              A baguette on the diagonal, from the delivered artboard, over a dashed
+              ground line. It is the third loader and the only one that is an
+              illustration rather than a motif — the second was a loaf drawn in the
+              110×90 plate grammar, and that grammar is furniture, sized to sit beside
+              a line of text. The thing at the centre of an empty page has to be
+              drawn for the page. Only the steam animates, fading in low and thinning
+              out as it rises, so the bread never moves — nothing should jitter at the
+              centre of a page that is about to be replaced. The steam takes{' '}
+              <code>--primary</code>, so it wears whichever theme is on. Stops under{' '}
+              <code>prefers-reduced-motion</code>, where the curls stay drawn rather
+              than disappearing.
+            </p>
+            <p className={styles.note} dir="ltr">
+              The inline size drops the wordmark and takes <code>currentColor</code>
+              {' '}for all three tones, so it stays legible on a filled button. It is
+              used by the photo upload, the PDF export and the category sort — and
+              there it is held on screen for a minimum of 500ms, because a sort
+              finishes in under 100ms on a warm connection and the drawing was
+              appearing and vanishing inside a frame. Present in the DOM, invisible to
+              a person, and a flicker reads as a glitch rather than an answer.
+            </p>
+            <ul className={styles.heroes}>
+              <li className={styles.hero}>
+                <span className={styles.card}><Loading /></span>
+                <span className={styles.heroName}>page</span>
+              </li>
+              <li className={styles.hero}>
+                <span className={styles.card}><Loading size="inline" /></span>
+                <span className={styles.heroName}>inline · in a control</span>
               </li>
             </ul>
           </section>

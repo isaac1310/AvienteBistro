@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Arrow from './Arrow';
 import styles from './PrintExit.module.css';
 
 /**
@@ -17,7 +18,7 @@ export default function PrintExit({ href, label }: { href: string; label: string
   return (
     <div className={styles.bar}>
       <Link href={href} className={styles.back}>
-        <span aria-hidden="true">←</span> {label}
+        <Arrow /> {label}
       </Link>
       <button type="button" className={styles.print} onClick={() => window.print()}>
         Print

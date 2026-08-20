@@ -35,3 +35,16 @@
 
 .backRow { padding-top: var(--sp-3); }
 .newRow { margin: 0 0 var(--sp-5); text-align: center; }
+
+/* The header drawing, above the page's name. `display: grid` with justify-items
+   rather than `display: block`: the panel is not a centring context, so a block-level
+   span left the drawing hard against the panel's start edge — which in RTL is the top
+   RIGHT corner, where it read as a stray mark rather than as the page's emblem.
+   Same construct the category pages use for their plate. */
+.headMotif { display: grid; justify-items: center; color: var(--primary); margin-bottom: var(--sp-2); }
+
+/* The empty state's drawing, at the size the plates get on a category page. */
+.emptyMotif { color: var(--primary); opacity: 0.9; margin: 0 auto var(--sp-3); }
+
+/* The one portrait motif needs a portrait box — see the comment at the call site. */
+.rowCandle { width: 11px; height: 20px; vertical-align: -3px; }

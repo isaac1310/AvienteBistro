@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
+import ExportPdfButton from './ExportPdfButton';
+import Motif from './Motif';
 import styles from './MenuActions.module.css';
 
 /* Everything you can do with a finished menu: keep it, copy it onto a new date,
@@ -69,9 +71,7 @@ export default function MenuActions({
 
         <a className="btn btn--ghost" href={`/print/menu/${id}`}>{t('common.print')}</a>
 
-        <a className="btn" href={`/api/pdf?path=${encodeURIComponent(`/print/menu/${id}`)}&name=aviente-menu-${date}`}>
-          Export PDF
-        </a>
+        <ExportPdfButton path={`/print/menu/${id}`} name={`aviente-menu-${date}`} />
       </div>
 
       <div className={styles.share}>
@@ -94,12 +94,12 @@ export default function MenuActions({
             </div>
             <button type="button" className={styles.revoke} disabled={busy}
               onClick={() => run(async () => { await unshareMenu(id); setLink(null); setCopied(false); })}>
-              ⛔ Stop sharing
+              <><Motif name="link_off" size={18} /> {t('menu.stopSharing')}</>
             </button>
           </>
         ) : (
           <button className="btn btn--ghost" disabled={busy} onClick={onShare}>
-            🔗 Share link
+            <><Motif name="link" size={18} /> {t('menu.shareLink')}</>
           </button>
         )}
       </div>

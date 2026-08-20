@@ -1,22 +1,58 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import Loading from './Loading';
+import { useT } from './LangProvider';
 import styles from './PhotoField.module.css';
 
-/* §3.4's photo control: 📷 TAKE PHOTO / 🖼 FROM GALLERY.
+/* §3.4's photo control.
  *
- * The downscale is the point. A phone photo is 3–12MB; unresized it would
- * exhaust Supabase's 1GB free Storage in about a hundred recipes and crawl on a
- * kitchen connection. Everything is resized to 1600px WebP before it leaves the
- * device — typically ~200KB, a 30-50x reduction.
+ * The downscale is the point. A phone photo is 3–12MB; unresized it would exhaust
+ * Supabase's 1GB free Storage in about a hundred recipes and crawl on a kitchen
+ * connection.
+ *
+ * 1200px at 0.72, down from 1600 at 0.85. Nothing renders a photo larger than the
+ * recipe hero — about 800px at desktop width, 92px in a list — so the extra 400px
+ * and the extra quality were bytes nobody could see, paid for by a slower upload on
+ * a phone. Roughly a third of the previous size.
  */
 
-const MAX_EDGE = 1600;
-const QUALITY = 0.85;
+/* Measured, not guessed. photo-05.jpg (1542x2048, 492 KB from the book) encodes to
+   335 KB at the old 1600@0.85 and 123 KB at these settings — 63% smaller. Measured
+   with sharp rather than with canvas.toBlob, which is what the browser actually uses,
+   so read it as the ratio between the two SETTINGS rather than as the exact bytes a
+   phone will produce.
+   Safe because of what the app renders: the card thumb is 92px and the recipe hero is
+   about 800px wide, so 1200 is still more pixels than any screen asks for. */
+const MAX_EDGE = 1200;
+const QUALITY = 0.72;
+
+/**
+ * A wall clock around a promise that might never settle.
+ *
+ * This exists because of a real failure: Moran's upload sat on "saving" forever with
+ * nothing in the Supabase logs — the signature of work that never reached the
+ * network. `createImageBitmap` rejects for an unsupported file on some browsers and
+ * simply never settles on others (HEIC is the usual culprit), and a promise that
+ * never settles cannot be caught. Without a timeout the only feedback is a button
+ * that says "uploading" until the tab is closed.
+ */
+function withTimeout<T>(work: Promise<T>, ms: number, what: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${what} took longer than ${Math.round(ms / 1000)}s and was given up on`)),
+      ms,
+    );
+    work.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
 
 async function downscale(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await withTimeout(createImageBitmap(file), 20_000, 'reading the photo');
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
@@ -35,14 +71,24 @@ async function downscale(file: File): Promise<Blob> {
 }
 
 export default function PhotoField({
-  value, previewUrl, onChange,
+  value, previewUrl, onChange, onBusyChange,
 }: {
   /** The stored PATH inside the bucket, not a URL. */
   value: string | null;
   /** A signed URL for whatever `value` points at, if the server already made one. */
   previewUrl?: string | null;
   onChange: (path: string | null) => void;
+  /**
+   * Lifted so the FORM can disable Save while a photo is in flight.
+   *
+   * This is the bug that lost Moran a photograph: the form's Save button was
+   * disabled on the form's own busy flag, never on this field's, so Save was live
+   * during an upload. Pressing it saved the recipe with no photo — which reads
+   * exactly like "I saved it and the picture vanished".
+   */
+  onBusyChange?: (busy: boolean) => void;
 }) {
+  const t = useT();
   const camera = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -50,17 +96,31 @@ export default function PhotoField({
   /* Signed here after an upload; seeded from the server for a photo already saved.
      The form cannot show a path. */
   const [preview, setPreview] = useState<string | null>(previewUrl ?? null);
+  const [saved, setSaved] = useState(false);
+
+  /* One place to flip busy, so the parent can never fall out of step with it. */
+  function setUploading(next: boolean) {
+    setBusy(next);
+    onBusyChange?.(next);
+  }
 
   async function handle(file: File | undefined) {
     if (!file) return;
-    setBusy(true); setError(null);
+    setUploading(true); setError(null); setSaved(false);
     try {
       const blob = await downscale(file);
       const db = supabaseBrowser();
       const path = `${crypto.randomUUID()}.webp`;
-      const { error: upErr } = await db.storage
-        .from('recipe-photos').upload(path, blob, { contentType: 'image/webp' });
-      if (upErr) throw upErr;
+      const { error: upErr } = await withTimeout(
+        db.storage.from('recipe-photos').upload(path, blob, { contentType: 'image/webp' }),
+        45_000, 'the upload',
+      );
+      /* Surface the real reason, code and all. A generic "upload failed" sent us
+         hunting through Supabase logs for an error that was never there. */
+      if (upErr) {
+        const code = (upErr as { statusCode?: string | number }).statusCode;
+        throw new Error(code ? `${upErr.message} (${code})` : upErr.message);
+      }
 
       /* A short signed URL, for the preview in this form only.
          What gets SAVED is the path — see lib/photos.ts. This used to mint a
@@ -70,6 +130,7 @@ export default function PhotoField({
       const { data } = await db.storage
         .from('recipe-photos').createSignedUrl(path, 60 * 10);
       setPreview(data?.signedUrl ?? null);
+      setSaved(true);
 
       // Replacing a photo must delete the old object, or orphans accumulate
       // forever in a bucket nobody ever looks at.
@@ -79,25 +140,51 @@ export default function PhotoField({
     } catch (e) {
       setError(e instanceof Error ? e.message : 'upload failed');
     } finally {
-      setBusy(false);
+      setUploading(false);
     }
   }
 
+  /* The toast fades itself. It confirms the upload, NOT the save — the wording says
+     so, because the photo is in Storage the moment this appears but the recipe row
+     does not point at it until Save. */
+  useEffect(() => {
+    if (!saved) return;
+    const t = setTimeout(() => setSaved(false), 4000);
+    return () => clearTimeout(t);
+  }, [saved]);
+
   return (
     <div className={styles.wrap}>
-      {value && preview && (
-        // eslint-disable-next-line @next/next/no-img-element -- signed Storage URL
-        <img src={preview} alt="" className={styles.preview} />
+      {/* The preview slot doubles as the progress surface. A word inside one button
+          was the only sign an upload was happening, and on a phone the button is
+          below the fold while the photo area is what you are looking at. */}
+      {(preview || busy) && (
+        <div className={styles.previewWrap}>
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element -- signed Storage URL
+            <img src={preview} alt="" className={styles.preview} />
+          )}
+          {busy && (
+            <div className={styles.overlay}>
+              <Loading size="inline" label={t('form.uploading')} />
+              <span className={styles.overlayText}>{t('form.uploading')}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {saved && !busy && (
+        <p className={styles.toast} role="status">{t('form.photoSaved')}</p>
       )}
 
       <div className={styles.buttons}>
         <button type="button" className={styles.drop} disabled={busy}
           onClick={() => camera.current?.click()}>
-          📷 {busy ? 'Uploading…' : 'Take photo'}
+          {busy ? t('form.uploading') : t('form.takePhoto')}
         </button>
         <button type="button" className={styles.drop} disabled={busy}
           onClick={() => gallery.current?.click()}>
-          🖼 From gallery
+          {t('form.fromGallery')}
         </button>
         {value && (
           <button type="button" className={styles.remove} disabled={busy}

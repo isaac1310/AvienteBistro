@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import Arrow from './Arrow';
 import styles from './BackLink.module.css';
 
 /**
@@ -15,7 +18,7 @@ import styles from './BackLink.module.css';
 export default function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link href={href} className={styles.back}>
-      <span aria-hidden="true">←</span> {label}
+      <Arrow /> {label}
     </Link>
   );
 }

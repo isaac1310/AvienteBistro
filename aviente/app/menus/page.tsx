@@ -7,6 +7,7 @@ import PageTitle from '@/components/PageTitle';
 import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
+import Motif from '@/components/Motif';
 import styles from './menus.module.css';
 
 export const metadata = { title: 'Aviente — Menus' };
@@ -37,6 +38,11 @@ export default async function MenusPage({
         </div>
 
         <PageHeader>
+          {/* The drawing above the name, the way a category page carries its plate —
+              it is part of what the page is called, not decoration beside it. */}
+          <span className={styles.headMotif}>
+            <Motif name="menu_card" size={64} strokeWidth={1.5} />
+          </span>
           <PageTitle eyebrow={t('menus.title')}>{t('menus.history')}</PageTitle>
         </PageHeader>
 
@@ -47,6 +53,11 @@ export default async function MenusPage({
           </p>
           {menus.length === 0 && (
             <div className={`card ${styles.empty}`}>
+              {/* Four of nine category pages ship empty and this one does too until
+                  the first Friday is planned, so it is a screen people actually see —
+                  drawn rather than two lines of apology. */}
+              <Motif name="menu_card" size={92} strokeWidth={1.3}
+                className={styles.emptyMotif} />
               <p className={styles.emptyTitle}>{t('menus.none')}</p>
               <p className={styles.emptyBody}>{t('menus.noneBody')}</p>
             </div>
@@ -60,7 +71,13 @@ export default async function MenusPage({
                   <li key={m.id}>
                     <Link href={`/menus/${m.id}`} className={`card ${styles.row} ${styles.next}`}>
                       <span className={styles.when}>
-                        🕯 {cardDate(new Date(`${m.date}T12:00:00`))}
+                        {/* Sized in CSS: `candle` is the one PORTRAIT motif, and
+                            Motif's height = size * 0.82 assumes a landscape drawing —
+                            so `size={16}` letterboxed a 40x90 frame into a 16x13 box
+                            and the candle came out six pixels wide. */}
+                        <Motif name="candle" size={16} strokeWidth={2.2}
+                          className={styles.rowCandle} />{' '}
+                        {cardDate(new Date(`${m.date}T12:00:00`))}
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
@@ -112,8 +129,9 @@ export default async function MenusPage({
                       className={`card ${styles.row} ${styles.suggestion}`}
                     >
                       <span className={styles.when}>
-                        {s.occasion.ornament === 'apple' ? '🍎'
-                          : s.occasion.ornament === 'candles' ? '🕯' : '✡'}{' '}
+                        <Motif
+                          name={s.occasion.ornament === 'apple' ? 'apple' : 'candle'}
+                          size={16} strokeWidth={2.4} />{' '}
                         {cardDate(s.date)}
                       </span>
                       <span className={styles.name}>{s.occasion.title}</span>

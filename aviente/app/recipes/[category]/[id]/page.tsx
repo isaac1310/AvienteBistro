@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import CategoryPlate from '@/components/CategoryPlate';
+import ExportPdfButton from '@/components/ExportPdfButton';
+import Arrow from '@/components/Arrow';
+import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import RecipeHistory from '@/components/RecipeHistory';
@@ -73,8 +76,11 @@ export default async function RecipePage({ params }: Params) {
   return (
     <article className={styles.page}>
       {recipe.photo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- signed Storage URLs
-        <img src={recipe.photo_url} alt="" className={styles.hero} />
+        /* Falls back to the plate if the object is missing — see RecipePhoto. One
+           recipe in the book has a photo_path pointing at nothing, and the hero is
+           where a broken-image icon is largest. */
+        <RecipePhoto src={recipe.photo_url} category={recipe.category}
+          className={styles.hero} heroPlate />
       ) : (
         /* The blueprint plate for this category, at hero size, with its caption.
            This slot still had the old emoji-on-a-tinted-block placeholder: the new
@@ -90,7 +96,9 @@ export default async function RecipePage({ params }: Params) {
       )}
 
       <div className={styles.overlay}>
-        <Link href={`/recipes/${category}`} className={styles.chip}>←</Link>
+        {/* The overlay chip. Was a bare ←, which points the wrong way in Hebrew. */}
+        <Link href={`/recipes/${category}`} className={styles.chip}
+          aria-label={t('book.back')}><Arrow /></Link>
         <Link href={`/recipes/${category}/${id}/edit`} className={styles.chip}>{t('recipe.edit')}</Link>
       </div>
 
@@ -168,7 +176,11 @@ export default async function RecipePage({ params }: Params) {
 
         <div className={styles.actions}>
           <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
-          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('recipe.exportPdf')}</a>
+          {/* Two actions, because these were one and it was mislabelled: the button
+              said "Export PDF" and opened the print PAGE, downloading nothing. */}
+          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
+          <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
+            className="btn btn--ghost" />
         </div>
 
         <div className={styles.history}>

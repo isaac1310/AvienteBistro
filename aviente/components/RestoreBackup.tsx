@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 import { restoreBackup, undoImport, type ImportResult } from '@/lib/importMutations';
 import { normalizeDocument } from '@/lib/recipeParse.mjs';
 import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
+import { useT } from './LangProvider';
+import Motif from './Motif';
 import styles from './RestoreBackup.module.css';
 
 /* Restore, as its own flow rather than a mode of /import.
@@ -23,6 +25,7 @@ type Parsed = {
 };
 
 export default function RestoreBackup() {
+  const t = useT();
   const file = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<Parsed | null>(null);
@@ -107,7 +110,7 @@ export default function RestoreBackup() {
       </p>
 
       <button type="button" className="btn btn--ghost" onClick={() => file.current?.click()}>
-        📂 Choose a backup file{fileName ? ` · ${fileName}` : ''}
+        <><Motif name="folder" size={18} /> {t('restore.chooseFile')}</>{fileName ? ` · ${fileName}` : ''}
       </button>
       <input
         ref={file} type="file" accept=".json,application/json" hidden

@@ -3,14 +3,20 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
-import { COURSES, categoryLabel, type CourseKey, type RecipeSummary } from '@/lib/constants';
+import { COURSES, DEFAULT_COURSE_ORDER, categoryLabel, courseLabelEn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import { useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
 
 /* §3.5 — the menu builder. */
 
-type Row = { key: string; recipe: RecipeSummary; course: CourseKey };
+type Row = {
+  key: string;
+  recipe: RecipeSummary;
+  course: CourseKey;
+  /** The italic line under the dish on the card. Per-meal, not per-recipe. */
+  note: string;
+};
 
 export default function MenuBuilder({
   recipes, initial, occasion,
@@ -19,7 +25,8 @@ export default function MenuBuilder({
   initial: {
     id?: string; date: string; meal_time: 'evening' | 'day'; title: string | null;
     language: 'en' | 'he'; chef_notes: string | null;
-    items: { recipe_id: string; course: CourseKey }[];
+    course_order: CourseKey[] | null;
+    items: { recipe_id: string; course: CourseKey; note?: string | null }[];
   };
   /* The occasion for this date, resolved BOTH ways on the server. A Jewish day
      begins at sundown, so the same Friday is Shabbat in the evening and an ordinary
@@ -37,8 +44,17 @@ export default function MenuBuilder({
   const [notes, setNotes] = useState(initial.chef_notes ?? '');
   const [rows, setRows] = useState<Row[]>(
     initial.items
-      .map((i) => ({ key: crypto.randomUUID(), recipe: byId.get(i.recipe_id)!, course: i.course }))
+      .map((i) => ({
+        key: crypto.randomUUID(), recipe: byId.get(i.recipe_id)!, course: i.course,
+        note: i.note ?? '',
+      }))
       .filter((r) => r.recipe),
+  );
+  /* Which courses this menu runs, in order. A Friday dinner opens with challah and
+     runs six; a Tuesday lunch is a main and a salad. The app already knows which is
+     being planned, so it stopped being a global decision. */
+  const [order, setOrder] = useState<CourseKey[]>(
+    initial.course_order?.length ? initial.course_order : DEFAULT_COURSE_ORDER,
   );
   const [picking, setPicking] = useState<CourseKey | null>(null);
   /* When set, the picker REPLACES this row instead of appending. Changing a dish
@@ -61,7 +77,10 @@ export default function MenuBuilder({
   /* What the printed card will actually say. Save falls back to the occasion when
      the field is blank, so the preview has to apply the SAME fallback — otherwise
      the preview and the card disagree, which is worse than having no preview. */
-  const effectiveTitle = title.trim() || suggested || 'Menu';
+  /* No 'Menu' tail. A blank field with no occasion means the card HAS no title, and
+     the preview has to show that rather than inventing a word the card will not
+     print. The occasion fallback stays, because save applies it too. */
+  const effectiveTitle = title.trim() || suggested || null;
 
   /* Has anything been touched? Compared against the props we were handed, so
      opening an existing menu and pressing Cancel is silent, while abandoning ten
@@ -71,9 +90,12 @@ export default function MenuBuilder({
     || title !== (initial.title ?? '')
     || language !== initial.language
     || notes !== (initial.chef_notes ?? '')
+    || order.join() !== (initial.course_order?.length
+      ? initial.course_order : DEFAULT_COURSE_ORDER).join()
     || rows.length !== initial.items.length
     || rows.some((r, i) => r.recipe.id !== initial.items[i]?.recipe_id
-      || r.course !== initial.items[i]?.course);
+      || r.course !== initial.items[i]?.course
+      || r.note !== (initial.items[i]?.note ?? ''));
 
   function onCancel() {
     if (dirty && !confirm(t('menu.leave'))) return;
@@ -95,10 +117,44 @@ export default function MenuBuilder({
       setRows(rows.map((r) => (r.key === swapping ? { ...r, recipe } : r)));
       setSwapping(null);
     } else {
-      setRows([...rows, { key: crypto.randomUUID(), recipe, course }]);
+      setRows([...rows, { key: crypto.randomUUID(), recipe, course, note: '' }]);
     }
     setPicking(null);
     setQuery('');
+  }
+
+  /* Which sections the builder shows: the chosen order, plus any course that holds
+     dishes without being in it. Exactly what the card will print — the same helper,
+     so the builder cannot promise an arrangement the card does not honour. */
+  const shownCourses = coursesForMenu(order, rows.map((r) => r.course));
+  const hidden = COURSES.map((c) => c.key).filter((k) => !shownCourses.includes(k));
+
+  function moveCourse(key: CourseKey, delta: number) {
+    /* Reordering acts on the CHOSEN order, not on what is displayed. A course only
+       shown because it holds dishes has no place in the list to swap with, so moving
+       it adds it first — which is also the honest reading of the gesture: arranging a
+       section is choosing to have it. */
+    const base = order.includes(key) ? order : [...order, key];
+    const i = base.indexOf(key);
+    const j = i + delta;
+    if (j < 0 || j >= base.length) return;
+    const copy = [...base];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setOrder(copy);
+  }
+
+  function hideCourse(key: CourseKey) {
+    /* Turning off a section that holds dishes asks first, the way turning off a
+       populated kids day does. And it does NOT remove the dishes: they keep printing,
+       appended at the end, because hiding is not deleting. Saying so is the point —
+       silently dropping somebody's dish off a printed card is the worst thing this
+       app could do. */
+    const held = rows.filter((r) => r.course === key).length;
+    const ask = held === 1
+      ? t('menu.courseHasDishes.one')
+      : t('menu.courseHasDishes', { n: held });
+    if (held && !confirm(ask)) return;
+    setOrder(order.filter((k) => k !== key));
   }
 
   function move(key: string, delta: number) {
@@ -121,7 +177,12 @@ export default function MenuBuilder({
         title: title.trim() || suggested,
         language,
         chef_notes: notes,
-        items: rows.map((r) => ({ recipe_id: r.recipe.id, course: r.course })),
+        /* Stored only when it differs from the default, so a menu nobody rearranged
+           keeps following the app rather than freezing today's default into a row. */
+        course_order: order.join() === DEFAULT_COURSE_ORDER.join() ? null : order,
+        items: rows.map((r) => ({
+          recipe_id: r.recipe.id, course: r.course, note: r.note.trim() || null,
+        })),
       });
       router.push(`/menus/${id}`);
       router.refresh();
@@ -155,7 +216,7 @@ export default function MenuBuilder({
       <div className={styles.preview} aria-live="polite">
         <span className={styles.previewTag}>{t('menu.onTheCard')}</span>
         <p className={styles.previewDate}>{cardDate(new Date(`${date}T18:00:00`))}</p>
-        <p className={styles.previewTitle}>{effectiveTitle}</p>
+        {effectiveTitle && <p className={styles.previewTitle}>{effectiveTitle}</p>}
         <p className={styles.previewNote}>
           {title.trim()
             ? (rows.length === 1 ? t('menu.dishes.one') : t('menu.dishes.many', { n: rows.length }))
@@ -211,11 +272,29 @@ export default function MenuBuilder({
         </div>
       </div>
 
-      {COURSES.map((course) => {
-        const dishes = rows.filter((r) => r.course === course.key);
+      {shownCourses.map((key, ci) => {
+        const dishes = rows.filter((r) => r.course === key);
+        /* A course NOT in the order but holding dishes is still shown — the same rule
+           the card follows. It is marked, because otherwise a section that reappears
+           after being turned off looks like the toggle failed. */
+        const extra = !order.includes(key);
         return (
-          <section key={course.key} className={styles.course}>
-            <h2 className={styles.courseName}>{course.en}</h2>
+          <section key={key} className={styles.course}>
+            <div className={styles.courseHead}>
+              <h2 className={styles.courseName}>
+                {courseLabelEn(key)}
+                {extra && <span className={styles.courseFlag}>{t('menu.courseKept')}</span>}
+              </h2>
+              <div className={styles.courseTools}>
+                <button type="button" className={styles.move} aria-label={t('menu.courseUp')}
+                  disabled={ci === 0} onClick={() => moveCourse(key, -1)}>↑</button>
+                <button type="button" className={styles.move} aria-label={t('menu.courseDown')}
+                  disabled={ci === shownCourses.length - 1}
+                  onClick={() => moveCourse(key, 1)}>↓</button>
+                <button type="button" className={styles.move} aria-label={t('menu.courseOff')}
+                  onClick={() => hideCourse(key)}>✕</button>
+              </div>
+            </div>
 
             {dishes.map((row) => {
               return (
@@ -232,6 +311,20 @@ export default function MenuBuilder({
                       {categoryLabel(row.recipe.category).en}
                       {row.recipe.source_name && ` · ${row.recipe.source_name}`}
                     </p>
+                    {/* The line that appears in italic under the dish on the card.
+                        It could not be written anywhere before: saveMenu copied the
+                        recipe's own description, so the only way to change what the
+                        card said was to edit the recipe — which rewrites it on every
+                        card that dish has ever appeared on. */}
+                    <input
+                      className={styles.noteField}
+                      value={row.note}
+                      lang="he"
+                      placeholder={t('menu.dishNote')}
+                      aria-label={t('menu.dishNote')}
+                      onChange={(e) => setRows(rows.map((x) =>
+                        x.key === row.key ? { ...x, note: e.target.value } : x))}
+                    />
                   </div>
                   <button type="button" aria-label={t('menu.changeDish')} className={styles.swap}
                     onClick={() => { setSwapping(row.key); setPicking(row.course); }}>↻</button>
@@ -241,12 +334,28 @@ export default function MenuBuilder({
               );
             })}
 
-            <button type="button" className={styles.add} onClick={() => setPicking(course.key)}>
+            <button type="button" className={styles.add} onClick={() => setPicking(key)}>
               {t('menu.addDish')}
             </button>
           </section>
         );
       })}
+
+      {/* Bringing a course back. Only ever lists what is not already on screen, so it
+          disappears once the menu runs all six. */}
+      {hidden.length > 0 && (
+        <div className={styles.addCourse}>
+          <span className={styles.label}>{t('menu.addCourse')}</span>
+          <div className={styles.addCourseRow}>
+            {hidden.map((key) => (
+              <button key={key} type="button" className={styles.courseChip}
+                onClick={() => setOrder([...order, key])}>
+                ＋ {courseLabelEn(key)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className={styles.field}>
         <span className={styles.label}>{t('menu.chefNotes')}</span>

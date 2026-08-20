@@ -29,9 +29,11 @@ import styles from './page.module.css';
    match each other in weight. The bear stays the one cheerful motif, matching the
    planner it leads to. */
 const ACTIONS: { href: string; icon: IconName; name: Key; hint: Key; kid?: boolean }[] = [
+  /* Adding a recipe first. It is the thing this app is for, and it was third —
+     behind the kids planner, which is the feature you open once a week. */
+  { href: '/add',       icon: 'add_recipe',  name: 'home.add',      hint: 'home.add.hint' },
   { href: '/kids',      icon: 'kids_bear',   name: 'home.kids',     hint: 'home.kids.hint', kid: true },
   { href: '/menus/new', icon: 'menu_candle', name: 'home.menu',     hint: 'home.menu.hint' },
-  { href: '/add',       icon: 'add_recipe',  name: 'home.add',      hint: 'home.add.hint' },
   { href: '/settings',  icon: 'settings',    name: 'home.settings', hint: 'home.settings.hint' },
 ];
 

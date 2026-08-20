@@ -1,0 +1,18 @@
+/* The loader beside the word, both inside the button, so the button does not change
+   size while it works — a button that resizes mid-wait moves everything under it. */
+.busy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.error {
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid #d9b3b3;
+  border-inline-start: 2px solid #8c2b2b;
+  background: #fdf4f4;
+  color: #8c2b2b;
+  font-size: var(--t-small);
+  border-radius: var(--radius);
+}

@@ -114,6 +114,27 @@ if (!WRITE) {
     await svc(`family_members?id=eq.${row[0].id}`, { method: 'DELETE' });
   } else ok('family_members.role rejects an unknown value');
 
+  /* ── 2c · function-only migrations, which check-schema CANNOT see ─────────
+     tools/check-schema.mjs probes for COLUMNS, because it runs with the anon key and
+     RLS hides schema_migrations from anyone without a session. That works for every
+     migration that adds a column and is blind to one that only rewrites a function —
+     migration 16 rewrote fetch_shared_menu to return course_order, and an unapplied
+     16 fails silently: shared cards print the DEFAULT running order while the owner's
+     card prints the chosen one. Nothing errors; the guest simply sees a different
+     menu. So the assertion lives here, where the service key can read the table. */
+  console.log('\nfunction-only migrations');
+  const applied = await svc('schema_migrations?select=version&order=version.desc&limit=1');
+  if (!applied.ok) bad('read schema_migrations', await applied.text());
+  else {
+    const [top] = await applied.json();
+    const need = Number(
+      readFileSync(new URL('../lib/version.ts', import.meta.url), 'utf8')
+        .match(/DB_SCHEMA_VERSION = (\d+)/)?.[1],
+    );
+    if (top?.version >= need) ok(`schema_migrations is at ${top.version}, build needs ${need}`);
+    else bad('the database is behind', `schema_migrations is at ${top?.version}, build needs ${need}`);
+  }
+
   /* ── 3 · a tagged fixture round-trips and is removed ─────────────────────── */
   console.log('\nfixture round trip');
   const made = await svc('family_members', {

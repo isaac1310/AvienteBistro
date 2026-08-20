@@ -1,11 +1,19 @@
 /* The card's own palette — deliberately NOT themed. It is a printed object and
    looks the same whether the app is green or burgundy. */
 .card {
-  --beige: #e9dfc6;
-  --panel: #ede4cd;
+  /* The ❦ divider rules are gone with the element: the course motifs separate the
+   sections now, and both together was one ornament too many.
+
+   The sample's ground is a warmer, paler cream than we had, and its type is
+     stronger against it. Measured on #f7f1e3: maroon 9.16:1, ink 13.66:1,
+     descriptions 8.25:1 — all clear of AA, which matters because this is the one
+     surface printed and read at arm's length. */
+  --beige: #efe7d6;
+  --panel: #f7f1e3;
   --frame: #6b5535;
-  --burgundy: #7a2e2e;
-  --cardInk: #2a2417;
+  --burgundy: #6e2b26;
+  --cardInk: #2a2419;
+  --cardInkSoft: #4e463a;
 
   position: relative;
   width: 100%;
@@ -14,20 +22,46 @@
   padding: 34px 30px;
   background: var(--beige);
   color: var(--cardInk);
+  /* Laid-paper texture: two nearly-invisible rulings crossing at right angles. At
+     1.5% they are not a pattern you can see, only a surface that stops the cream
+     reading as flat screen fill — which is what a printed card should not look like.
+     Cheap enough to print, and print-color-adjust keeps it on paper. */
+  background-image:
+    repeating-linear-gradient(90deg,
+      rgba(107, 85, 53, 0.028) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg,
+      rgba(107, 85, 53, 0.022) 0 1px, transparent 1px 4px);
   /* Without this the browser drops every background colour when printing and the
      card comes out as black type on white paper. */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
 
-/* The double frame: 1px outer, 2px inner. */
+/* Two continuous rules. Both sit ABOVE the panel (z-index) — the first attempt was
+   painted and then covered by `.inner`, so only the parts sticking out past the panel
+   showed, which is why it read as four broken pieces.
+   The inner rule's corners are CLIPPED rather than absent: clip-path cuts the border
+   along with the box, so each corner opens at 45° — the sample's notch. */
 .frameOuter,
 .frameInner {
   position: absolute;
+  z-index: 2;
   pointer-events: none;
+  border: 1px solid var(--frame);
 }
-.frameOuter { inset: 12px; border: 1px solid var(--frame); }
-.frameInner { inset: 18px; border: 2px solid var(--frame); }
+
+.frameOuter { inset: 9px; }
+
+.frameInner {
+  inset: 16px;
+  border-width: 1.5px;
+  --notch: 13px;
+  clip-path: polygon(
+    var(--notch) 0, calc(100% - var(--notch)) 0,
+    100% var(--notch), 100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%, var(--notch) 100%,
+    0 calc(100% - var(--notch)), 0 var(--notch));
+}
 
 .fleuron {
   position: absolute;
@@ -44,15 +78,21 @@
 .inner {
   position: relative;
   background: var(--panel);
-  padding: 26px 22px 30px;
+  padding: 34px 26px 34px;
   text-align: center;
 }
 
+/* Top corner, out of the title's way. Centred above the name of the meal it competed
+   with it; the sample tucks it into the corner where it is available without being
+   announced. Absolute so it takes no vertical space from the composition. */
 .date {
-  margin: 0 0 18px;
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 2px;
+  margin: 0;
   font-family: var(--san);
-  font-size: 9px;
-  letter-spacing: 3px;
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
   color: var(--frame);
   font-variant-numeric: tabular-nums;
 }
@@ -61,16 +101,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
 }
 
+/* Large, burgundy, and allowed to run to two lines — the sample's title is the loudest
+   thing on the card and ours was competing with the dish names at 25px in ink. */
 .title {
   font-family: var(--ser);
   font-weight: 500;
-  font-size: 25px;
-  line-height: 1.2;
+  /* Sized to break into TWO lines, which is the shape asked for: at 34px on a phone
+     "Aviente Family Shabbat Dinner" fell to four, and a four-line title on a card
+     this small stops reading as a heading. `balance` then chooses the midpoint, so
+     the break lands between the family and the meal rather than after one word. */
+  font-size: clamp(23px, 6.4vw, 33px);
+  line-height: 1.14;
   margin: 0;
-  color: var(--cardInk);
+  /* It has to be allowed to take the row's remaining width; without min-width:0 a
+     flex child refuses to shrink below its longest word. */
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--burgundy);
   text-wrap: balance;
 }
 
@@ -84,34 +134,64 @@
 
 .course { margin-top: 18px; }
 
-.divider {
-  margin: 16px 0;
-  font-size: 11px;
-  color: var(--frame);
-  /* ❦ centred on a hairline rule */
-  position: relative;
+
+/* The sample sets courses in the serif at a readable size, not as tiny tracked small
+   caps — which is why its hierarchy is stronger. The motif sits on the line beside the
+   word. */
+.courseName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-family: var(--ser);
+  /* Bold, per Itzik: the French course name is the card's structure and it was
+     competing with the dish names at the same weight. */
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+  color: var(--burgundy);
 }
-.divider::before,
-.divider::after {
+
+.courseMotif { color: var(--burgundy); opacity: 0.9; }
+
+/* A drawn rule between courses.
+   Space alone was doing this job, and on a card with six sections the eye could not
+   tell a long course from the start of the next one. This is the sample's device: a
+   burgundy hairline that fades at both ends, interrupted in the middle by a small
+   lozenge in the card's ink — burgundy for the line, black for the mark, so the two
+   read as one ornament rather than two.
+   Drawn with gradients and a rotated square, not a glyph: ❦ and its relatives are
+   typographic ornaments that render differently on every device and print at whatever
+   weight the fallback serif happens to carry. */
+.course + .course { margin-top: 24px; }
+.course + .course::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin: 0 auto 22px;
+  width: min(62%, 200px);
+  background:
+    linear-gradient(90deg,
+      transparent,
+      color-mix(in srgb, var(--burgundy) 55%, transparent) 22%,
+      color-mix(in srgb, var(--burgundy) 55%, transparent) 78%,
+      transparent);
+}
+/* The lozenge, centred on the rule. It sits on the section rather than on the rule's
+   own box so it can overlap the line without a second pseudo-element on ::before. */
+.course + .course { position: relative; }
+.course + .course::after {
   content: '';
   position: absolute;
-  top: 50%;
-  width: 28%;
-  height: 1px;
-  background: var(--frame);
-  opacity: 0.55;
-}
-.divider::before { left: 6%; }
-.divider::after { right: 6%; }
-
-.courseName {
-  margin: 0 0 10px;
-  font-family: var(--san);
-  font-weight: 500;
-  font-size: 9.5px;
-  letter-spacing: 3.5px;
-  text-transform: uppercase;
-  color: var(--burgundy);
+  top: -2.5px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--cardInk);
+  /* The ground shows through around the mark, so the rule appears to pass behind it. */
+  box-shadow: 0 0 0 4px var(--panel);
 }
 
 .dish + .dish { margin-top: 12px; }
@@ -127,11 +207,15 @@
 }
 
 .dishName {
+  /* Delicate, not bold. With the course heading in bold burgundy above it, a bold
+     dish name gave the card two competing voices and no hierarchy — the eye had
+     nowhere to land first. The dish is the content; the course is the label. */
+  font-weight: 400;
   margin: 0;
   font-family: var(--ser);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.3;
-  color: var(--cardInk);
+  color: var(--cardInkSoft);
 }
 
 .dishDesc {
@@ -140,9 +224,9 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.45;
-  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
-     under AA. #4e463a clears it and is indistinguishable at a glance. */
-  color: #4e463a;
+  /* The token, not a literal: the ground moved to the sample's paler cream and a
+     hardcoded value would have stopped being the measured one. 8.25:1 there. */
+  color: var(--cardInkSoft);
 }
 .dishDesc[lang='he'] { direction: rtl; }
 
@@ -160,31 +244,32 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.5;
-  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
-     under AA. #4e463a clears it and is indistinguishable at a glance. */
-  color: #4e463a;
+  /* The token, not a literal: the ground moved to the sample's paler cream and a
+     hardcoded value would have stopped being the measured one. 8.25:1 there. */
+  color: var(--cardInkSoft);
 }
 
 /* ── the candles ────────────────────────────────────────────────────────── */
-
+/* The blueprint drawing now, so it belongs to the same hand as everything else.
+   It was three solid-filled boxes: a cream stem, a gold base, a gradient flame —
+   solid fill being the one thing this drawing language never does. */
 .candle {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+  /* Thin and long. The width is what matters here — every pixel it takes is a pixel
+     the title has to wrap inside. */
+  width: 22px;
+  height: 74px;
+  flex: 0 0 22px;
+  color: var(--frame);
+  opacity: 0.8;
+  /* The flame should sit level with the title, not with its baseline. */
+  align-self: center;
   flex: 0 0 auto;
 }
 
-.flame {
-  width: 7px;
-  height: 11px;
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  background: radial-gradient(ellipse at 50% 62%, #e8a13c 0%, #c47a2a 100%);
-  margin-bottom: 2px;
-}
-
-.wax { width: 4px; height: 26px; background: #d9cfb4; }
-.base { width: 10px; height: 3px; background: #a8905e; }
-
 @media print {
   .card { max-width: none; width: 100%; box-shadow: none; }
+  /* A fixed size on paper. The screen title is clamped against `vw`, which in print
+     resolves against the SHEET — so the A4 PDF would silently pick a different size
+     than anything ever looked at on a screen. */
+  .title { font-size: 33px; }
 }

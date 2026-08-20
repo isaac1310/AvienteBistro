@@ -35,7 +35,17 @@
   align-items: center; padding: var(--sp-3) var(--sp-4); }
 .title { margin: 0; font-family: var(--ser); font-size: 1.125rem; color: var(--primary); }
 .meta { margin: 0; font-size: 0.75rem; color: var(--ink-soft); }
-.warn { margin: 2px 0 0; font-size: 0.75rem; color: var(--gold-ink); }
+.warn {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--gold-ink);
+  /* The mark sits on the line with the text rather than above it, so a two-line
+     warning stays one block. */
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+.warnMark { flex: 0 0 auto; margin-top: 1px; }
 
 .error { margin: 0; padding: var(--sp-3); border: 1px solid #d9b3b3;
   border-left: 2px solid #8c2b2b; background: #fdf4f4; color: #8c2b2b;
@@ -65,3 +75,28 @@
 .dupe { display: flex; align-items: baseline; gap: var(--sp-3);
   font-size: var(--t-small); line-height: 1.5; cursor: pointer; min-height: 32px; }
 .dupe input { accent-color: var(--primary); width: 18px; height: 18px; flex: 0 0 auto; }
+
+/* The preview title, editable in place. It reads as the heading it replaced until
+   focused — a field that announces itself as a field on every row would make the
+   preview look like a form to fill in rather than a list to check. */
+.titleField {
+  font: inherit;
+  font-family: var(--ser);
+  font-size: 1.125rem;
+  color: var(--primary);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--sp-2);
+  margin: 0 0 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+.titleField:hover { border-color: var(--card-border); }
+.titleField:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--card);
+}
+
+.rowLink { color: var(--primary); }

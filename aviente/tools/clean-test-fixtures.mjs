@@ -61,13 +61,48 @@ ${untagged.map((r) => `    ${r.title}`).join('\n')}
   process.exit(1);
 }
 
-if (!doomed?.length) { console.log('nothing to clean.'); process.exit(0); }
+/* Recipes first, when there are any. The early exit here used to be
+   `if (!doomed.length) process.exit(0)` — which skipped the MENU cleanup below
+   entirely, so a run that created a fixture menu and no fixture recipe reported
+   "nothing to clean" and left the menu in the database. Found the first time a test
+   needed a menu and not a recipe. Each table is now cleaned on its own terms. */
+if (doomed?.length) {
+  const { error } = await db.from('recipes').delete().like('external_ref', `${FIXTURE_TAG}%`);
+  if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
+}
 
-const { error } = await db.from('recipes').delete().like('external_ref', `${FIXTURE_TAG}%`);
-if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
+/* Menus and kids weeks are tagged through their title / week comment instead.
+   menu_items cascade from menus. */
+const { data: menus, error: menuErr } = await db
+  .from('menus').select('id').like('title', `${FIXTURE_TAG}%`);
+if (menuErr) { console.error(`✗ ${menuErr.message}`); process.exit(1); }
+if (menus?.length) {
+  const { error } = await db.from('menus').delete().like('title', `${FIXTURE_TAG}%`);
+  if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
+}
 
-/* Menus and kids weeks are tagged through their title / week comment instead. */
-await db.from('menus').delete().like('title', `${FIXTURE_TAG}%`);
+/* Kids dishes are tagged through their free text — the only field a test can write
+   freely. Added when free-text dishes arrived and a verification run left
+   "__test__ bread and white cheese" sitting in Friday dinner: a fixture this script
+   could not see is a fixture that becomes real data. */
+const { data: kids, error: kidsErr } = await db
+  .from('kids_meals').select('id').like('free_text', `${FIXTURE_TAG}%`);
+if (kidsErr) { console.error(`✗ ${kidsErr.message}`); process.exit(1); }
+if (kids?.length) {
+  const { error } = await db.from('kids_meals').delete().like('free_text', `${FIXTURE_TAG}%`);
+  if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
+}
 
-console.log(`✓ removed ${doomed.length} test recipe(s) and any test menus.`);
-console.log('  the 13 real recipes are untouched — they carry no fixture tag.');
+if (!doomed?.length && !menus?.length && !kids?.length) {
+  console.log('nothing to clean.'); process.exit(0);
+}
+
+console.log(`✓ removed ${doomed?.length ?? 0} test recipe(s), ${menus?.length ?? 0} test menu(s), ${kids?.length ?? 0} test kids dish(es).`);
+
+/* Counted, not remembered. This line used to read "the 13 real recipes are
+   untouched" — a number hardcoded when the book held 13 recipes, printed as
+   reassurance long after it held forty. A delete tool that states a stale count is
+   worse than one that states none: the one thing it is for is being trusted. */
+const { count } = await db
+  .from('recipes').select('id', { count: 'exact', head: true }).is('deleted_at', null);
+console.log(`  ${count ?? '?'} real recipes untouched — they carry no fixture tag.`);

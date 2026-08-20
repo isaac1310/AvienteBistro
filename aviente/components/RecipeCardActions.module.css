@@ -1,0 +1,33 @@
+/* Down the card's trailing edge, vertically centred. In a column they take no width
+   from the title, which on a phone is the measurement that matters. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline-end: var(--sp-2);
+  flex: 0 0 auto;
+}
+
+.action {
+  display: grid;
+  place-items: center;
+  /* 44px, not the 34 I drew first: the selftest requires every control in main to be
+     at least 44px tall at phone width, and it was right to — these two sit on the
+     trailing edge of a card whose whole surface is a link, which is the worst place
+     for a small target. Two of them stack inside the card's 92px minimum. */
+  width: 40px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--muted-ink);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.action:disabled { opacity: 0.5; }
+
+@media (hover: hover) {
+  .action:hover { background: var(--panel-tint, rgba(0, 0, 0, 0.04)); color: var(--ink); }
+}

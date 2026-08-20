@@ -38,6 +38,10 @@ export const BLUEPRINTS: Record<CategoryKey, Blueprint> = {
     viewBox: "0 0 110 90",
     inner: "<circle cx=\"55\" cy=\"48\" r=\"18\"></circle><circle cx=\"42\" cy=\"34\" r=\"7\"></circle><circle cx=\"68\" cy=\"34\" r=\"7\"></circle><circle cx=\"50\" cy=\"46\" r=\"1.5\" fill=\"currentColor\"></circle><circle cx=\"60\" cy=\"46\" r=\"1.5\" fill=\"currentColor\"></circle><path d=\"M50 54 q5 4 10 0\" stroke-width=\"1.2\"></path><path d=\"M84 60 q6 -8 12 0 q-6 8 -12 0 M92 56 v8\" stroke-width=\"1\" opacity=\".7\"></path>",
   },
+  sauces: {
+    viewBox: "0 0 110 90",
+    inner: "<!-- A sauce boat, continuing the printed series. Drawn to the same conventions as the     other nine: one weight for the object, 1.2 for its handle and spout, a dashed     hairline for the level inside, and a 0.6-opacity flourish above. --><path d=\"M30 48 h48 q-3 20 -14 22 H44 q-11 -2 -14 -22 Z\"></path><path d=\"M78 50 q10 -4 14 2 q-3 5 -11 4\" stroke-width=\"1.2\"></path><path d=\"M30 48 q-9 -3 -12 3 q3 6 11 5\" stroke-width=\"1.2\"></path><path d=\"M36 55 h36\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M50 42 q3 -6 0 -11 M62 42 q3 -5 0 -9\" stroke-width=\"1\" opacity=\".6\"></path><path d=\"M36 74 h36\" stroke-width=\"1\" opacity=\".45\"></path>",
+  },
   other: {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M40 28 v34 M36 28 v10 M44 28 v10\" stroke-width=\"1.2\"></path><path d=\"M36 38 q4 4 8 0\"></path><path d=\"M68 28 q8 4 8 14 q0 8 -6 10 v10\"></path><ellipse cx=\"55\" cy=\"70\" rx=\"32\" ry=\"6\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></ellipse>",

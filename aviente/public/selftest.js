@@ -117,12 +117,19 @@
 
     check('theme switch changes the primary', () => {
       const html = document.documentElement;
-      const before = token('--primary');
       const had = html.getAttribute('data-theme');
-      html.setAttribute('data-theme', 'burgundy');
+      /* Switch to the OTHER theme, not always to burgundy. Hardcoding the target made
+         this fail for anyone whose theme was already burgundy — it set the attribute
+         to the value it already had, nothing changed, and the check reported the app
+         broken. Asserting the app, not the harness (AGENTS.md rule 5). */
+      const other = had === 'burgundy' ? 'green' : 'burgundy';
+      const before = token('--primary');
+      html.setAttribute('data-theme', other);
       const after = token('--primary');
       had ? html.setAttribute('data-theme', had) : html.removeAttribute('data-theme');
-      return before !== after ? true : `--primary did not change: still ${after}`;
+      return before !== after
+        ? true
+        : `--primary stayed ${after} when switching ${had ?? 'green'} → ${other}`;
     });
   }
 
@@ -130,13 +137,27 @@
     group('type');
 
     check('the serif stack resolves, not Times', () => {
-      const h1 = document.querySelector('header h1');
-      if (!h1) return skip('no header wordmark on this page');
-      const fam = css(h1, 'font-family');
+/* Which face is EXPECTED here, rather than one rule for every page.
+         Two corrections live in these four lines:
+           - it asked only for `header h1`, and the wordmark is a <span>, so on the
+             homepage — the page built around it — the check skipped itself and printed
+             a reason, which is what made the skip look acceptable. It had been blind
+             since the header was redesigned.
+           - widening it to any header heading then went RED on /kids, correctly from
+             the check's point of view and wrongly from the app's: that section is set
+             in Baloo 2 on purpose. Demanding one face everywhere asserts a rule the
+             design does not have.
+         So each hook says which face belongs to it. */
+      const wordmark = document.querySelector('[data-wordmark]');
+      const kid = document.querySelector('[data-kid-heading]');
+      const el = wordmark || kid || document.querySelector('header h1');
+      if (!el) return skip('no wordmark, kid heading or header heading on this page');
+      const want = kid && !wordmark ? /Baloo/i : /Cormorant/i;
+      const fam = css(el, 'font-family');
       // The bug this exists for: next/font classes on <body> left --font-* undefined
       // at :root, --ser collapsed, and every heading silently became Times.
-      return /Cormorant/i.test(fam) ? true
-        : `wordmark font-family is "${fam}" — the token stack has collapsed`;
+      return want.test(fam) ? true
+        : `font-family here is "${fam}", expected ${want.source} — the token stack has collapsed`;
     });
 
     check('Cormorant Garamond actually rendered', () =>
@@ -160,6 +181,35 @@
       if (lang === 'he') return eq(dir, 'rtl', 'direction for lang=he');
       if (lang === 'en') return eq(dir, 'ltr', 'direction for lang=en');
       return `<html lang> is ${JSON.stringify(lang)}, expected he or en`;
+    });
+
+    /* No emoji in the chrome.
+       They have been swept out three times and come back every time, because an
+       emoji in a diff is invisible — it looks like content. This scans what is
+       actually RENDERED, which is the only place the question can be settled.
+       Excludes fields and anything holding recipe text: a family is entitled to put
+       an emoji in their own recipe title, and a check that forbade that would be
+       wrong rather than strict. */
+    check('no emoji in the chrome', () => {
+      const EMOJI = /[\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2728}]/u;
+      const roots = [...document.querySelectorAll('nav, header, footer, main, article')];
+      if (!roots.length) return skip('no chrome on this page');
+      const offenders = [];
+      for (const root of roots) {
+        const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walk.nextNode())) {
+          const el = node.parentElement;
+          if (!el) continue;
+          /* Recipe content and anything typed by a person is not chrome. */
+          if (el.closest('input, textarea, [lang="he"][data-user], .dish, .recipeText')) continue;
+          const m = node.nodeValue && node.nodeValue.match(EMOJI);
+          if (m) offenders.push(`${el.tagName.toLowerCase()}: ${JSON.stringify(node.nodeValue.trim().slice(0, 30))}`);
+        }
+      }
+      return offenders.length === 0
+        ? true
+        : `${offenders.length} emoji in the chrome, e.g. ${offenders[0]}`;
     });
 
     /* Latin runs inside an RTL page have bitten three times: "0.5 cup" became

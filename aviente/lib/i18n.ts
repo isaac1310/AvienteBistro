@@ -54,7 +54,10 @@ const DICT = {
   // ── the book ────────────────────────────────────────────────────────────
   'book.eyebrow':      { he: 'הספר',        en: 'The Book' },
   'book.title':        { he: 'מתכונים',     en: 'Recipes' },
-  'book.back':         { he: '← לספר',      en: '← The Book' },
+  /* No arrows in translation strings. They were '← לספר' and '← The Book' — one
+     glyph serving two reading directions, and a Hebrew reader was told to go BACK by
+     an arrow pointing forwards. The glyph is now the Arrow component's job. */
+  'book.back':         { he: 'לספר',        en: 'The Book' },
   'book.empty':        { he: 'אין כאן כלום עדיין', en: 'Nothing here yet' },
   'book.noRecipes':    { he: 'אין מתכונים', en: 'no recipes yet' },
   'book.count.one':    { he: 'מתכון אחד',   en: '1 recipe' },
@@ -63,7 +66,7 @@ const DICT = {
   'book.emptyBody':    { he: 'אין עדיין {category} בספר. אפשר להוסיף את הראשון, או להדביק מתכון מצילום במסך הייבוא.',
                           en: 'No {category} in the book yet. Add the first one, or paste a recipe from a photo on the import screen.' },
   'book.selected':     { he: '{n} נבחרו',   en: '{n} selected' },
-  'book.buildMenu':    { he: 'בניית תפריט →', en: 'Build menu →' },
+  'book.buildMenu':    { he: 'בניית תפריט', en: 'Build menu' },
   'book.here':         { he: '{n} כאן · אפשר להמשיך בקטגוריה אחרת',
                          en: '{n} here · keep going in another category' },
   'book.cancel':       { he: 'ביטול',       en: 'Cancel' },
@@ -129,12 +132,15 @@ const DICT = {
   'form.moveDown':           { he: 'הורדה',   en: 'Move down' },
   'form.removeIngredient':   { he: 'הסרת מרכיב', en: 'Remove ingredient' },
   'form.removeStep':         { he: 'הסרת שלב', en: 'Remove step' },
-  'form.takePhoto':          { he: '📷 צילום', en: '📷 Take photo' },
-  'form.fromGallery':        { he: '🖼 מהגלריה', en: '🖼 From gallery' },
+  'form.takePhoto':          { he: 'צילום',    en: 'Take photo' },
+  'form.fromGallery':        { he: 'מהגלריה',  en: 'From gallery' },
   'form.removePhoto':        { he: 'הסרה',    en: 'Remove' },
   'form.movePhoto':          { he: '↗ העברת התמונה למתכון אחר', en: '↗ Move this photo to another recipe' },
-  'form.uploading':          { he: '📷 מעלה…', en: '📷 Uploading…' },
+  'form.uploading':          { he: 'מעלה…',     en: 'Uploading…' },
+  'form.photoSaved':         { he: 'התמונה הועלתה — לשמור את המתכון כדי לצרף אותה',
+                                en: 'Photo uploaded — save the recipe to attach it' },
   'form.discard':            { he: 'לבטל את השינויים?', en: 'Discard your changes?' },
+  'form.waitForPhoto':       { he: 'רגע, התמונה עולה…', en: 'Waiting for the photo…' },
   'form.meal':               { he: 'ארוחה',   en: 'Meal' },
   'form.breakfast':          { he: 'בוקר',    en: 'Breakfast' },
   'form.lunch':              { he: 'צהריים',  en: 'Lunch' },
@@ -159,6 +165,63 @@ const DICT = {
   'menu.untitled':     { he: 'ללא כותרת',    en: 'Untitled' },
   'menu.cardLang':     { he: 'תיאורים על הכרטיס', en: 'Card descriptions in' },
   'menu.chefNotes':    { he: 'הערות השף',    en: 'Chef’s notes' },
+  /* The loader. 'STILL BAKING' is the artboard's line; the Hebrew is the same idea
+     said the way it would be said out loud, not a gloss of the English. */
+  'loading':           { he: 'טוען',           en: 'Loading' },
+  'loading.baking':    { he: 'באפייה עוד רגע..', en: 'STILL BAKING' },
+  /* The PDF export. The route boots headless Chromium, so the wait is real and the
+     failure modes are worth naming rather than saying "that did not work". */
+  /* Icon-only buttons, so the label is the only thing a screen reader has — it names
+     the recipe, because "delete" on a list of forty is not an action anyone can
+     confirm blind. */
+  /* The delete toast was English on a Hebrew screen, which mattered more once
+     deleting became one tap from every card rather than a trip into the edit form. */
+  'import.editTitle':  { he: 'שם המתכון',      en: 'Recipe name' },
+  'import.goToRecipe': { he: 'למתכון',       en: 'Go to the recipe' },
+  'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
+  'undo.undo':         { he: 'ביטול',           en: 'Undo' },
+  'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },
+  'card.delete':       { he: 'מחיקת {title}',   en: 'Delete {title}' },
+  /* The kids planner, once a slot holds several dishes. */
+  'kids.chefName':     { he: 'שף {name}',       en: 'Chef {name}' },
+  'kids.addAnother':   { he: '＋ עוד משהו',     en: '＋ Something else' },
+  'kids.removeDish':   { he: 'הסרת המנה',       en: 'Remove this dish' },
+  'kids.moveDish':     { he: 'העבר ל…',          en: 'Move to…' },
+  'kids.clearSlot':    { he: 'לרוקן את הארוחה',  en: 'Empty this meal' },
+  'kids.orSomething':  { he: 'או משהו פשוט',     en: 'Or something simple' },
+  'kids.freeTextHint': { he: 'לחם עם גבינה לבנה…', en: 'Bread with white cheese…' },
+  'kids.addFreeText':  { he: 'הוספה',            en: 'Add it' },
+  'kids.hereNow':      { he: 'כאן עכשיו',       en: 'here now' },
+  'kids.moveWhere':    { he: 'להעביר את «{dish}» לאן?', en: 'Move “{dish}” where?' },
+  'settings.downloadPhotos': { he: 'גיבוי התמונות', en: 'Download the photographs' },
+  'sort.label':        { he: 'סדר',            en: 'Sort' },
+  'sort.title':        { he: 'לפי שם',          en: 'By name' },
+  'sort.updated':      { he: 'עודכנו לאחרונה',  en: 'Recently updated' },
+  'sort.created':      { he: 'נוספו לאחרונה',   en: 'Recently added' },
+  'pdf.working':       { he: 'מכינים PDF…',    en: 'Building the PDF…' },
+  'pdf.failed':        { he: 'ה־PDF לא נוצר',  en: 'The PDF could not be made' },
+  'pdf.timeout':       { he: 'לקח יותר מדי זמן. אפשר להשתמש בכפתור ההדפסה, שלא צריך שרת.',
+                          en: 'It took too long. The Print button needs no server.' },
+  /* Arranging the courses of one menu. The names on the CARD stay French; these are
+     builder labels, where English/Hebrew is what the rest of the app speaks. */
+  'menu.addCourse':    { he: 'הוספת מהלך',     en: 'Add a course' },
+  'menu.courseUp':     { he: 'הזזת המהלך למעלה', en: 'Move this course up' },
+  'menu.courseDown':   { he: 'הזזת המהלך למטה',  en: 'Move this course down' },
+  'menu.courseOff':    { he: 'הסרת המהלך',     en: 'Turn this course off' },
+  'menu.courseKept':   { he: 'מודפס בסוף',      en: 'printed at the end' },
+  /* Two forms, because Hebrew counts: "יש 1 מנות" is wrong in a way that reads as
+     machine-written, and this string appears at the moment someone is deciding
+     whether to trust the app with their card. */
+  'menu.courseHasDishes.one': {
+    he: 'במהלך הזה יש מנה אחת. היא תמשיך להופיע בכרטיס, בסוף. להסיר את המהלך?',
+    en: 'This course holds one dish. It will still print, at the end. Turn it off?',
+  },
+  'menu.courseHasDishes': {
+    he: 'במהלך הזה יש {n} מנות. הן ימשיכו להופיע בכרטיס, בסוף. להסיר את המהלך?',
+    en: 'This course holds {n} dishes. They will still print, at the end. Turn it off?',
+  },
+  'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
+                          en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },
   'menu.chooseDish':   { he: 'בחירת מנה',    en: 'Choose a dish' },
   'menu.changeDish':   { he: 'החלפת המנה',   en: 'Change this dish' },
@@ -183,7 +246,7 @@ const DICT = {
   'kids.title':        { he: 'שולחן הילדים', en: 'The Kids’ Table' },
   'kids.pickDishes':   { he: '＋ בחירת מנות', en: '＋ Pick dishes' },
   'kids.pickForWeek':  { he: 'בחירת מנות לשבוע', en: 'Pick dishes for the week' },
-  'kids.fillWeek':     { he: '✨ מילוי השבוע', en: '✨ Fill the week' },
+  'kids.fillWeek':     { he: 'מילוי השבוע', en: 'Fill the week' },
   'kids.prevWeek':     { he: 'שבוע קודם',    en: 'Previous week' },
   'kids.nextWeek':     { he: 'שבוע הבא',     en: 'Next week' },
   'kids.addSomething': { he: '＋ להוסיף משהו', en: '＋ add something' },
@@ -193,6 +256,17 @@ const DICT = {
   'kids.removeFromTray': { he: 'הסרה מהמגש', en: 'Remove from tray' },
   'kids.done':         { he: 'סיום',         en: 'Done' },
   'kids.pickFor':      { he: 'בחירת מנה ל{meal}', en: 'Pick something for {meal}' },
+  'kids.clearWeek':    { he: 'ניקוי השבוע', en: 'Clear week' },
+  /* The blank option in the chef select. It read as an emoji plus "who?" — not a
+     sentence in either language, and the emoji rendered differently per platform. */
+  'kids.whoPlaceholder': { he: 'מי מבשל?', en: 'Who is cooking?' },
+  'kids.clearWeekConfirm': { he: 'לנקות כל הארוחות בשבוע הזה?',
+                             en: 'Clear every meal this week?' },
+  /* The fallback when a mutation throws something that is not an Error. Named rather
+     than a bare "something went wrong": the planner had NO error surface at all, so
+     any wording here is an improvement, but a vague one wastes the fix. */
+  'kids.actionFailed': { he: 'הפעולה לא הושלמה. אפשר לנסות שוב.',
+                          en: 'That did not go through. Try again.' },
   'kids.print':        { he: 'הדפסה למקרר',  en: 'Print for the fridge' },
   'kids.takeOut':      { he: 'להוציא את {day} מהשבוע? {n} ארוחות ינוקו.',
                           en: 'Take {day} out of the week? Its {n} meals will be cleared.' },
@@ -231,12 +305,18 @@ const DICT = {
   'common.browse':    { he: 'לעיין בספר במקום', en: 'Browse instead' },
   'search.title':     { he: 'חיפוש',   en: 'Search' },
   'import.eyebrow':   { he: 'ייבוא',   en: 'Import' },
+  'import.copyPrompt': { he: 'העתקת ההנחיה', en: 'Copy the prompt' },
+  'import.copied':     { he: '✓ הועתק',      en: '✓ Copied' },
+  'import.chooseFile': { he: 'בחירת קובץ JSON', en: 'Choose a .json file' },
   'import.done':      { he: 'יובאו',   en: 'Imported' },
   'import.onDuplicate': { he: 'אם המתכון כבר בספר', en: 'If a recipe is already in the book' },
   'restore.eyebrow':  { he: 'שחזור',   en: 'Restore' },
+  'restore.chooseFile': { he: 'בחירת קובץ גיבוי', en: 'Choose a backup file' },
   'restore.title':    { he: 'שחזור הספר מגיבוי', en: 'Restore the cookbook from a backup' },
   'restore.notYours': { he: 'הדלת הזאת של המנהל', en: 'This door is the admin’s' },
   'menu.editDishes':  { he: 'עריכת המנות', en: 'Edit dishes' },
+  'menu.shareLink':   { he: 'קישור לשיתוף', en: 'Share link' },
+  'menu.stopSharing': { he: 'להפסיק לשתף',  en: 'Stop sharing' },
   'history.title':    { he: '⟲ גרסאות קודמות', en: '⟲ Earlier versions' },
   'photo.move':       { he: 'העברת תמונה', en: 'Move photo' },
   'brand.eyebrow':    { he: 'שרטוטים', en: 'Blueprints' },
@@ -245,7 +325,7 @@ const DICT = {
   'guest.gone':       { he: 'התפריט הזה אינו זמין', en: 'This menu is not available' },
   'guest.savePdf':    { he: 'שמירה כ־PDF', en: 'Save as PDF' },
   'brand.title':      { he: 'הצלחות ללא תמונה', en: 'The no-photo plates' },
-  'common.backToPlanner': { he: '← חזרה לתכנון', en: '← Back to the planner' },
+  'common.backToPlanner': { he: 'חזרה לתכנון', en: 'Back to the planner' },
   'common.print':     { he: 'הדפסה',  en: 'Print' },
   'menus.title':      { he: 'תפריטים', en: 'Menus' },
   'menus.history':    { he: 'היסטוריית תפריטים', en: 'Menu history' },

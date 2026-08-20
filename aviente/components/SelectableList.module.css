@@ -15,7 +15,11 @@
 
 .selectable {
   display: grid; grid-template-columns: auto 1fr; align-items: center;
-  gap: var(--sp-4); padding: var(--sp-4); min-height: 92px; cursor: pointer;
+  /* Matched to RecipeCard's fixed height. These are two different components
+     rendering the same list, and if only one is fixed the whole list changes height
+     the moment select mode is entered. */
+  gap: var(--sp-4); padding: var(--sp-4); height: 104px; cursor: pointer;
+  overflow: hidden;
 }
 .on { border-color: var(--gold-deep); background: color-mix(in srgb, var(--card) 92%, var(--gold)); }
 

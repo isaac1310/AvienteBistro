@@ -1,12 +1,41 @@
-import { COURSES, courseLabel } from '@/lib/constants';
+import { courseLabel, coursesForMenu } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
+import Motif from './Motif';
+import type { MotifName } from '@/lib/motifs.generated';
 import styles from './MenuCard.module.css';
 
-/* The printed artifact (§1, design 3b/5a). Fixed width, never reflowed — it is a
- * card, not a page. On desktop it sits centred; in print it is the whole page.
+/* The printed artifact, redrawn to `menu sample .jpg`. Fixed width, never reflowed —
+ * it is a card, not a page. On desktop it sits centred; in print it is the whole page.
  *
  * Course names stay French whatever the language toggle says; only the dish
- * descriptions change (§5). */
+ * descriptions change (§5).
+ *
+ * What the sample changed, and why each is deliberate:
+ *  - **Corner brackets** instead of ❧ fleurons at the corners. The sample's frame is
+ *    notched — two rules meeting short of the corner — which reads as a printed card
+ *    rather than as a box.
+ *  - **The date moves to the top corner**, small, where the sample puts it. It was
+ *    centred above the title, which made the date compete with the name of the meal.
+ *  - **A motif before each course heading.** The sample uses emoji; ours are drawn,
+ *    and five of them borrow the plate of the same food so a course on the card and
+ *    its shelf in the book are the same object.
+ *  - **Burgundy headings, dark dish names, italic descriptions** — the sample's
+ *    hierarchy, which is stronger than what we had.
+ *
+ * The card stays UNTHEMED. It is a printed object with its own palette, and it looks
+ * identical whichever colour the reader has chosen for the app — a card sent to
+ * someone else should not depend on a setting they cannot see.
+ */
+
+/** One drawing per course, plus the chef's hat closing the card. */
+const COURSE_MOTIF: Record<string, MotifName> = {
+  aperitif: 'course_aperitif',
+  entree: 'course_entree',
+  main: 'course_main',
+  sides: 'course_sides',
+  dessert: 'course_dessert',
+  pain: 'course_pain',
+};
 
 export type CardItem = {
   course: string;
@@ -18,7 +47,7 @@ export type CardItem = {
 };
 
 export default function MenuCard({
-  date, title, subtitle, ornament, language, chefNotes, items,
+  date, title, subtitle, ornament, language, chefNotes, items, courseOrder,
 }: {
   date: string;
   title: string | null;
@@ -27,28 +56,37 @@ export default function MenuCard({
   language: 'en' | 'he';
   chefNotes: string | null;
   items: CardItem[];
+  /** This menu's running order, or null/absent for the app default. */
+  courseOrder?: string[] | null;
 }) {
   const when = cardDate(new Date(`${date}T12:00:00`));
 
-  /* A course with no dishes is omitted entirely. Printing an empty heading makes
-     the card look like something failed to load. */
-  const courses = COURSES
-    .map((c) => ({ ...c, dishes: items.filter((i) => i.course === c.key) }))
+  /* The order comes from the MENU now, not from the catalogue. coursesForMenu also
+     carries the safety rule: a course holding dishes prints even when it is not in
+     the chosen order, appended rather than silently dropped.
+     A course with no dishes is still omitted entirely — printing an empty heading
+     makes the card look like something failed to load. */
+  const courses = coursesForMenu(courseOrder, items.map((i) => i.course))
+    .map((key) => ({
+      key,
+      dishes: items.filter((i) => i.course === key),
+    }))
     .filter((c) => c.dishes.length > 0);
 
   return (
     <article className={styles.card}>
+      {/* Two continuous rules, the inner one with its corners clipped — the sample's
+          frame is a rectangle whose corners are notched, not four separate brackets
+          floating near the corners, which is what the first attempt drew and why it
+          looked unaligned. clip-path cuts the border with the box, so the corner
+          openings are the notch. */}
       <div className={styles.frameOuter} aria-hidden="true" />
       <div className={styles.frameInner} aria-hidden="true" />
 
-      {/* ❧ corner fleurons */}
-      <span className={`${styles.fleuron} ${styles.tl}`} aria-hidden="true">❧</span>
-      <span className={`${styles.fleuron} ${styles.tr}`} aria-hidden="true">❧</span>
-      <span className={`${styles.fleuron} ${styles.bl}`} aria-hidden="true">❧</span>
-      <span className={`${styles.fleuron} ${styles.br}`} aria-hidden="true">❧</span>
-
       <div className={styles.inner}>
-        <p className={styles.date}>{when}</p>
+        {/* Top corner, small — the sample's placement. dir="ltr" because the date is
+            a Latin run and bidi reorders it inside a Hebrew card. */}
+        <p className={styles.date} dir="ltr">{when}</p>
 
         <div className={styles.titleRow}>
           {/* Two CSS-drawn candles flank the title on Shabbat and festivals. */}
@@ -58,10 +96,19 @@ export default function MenuCard({
         </div>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
 
-        {courses.map((course, ci) => (
+        {courses.map((course) => (
           <section key={course.key} className={styles.course}>
-            {ci > 0 && <p className={styles.divider} aria-hidden="true">❦</p>}
-            <h2 className={styles.courseName}>{courseLabel(course.key)}</h2>
+            {/* The motif sits on the heading's line, as in the sample — not on a
+                line of its own, which would space the courses too far apart to read
+                as one menu. The ❦ divider between courses is gone: the motifs do
+                that work now, and both together was one ornament too many. */}
+            <h2 className={styles.courseName}>
+              {COURSE_MOTIF[course.key] && (
+                <Motif name={COURSE_MOTIF[course.key]} size={24} strokeWidth={1.9}
+                  className={styles.courseMotif} />
+              )}
+              {courseLabel(course.key)}
+            </h2>
 
             {course.dishes.map((dish, di) => {
               /* Fallback runs BOTH ways: the corpus is Hebrew, so an English card
@@ -94,8 +141,11 @@ export default function MenuCard({
 
         {chefNotes && (
           <section className={styles.course}>
-            <p className={styles.divider} aria-hidden="true">❦</p>
-            <h2 className={styles.courseName}>Notes du Chef</h2>
+            <h2 className={styles.courseName}>
+              <Motif name="chef_hat" size={24} strokeWidth={1.9}
+                className={styles.courseMotif} />
+              Notes du Chef
+            </h2>
             <p className={styles.notes} lang="he">{chefNotes}</p>
           </section>
         )}
@@ -104,13 +154,17 @@ export default function MenuCard({
   );
 }
 
-/** A drawn candle: flame, wax, base. No image, so it prints at any resolution. */
+/**
+ * The Shabbat candle, from the blueprint set.
+ *
+ * It was three solid-filled CSS boxes — a cream stem, a gold base and a gradient
+ * flame. Solid fills are the one thing the drawing language does not do: every plate,
+ * icon and motif in this app is stroke-only at one weight, so the candles read as
+ * borrowed from somewhere else. Same drawing as the menus list uses for an occasion.
+ */
 function Candle() {
-  return (
-    <span className={styles.candle} aria-hidden="true">
-      <span className={styles.flame} />
-      <span className={styles.wax} />
-      <span className={styles.base} />
-    </span>
-  );
+  /* The box is set in CSS, not by `size`: this is the one portrait motif, and
+     Motif's height = size * 0.82 assumes a landscape drawing. Presentation
+     attributes lose to a stylesheet, so the class wins. */
+  return <Motif name="candle" size={24} strokeWidth={1.6} className={styles.candle} />;
 }

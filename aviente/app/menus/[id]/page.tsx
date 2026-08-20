@@ -7,13 +7,15 @@ import Nav from '@/components/Nav';
 import { getMenu, occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
 import styles from './menu.module.css';
+import Arrow from '@/components/Arrow';
+import { serverT } from '@/lib/lang';
 
 export const metadata = { title: 'Aviente — Menu' };
 
 /* The finished card, plus what you can do with it (§3.6). */
 export default async function MenuPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const menu = await getMenu(id);
+  const [menu, t] = await Promise.all([getMenu(id), serverT()]);
   if (!menu) notFound();
 
   const rules = await occasionRules();
@@ -31,7 +33,7 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
       <Nav current="/menus" />
       <div className={styles.frame}>
         <div className={`shell ${styles.top}`}>
-          <Link href="/menus" className={styles.back}>← Menus</Link>
+          <Link href="/menus" className={styles.back}><Arrow /> {t('nav.menus')}</Link>
         </div>
 
         <div className={styles.cardWrap}>
@@ -50,6 +52,7 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
               description_he: i.dish_description_he,
               credit_name: i.credit_name,
             }))}
+            courseOrder={menu.course_order}
           />
         </div>
 

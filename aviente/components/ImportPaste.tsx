@@ -2,13 +2,20 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { importRecipes, undoImport, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
+import { importRecipes, undoImport, type ImportedRow, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
 import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
 import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
 import { useT } from './LangProvider';
+import Link from 'next/link';
+import Motif from './Motif';
 import styles from './ImportPaste.module.css';
+import Arrow from './Arrow';
+
+/** Where an imported recipe now lives. The category is in the path, which is why the
+ *  import result had to start returning it. */
+const rowHref = (r: ImportedRow) => `/recipes/${r.category}/${r.id}`;
 
 
 /* §3.9 — paste what an AI made of a photograph.
@@ -40,6 +47,10 @@ export default function ImportPaste({
   const [text, setText] = useState('');
   const [copied, setCopied] = useState(false);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
+  /* Titles corrected on the preview card. Keyed by index like the category
+     overrides, and empty until something is actually edited — so an untouched
+     preview passes the parsed title through rather than a copy of it. */
+  const [titles, setTitles] = useState<Record<number, string>>({});
   const [source, setSource] = useState('');
   const [onDuplicate, setOnDuplicate] = useState<OnDuplicate>('skip');
   const [busy, setBusy] = useState(false);
@@ -74,6 +85,7 @@ export default function ImportPaste({
       const inputs: RecipeInput[] = (parsed.recipes as ParsedRecipe[]).map((r, i) =>
         toRecipeInput(r, {
           category: overrides[i] ?? r.category,
+          title: titles[i],
           sourceMemberId: memberIdFor(r.source) ?? (source || null),
         }));
       setResult(await importRecipes(inputs, { onDuplicate }));
@@ -94,10 +106,22 @@ export default function ImportPaste({
           {result.failed.length > 0 && ` · ${result.failed.length} failed`}
         </p>
 
+        {/* A single recipe gets a real button. That is the commonest import by far —
+            one photograph, one dish — and the report used to end with the recipe
+            named as plain text and no way to open it. */}
+        {result.imported.length + result.replaced.length === 1 && (
+          <Link href={rowHref([...result.imported, ...result.replaced][0])} className="btn">
+            {t('import.goToRecipe')} <Arrow dir="forward" />
+          </Link>
+        )}
+
         {result.imported.length > 0 && (
           <ul className={styles.report}>
             {result.imported.map((r) => (
-              <li key={r.id}><span className={styles.ok}>added</span> <span lang="he">{r.title}</span></li>
+              <li key={r.id}>
+                <span className={styles.ok}>added</span>{' '}
+                <Link href={rowHref(r)} className={styles.rowLink} lang="he">{r.title}</Link>
+              </li>
             ))}
           </ul>
         )}
@@ -105,7 +129,8 @@ export default function ImportPaste({
             recipe did not make it, which is the only thing worth knowing. */}
         {result.replaced.map((r) => (
           <p key={r.id} className={styles.line}>
-            <span className={styles.skip}>replaced</span> <span lang="he">{r.title}</span>
+            <span className={styles.skip}>replaced</span>{' '}
+            <Link href={rowHref(r)} className={styles.rowLink} lang="he">{r.title}</Link>
           </p>
         ))}
         {result.skipped.map((r) => (
@@ -151,7 +176,7 @@ export default function ImportPaste({
         <textarea className={styles.prompt} readOnly rows={6} value={PROMPT} />
         <button type="button" className={styles.copy}
           onClick={async () => { await navigator.clipboard.writeText(PROMPT); setCopied(true); }}>
-          {copied ? '✓ Copied' : '📋 Copy the prompt'}
+          {copied ? t('import.copied') : t('import.copyPrompt')}
         </button>
       </section>
 
@@ -164,7 +189,7 @@ export default function ImportPaste({
             speak the same format in both directions. */}
         <div className={styles.fileRow}>
           <button type="button" className={styles.copy} onClick={() => file.current?.click()}>
-            📂 Choose a .json file
+            <><Motif name="folder" size={18} /> {t('import.chooseFile')}</>
           </button>
           {fileName && <span className={styles.fileName}>{fileName}</span>}
         </div>
@@ -231,13 +256,27 @@ export default function ImportPaste({
               return (
                 <li key={i} className={`card ${styles.row}`}>
                   <div>
-                    <p className={styles.title} lang="he">{r.title}</p>
+                    {/* Editable, because an AI-generated title is exactly the thing
+                        you want to fix BEFORE it becomes a row — afterwards it is an
+                        edit to a recipe, and the duplicate check has already run
+                        against the wrong name. */}
+                    <input
+                      className={styles.titleField}
+                      lang="he"
+                      value={titles[i] ?? r.title}
+                      aria-label={t('import.editTitle')}
+                      onChange={(e) => setTitles({ ...titles, [i]: e.target.value })}
+                    />
                     <p className={styles.meta}>
                       {r.ingredients.length} ingredients · {r.steps.length} steps
                       {r.servings ? ` · serves ${r.servings}` : r.yieldText ? ` · ${r.yieldText}` : ''}
                     </p>
                     {r.warnings?.map((w: string) => (
-                      <p key={w} className={styles.warn}>⚠ {w}</p>
+                      <p key={w} className={styles.warn}>
+                        <Motif name="warning" size={15} strokeWidth={2.2}
+                          className={styles.warnMark} />
+                        {w}
+                      </p>
                     ))}
                   </div>
                   <select

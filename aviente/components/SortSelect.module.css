@@ -1,0 +1,41 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.label {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}
+
+.select {
+  font-family: var(--san);
+  font-size: var(--t-small);
+  padding: 6px var(--sp-2);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  /* 44px on a phone. The select is next to "בחירה לתפריט", and two controls on one
+     row are exactly where a small target gets mistapped. */
+  min-height: 38px;
+}
+.select:disabled { opacity: 0.6; }
+
+/* Fixed width, so the row does not jump when the drawing arrives and leaves. */
+.spinner {
+  display: inline-grid;
+  place-items: center;
+  /* Sized and inked to be SEEN. It was 34px in the muted stone, which measured as
+     present and read as nothing. */
+  width: 46px;
+  height: 40px;
+  color: var(--primary);
+}
+/* Loading's own `inline` size is 34px, drawn for a button label. Beside a select, in
+   a row the eye is not looking at, it needs the extra. */
+.spinner { --loader-inline-w: 46px; --loader-inline-h: 40px; }

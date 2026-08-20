@@ -1,17 +1,19 @@
 {
-  "name": "Aviente — The Family Recipe Book",
+  "name": "Aviente — The Family Recipes Cookbook",
   "short_name": "Aviente",
   "description": "The Aviente family cookbook: recipes, menu cards and the kids' week.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1e3a2f",
-  "theme_color": "#1e3a2f",
+  "background_color": "#f7f2e9",
+  "theme_color": "#f7f2e9",
   "lang": "he",
-  "dir": "auto",
+  "dir": "rtl",
   "icons": [
     { "src": "/brand/icon-small.svg", "sizes": "16x16 32x32 48x48", "type": "image/svg+xml" },
-    { "src": "/brand/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/brand/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

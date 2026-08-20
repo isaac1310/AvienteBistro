@@ -32,6 +32,10 @@ const PLATES: Record<CategoryKey, string> = {
   kids:     'PL. VII — LES PETITS',
   other:    'PL. VIII — DIVERS',
   breads:   'PL. IX — PAINS',
+  /* Next number again, for the same reason breads took IX: the delivered set had
+     eight, and renumbering a printed series to insert one in the middle would change
+     the caption on plates people have already seen. */
+  sauces:   'PL. X — SAUCES',
 };
 
 export default function CategoryPlate({

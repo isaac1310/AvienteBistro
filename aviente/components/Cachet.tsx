@@ -51,7 +51,13 @@ export default function Cachet({ variant = 'splash' }: Props) {
       {/* The text-indent matches the letter-spacing: letterspacing adds a trailing
           gap after the final E, which pushes an otherwise centred word left by
           exactly one space. The design does the same thing. */}
-      <span className={styles.word}>AVIENTE</span>
+      {/* data-wordmark is a HOOK FOR THE SUITE, and it earns its keep: the
+          "serif stack resolves, not Times" check looked for `header h1`, which this
+          wordmark has never been. So the check that exists to catch every heading
+          silently becoming Times had been skipping itself on the one element it was
+          written for — with a reason printed, which is what made it look fine.
+          A class cannot be the hook: CSS Module names are hashed at build time. */}
+      <span className={styles.word} data-wordmark>AVIENTE</span>
 
       <span className={styles.taglineWrap}>
         <span className={styles.tagline}>The Family Recipes Cookbook</span>

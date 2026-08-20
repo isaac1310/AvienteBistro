@@ -137,9 +137,15 @@
     group('type');
 
     check('the serif stack resolves, not Times', () => {
-      const h1 = document.querySelector('header h1');
-      if (!h1) return skip('no header wordmark on this page');
-      const fam = css(h1, 'font-family');
+      /* [data-wordmark] first, `header h1` second. This asked only for `header h1`,
+         and the wordmark is a <span> — it has never been an h1 — so on the homepage,
+         the one page built around it, this check skipped itself and said why, which is
+         exactly what made the skip look acceptable. It has been blind since the header
+         was redesigned. Both selectors, so a page with an ordinary heading in its
+         header is still covered. */
+      const el = document.querySelector('[data-wordmark]') || document.querySelector('header h1');
+      if (!el) return skip('no header wordmark or heading on this page');
+      const fam = css(el, 'font-family');
       // The bug this exists for: next/font classes on <body> left --font-* undefined
       // at :root, --ser collapsed, and every heading silently became Times.
       return /Cormorant/i.test(fam) ? true

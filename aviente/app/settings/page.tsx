@@ -56,6 +56,13 @@ export default async function SettingsPage() {
                 <p className={styles.body}>{t('settings.backupBody')}</p>
                 <p className={styles.btnRow}>
                   <a className="btn" href="/api/backup" download>{t('settings.download')}</a>
+                  {/* The images, separately. Two files rather than one because the
+                      JSON is a paste-back format and a zip is not, and because the
+                      recipes must stay restorable even when the photographs are too
+                      large to send. */}
+                  <a className="btn btn--ghost" href="/api/backup/photos" download>
+                    {t('settings.downloadPhotos')}
+                  </a>
                   {/* The other half of a backup. Download lived here alone, so restoring
                       meant knowing that the importer doubles as the restore path —
                       which nobody should have to know. Same screen, both directions. */}

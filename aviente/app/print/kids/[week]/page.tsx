@@ -2,6 +2,7 @@ import { serverT } from '@/lib/lang';
 import KidsArt from '@/components/KidsArt';
 import PrintExit from '@/components/PrintExit';
 import { ANIMALS, MEALS, getKidsWeek, weekLabel } from '@/lib/kids';
+import Motif from '@/components/Motif';
 import styles from './fridge.module.css';
 
 export const metadata = { title: "Aviente — The Kids' Week", robots: { index: false } };
@@ -73,7 +74,9 @@ export default async function FridgePrint({
                       <>
                         <span className={styles.dish} lang="he">{placed.recipe?.title}</span>
                         {placed.chef?.name && (
-                          <span className={styles.chef}>👩‍🍳 {placed.chef.name}</span>
+                          <span className={styles.chef}>
+                            <Motif name="chef_hat" size={14} strokeWidth={2.6} /> {placed.chef.name}
+                          </span>
                         )}
                       </>
                     ) : (

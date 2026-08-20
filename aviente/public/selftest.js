@@ -117,12 +117,19 @@
 
     check('theme switch changes the primary', () => {
       const html = document.documentElement;
-      const before = token('--primary');
       const had = html.getAttribute('data-theme');
-      html.setAttribute('data-theme', 'burgundy');
+      /* Switch to the OTHER theme, not always to burgundy. Hardcoding the target made
+         this fail for anyone whose theme was already burgundy — it set the attribute
+         to the value it already had, nothing changed, and the check reported the app
+         broken. Asserting the app, not the harness (AGENTS.md rule 5). */
+      const other = had === 'burgundy' ? 'green' : 'burgundy';
+      const before = token('--primary');
+      html.setAttribute('data-theme', other);
       const after = token('--primary');
       had ? html.setAttribute('data-theme', had) : html.removeAttribute('data-theme');
-      return before !== after ? true : `--primary did not change: still ${after}`;
+      return before !== after
+        ? true
+        : `--primary stayed ${after} when switching ${had ?? 'green'} → ${other}`;
     });
   }
 
@@ -160,6 +167,35 @@
       if (lang === 'he') return eq(dir, 'rtl', 'direction for lang=he');
       if (lang === 'en') return eq(dir, 'ltr', 'direction for lang=en');
       return `<html lang> is ${JSON.stringify(lang)}, expected he or en`;
+    });
+
+    /* No emoji in the chrome.
+       They have been swept out three times and come back every time, because an
+       emoji in a diff is invisible — it looks like content. This scans what is
+       actually RENDERED, which is the only place the question can be settled.
+       Excludes fields and anything holding recipe text: a family is entitled to put
+       an emoji in their own recipe title, and a check that forbade that would be
+       wrong rather than strict. */
+    check('no emoji in the chrome', () => {
+      const EMOJI = /[\u{1F300}-\u{1FAFF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2728}]/u;
+      const roots = [...document.querySelectorAll('nav, header, footer, main, article')];
+      if (!roots.length) return skip('no chrome on this page');
+      const offenders = [];
+      for (const root of roots) {
+        const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walk.nextNode())) {
+          const el = node.parentElement;
+          if (!el) continue;
+          /* Recipe content and anything typed by a person is not chrome. */
+          if (el.closest('input, textarea, [lang="he"][data-user], .dish, .recipeText')) continue;
+          const m = node.nodeValue && node.nodeValue.match(EMOJI);
+          if (m) offenders.push(`${el.tagName.toLowerCase()}: ${JSON.stringify(node.nodeValue.trim().slice(0, 30))}`);
+        }
+      }
+      return offenders.length === 0
+        ? true
+        : `${offenders.length} emoji in the chrome, e.g. ${offenders[0]}`;
     });
 
     /* Latin runs inside an RTL page have bitten three times: "0.5 cup" became

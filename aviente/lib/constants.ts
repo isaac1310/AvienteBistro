@@ -9,22 +9,26 @@
    place — the course names on the printed menu card — because that is a
    convention of the artifact, not of the software. Category names are app chrome
    and so are English. */
+/* No `emoji` field. It shipped as DATA long after the blueprint plates replaced it on
+   every screen — nine emoji travelling through the app that nothing rendered. Removed
+   rather than left "in case": anything that still wanted one now fails to compile,
+   which is the only reliable way to find out. Drawings live in design/blueprints. */
 export const CATEGORIES = [
-  { key: 'entrees',  en: 'Starters',    he: 'ראשונות',  emoji: '🥗' },
-  { key: 'soups',    en: 'Soups',       he: 'מרקים',    emoji: '🥣' },
-  { key: 'salads',   en: 'Salads',      he: 'סלטים',    emoji: '🥬' },
-  { key: 'mains',    en: 'Mains',       he: 'עיקריות',  emoji: '🍗' },
-  { key: 'sides',    en: 'Sides',       he: 'תוספות',   emoji: '🥔' },
-  { key: 'breads',   en: 'Breads',      he: 'לחמים',    emoji: '🥖' },
-  { key: 'desserts', en: 'Desserts',    he: 'קינוחים',  emoji: '🍰' },
-  { key: 'kids',     en: "Kids' Table", he: 'ילדים',    emoji: '🧸' },
-  { key: 'other',    en: 'Other',       he: 'שונות',    emoji: '🫙' },
+  { key: 'entrees',  en: 'Starters',    he: 'ראשונות' },
+  { key: 'soups',    en: 'Soups',       he: 'מרקים' },
+  { key: 'salads',   en: 'Salads',      he: 'סלטים' },
+  { key: 'mains',    en: 'Mains',       he: 'עיקריות' },
+  { key: 'sides',    en: 'Sides',       he: 'תוספות' },
+  { key: 'breads',   en: 'Breads',      he: 'לחמים' },
+  { key: 'desserts', en: 'Desserts',    he: 'קינוחים' },
+  { key: 'kids',     en: "Kids' Table", he: 'ילדים' },
+  { key: 'other',    en: 'Other',       he: 'שונות' },
 ] as const;
 
 export type CategoryKey = (typeof CATEGORIES)[number]['key'];
 
 export const categoryLabel = (key: string) =>
-  CATEGORIES.find((c) => c.key === key) ?? { key, en: key, he: key, emoji: '🍽' };
+  CATEGORIES.find((c) => c.key === key) ?? { key, en: key, he: key };
 
 export type Unit =
   | 'kg' | 'g' | 'ml' | 'l' | 'cup' | 'pcs' | 'tbsp' | 'tsp' | 'pinch' | 'to taste';

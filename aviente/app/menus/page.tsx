@@ -7,6 +7,7 @@ import PageTitle from '@/components/PageTitle';
 import { serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { cardDate, upcomingOccasions } from '@/lib/occasion';
+import Motif from '@/components/Motif';
 import styles from './menus.module.css';
 
 export const metadata = { title: 'Aviente — Menus' };
@@ -60,7 +61,8 @@ export default async function MenusPage({
                   <li key={m.id}>
                     <Link href={`/menus/${m.id}`} className={`card ${styles.row} ${styles.next}`}>
                       <span className={styles.when}>
-                        🕯 {cardDate(new Date(`${m.date}T12:00:00`))}
+                        <Motif name="candle" size={16} strokeWidth={2.4} />{' '}
+                        {cardDate(new Date(`${m.date}T12:00:00`))}
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
@@ -112,8 +114,9 @@ export default async function MenusPage({
                       className={`card ${styles.row} ${styles.suggestion}`}
                     >
                       <span className={styles.when}>
-                        {s.occasion.ornament === 'apple' ? '🍎'
-                          : s.occasion.ornament === 'candles' ? '🕯' : '✡'}{' '}
+                        <Motif
+                          name={s.occasion.ornament === 'apple' ? 'apple' : 'candle'}
+                          size={16} strokeWidth={2.4} />{' '}
                         {cardDate(s.date)}
                       </span>
                       <span className={styles.name}>{s.occasion.title}</span>

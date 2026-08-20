@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
+import Motif from './Motif';
 import styles from './MenuActions.module.css';
 
 /* Everything you can do with a finished menu: keep it, copy it onto a new date,
@@ -99,7 +100,7 @@ export default function MenuActions({
           </>
         ) : (
           <button className="btn btn--ghost" disabled={busy} onClick={onShare}>
-            🔗 Share link
+            <><Motif name="link" size={18} /> {t('menu.shareLink')}</>
           </button>
         )}
       </div>

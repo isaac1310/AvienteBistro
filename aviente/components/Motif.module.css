@@ -1,0 +1,7 @@
+/* Sits on the text baseline rather than above it: these appear inline beside labels
+   and a drawing floating off the line reads as a mistake. */
+.motif {
+  display: inline-block;
+  vertical-align: -0.18em;
+  flex: 0 0 auto;
+}

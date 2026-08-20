@@ -77,11 +77,17 @@ export default async function BrandSheet() {
           <section className={styles.block}>
             <h2 className={styles.h2}>The loader</h2>
             <p className={styles.note} dir="ltr">
-              A loaf with steam, in the plate language. Replaced a rotating gold
-              diamond that belonged to the retired palette. Only the steam animates,
-              by dash-offset, so the loaf never moves — nothing should jitter at the
-              centre of a page that is about to be replaced. Stops under{' '}
-              <code>prefers-reduced-motion</code>.
+              A baguette on the diagonal, from the delivered artboard, over a dashed
+              ground line. It is the third loader and the only one that is an
+              illustration rather than a motif — the second was a loaf drawn in the
+              110×90 plate grammar, and that grammar is furniture, sized to sit beside
+              a line of text. The thing at the centre of an empty page has to be
+              drawn for the page. Only the steam animates, fading in low and thinning
+              out as it rises, so the bread never moves — nothing should jitter at the
+              centre of a page that is about to be replaced. The steam takes{' '}
+              <code>--primary</code>, so it wears whichever theme is on. Stops under{' '}
+              <code>prefers-reduced-motion</code>, where the curls stay drawn rather
+              than disappearing.
             </p>
             <ul className={styles.heroes}>
               <li className={styles.hero}>

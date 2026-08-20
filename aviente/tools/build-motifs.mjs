@@ -17,7 +17,6 @@ import { writeFileSync } from 'node:fs';
 import { readSvgDir } from './lib/inline-svg.mjs';
 
 const KEYS = [
-  'loader_loaf',
   /* The blueprint sweep: every one of these replaced an emoji in the chrome. */
   'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'link_off',
   'sparkle',

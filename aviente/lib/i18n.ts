@@ -162,6 +162,10 @@ const DICT = {
   'menu.untitled':     { he: 'ללא כותרת',    en: 'Untitled' },
   'menu.cardLang':     { he: 'תיאורים על הכרטיס', en: 'Card descriptions in' },
   'menu.chefNotes':    { he: 'הערות השף',    en: 'Chef’s notes' },
+  /* The loader. 'STILL BAKING' is the artboard's line; the Hebrew is the same idea
+     said the way it would be said out loud, not a gloss of the English. */
+  'loading':           { he: 'טוען',           en: 'Loading' },
+  'loading.baking':    { he: 'עוד באפייה',      en: 'STILL BAKING' },
   'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
                           en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },

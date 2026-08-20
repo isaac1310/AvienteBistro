@@ -30,7 +30,12 @@
 .spinner {
   display: inline-grid;
   place-items: center;
-  width: 34px;
-  height: 30px;
-  color: var(--muted-ink);
+  /* Sized and inked to be SEEN. It was 34px in the muted stone, which measured as
+     present and read as nothing. */
+  width: 46px;
+  height: 40px;
+  color: var(--primary);
 }
+/* Loading's own `inline` size is 34px, drawn for a button label. Beside a select, in
+   a row the eye is not looking at, it needs the extra. */
+.spinner { --loader-inline-w: 46px; --loader-inline-h: 40px; }

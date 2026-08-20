@@ -19,13 +19,26 @@ import styles from './SortSelect.module.css';
  * the query runs: no wordmark and no caption, because this is a control and the page
  * it sits on has not gone anywhere.
  *
- * It is held on screen for a minimum of 500ms, and that is the fix for the loader
- * being invisible in practice. The transition on a warm connection finishes in well
+ * It is held on screen for a minimum of 500ms, which was the first fix for it being
+ * invisible in practice. The transition on a warm connection finishes in well
  * under 100ms, so the drawing appeared and vanished inside a single frame or two —
  * present in the DOM, verifiable with a script, and not something a person could see.
  * A feedback element that flickers is worse than none: it reads as a glitch rather
  * than as an answer. On a slow query the floor changes nothing; the loader simply
  * stays until the data lands.
+ *
+ * The floor was not enough, and the reason is worth recording: 34px of pale line art
+ * beside the control was on screen for the full half second and still went unnoticed,
+ * because when you change the sort you are looking at the LIST. Measuring proved it
+ * rendered; it did not prove anyone could see it. So the loader is inked and larger,
+ * and the list itself dims while the query runs — feedback belongs where the
+ * attention is.
+ *
+ * The dimming is done by flagging the root element and letting CSS do the rest. The
+ * alternative was threading pending state from this control into server-rendered
+ * cards through a context provider wrapping the page, which is a lot of plumbing to
+ * express "something is loading" — and this way the rule lives in one stylesheet
+ * rather than in every list that ever gains a sort.
  */
 export default function SortSelect({ value }: { value: SortKey }) {
   const t = useT();
@@ -47,6 +60,15 @@ export default function SortSelect({ value }: { value: SortKey }) {
   }, [pending, holding]);
 
   const waiting = pending || holding;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (waiting) root.dataset.sorting = 'on';
+    else delete root.dataset.sorting;
+    /* Cleared on unmount too: navigating away mid-query would otherwise leave the
+       whole app dimmed with nothing left on screen to undim it. */
+    return () => { delete root.dataset.sorting; };
+  }, [waiting]);
 
   return (
     <label className={styles.wrap}>

@@ -210,3 +210,18 @@ a.card:focus-visible {
   white-space: nowrap;
   border: 0;
 }
+
+/* Sorting a category: the list dims while the query runs.
+   The flag is set on <html> by SortSelect, which cannot reach server-rendered cards
+   any other way without wrapping the page in a context provider. The transition is
+   only on the way OUT, so the dim appears at once and the list comes back gently
+   rather than flashing. */
+[data-sorting] main .card {
+  opacity: 0.4;
+  transition: none;
+}
+main .card { transition: opacity 220ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  main .card { transition: none; }
+}

@@ -23,7 +23,13 @@
   padding: 0;
 }
 
-.inline .art { width: 34px; height: 30px; }
+/* A variable, so a host can ask for a bigger drawing without fighting specificity.
+   `.spinner svg` loses to `.inline .art` — two classes beat one — and the fix is not
+   to escalate selectors across module boundaries but to expose the knob. */
+.inline .art {
+  width: var(--loader-inline-w, 34px);
+  height: var(--loader-inline-h, 30px);
+}
 
 /* Inside a control the drawing takes the CONTROL's colour, all three tones.
    Verified wrong first: on the burgundy Export button the crust is --ink, so a dark

@@ -196,6 +196,14 @@ const DICT = {
   'kids.removeFromTray': { he: 'הסרה מהמגש', en: 'Remove from tray' },
   'kids.done':         { he: 'סיום',         en: 'Done' },
   'kids.pickFor':      { he: 'בחירת מנה ל{meal}', en: 'Pick something for {meal}' },
+  'kids.clearWeek':    { he: 'ניקוי השבוע', en: 'Clear week' },
+  'kids.clearWeekConfirm': { he: 'לנקות כל הארוחות בשבוע הזה?',
+                             en: 'Clear every meal this week?' },
+  /* The fallback when a mutation throws something that is not an Error. Named rather
+     than a bare "something went wrong": the planner had NO error surface at all, so
+     any wording here is an improvement, but a vague one wastes the fix. */
+  'kids.actionFailed': { he: 'הפעולה לא הושלמה. אפשר לנסות שוב.',
+                          en: 'That did not go through. Try again.' },
   'kids.print':        { he: 'הדפסה למקרר',  en: 'Print for the fridge' },
   'kids.takeOut':      { he: 'להוציא את {day} מהשבוע? {n} ארוחות ינוקו.',
                           en: 'Take {day} out of the week? Its {n} meals will be cleared.' },

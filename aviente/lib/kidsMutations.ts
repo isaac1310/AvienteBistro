@@ -48,11 +48,18 @@ export async function setMeal(
 export async function clearMeal(weekStart: string, weekday: number, meal: MealKey) {
   await requireMember();
   const db = await supabaseServer();
-  const { data: week } = await db
+  /* The lookup is checked too. Unchecked, a failed READ leaves `week` undefined and
+     the early return below reports success — the same silent failure one line up. */
+  const { data: week, error: findErr } = await db
     .from('kids_week').select('id').eq('week_start', weekStart).maybeSingle();
+  if (findErr) throw new Error(`clearMeal: ${findErr.message}`);
   if (!week) return;
-  await db.from('kids_meals').delete()
+  /* The result was discarded here, so a refused delete was indistinguishable from a
+     successful one — which is why "clear" appeared to do nothing and looked like a UI
+     problem. RLS, a network failure and success all returned the same undefined. */
+  const { error } = await db.from('kids_meals').delete()
     .eq('week_id', week.id).eq('weekday', weekday).eq('meal', meal);
+  if (error) throw new Error(`clearMeal: ${error.message}`);
   revalidatePath('/kids');
 }
 
@@ -110,9 +117,11 @@ export async function fillWeek(
 export async function clearWeek(weekStart: string) {
   await requireMember();
   const db = await supabaseServer();
-  const { data: week } = await db
+  const { data: week, error: findErr } = await db
     .from('kids_week').select('id').eq('week_start', weekStart).maybeSingle();
+  if (findErr) throw new Error(`clearWeek: ${findErr.message}`);
   if (!week) return;
-  await db.from('kids_meals').delete().eq('week_id', week.id);
+  const { error } = await db.from('kids_meals').delete().eq('week_id', week.id);
+  if (error) throw new Error(`clearWeek: ${error.message}`);
   revalidatePath('/kids');
 }

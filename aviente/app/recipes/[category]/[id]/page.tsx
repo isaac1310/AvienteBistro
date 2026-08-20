@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import CategoryPlate from '@/components/CategoryPlate';
 import ExportPdfButton from '@/components/ExportPdfButton';
+import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import RecipeHistory from '@/components/RecipeHistory';
@@ -74,8 +75,11 @@ export default async function RecipePage({ params }: Params) {
   return (
     <article className={styles.page}>
       {recipe.photo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- signed Storage URLs
-        <img src={recipe.photo_url} alt="" className={styles.hero} />
+        /* Falls back to the plate if the object is missing — see RecipePhoto. One
+           recipe in the book has a photo_path pointing at nothing, and the hero is
+           where a broken-image icon is largest. */
+        <RecipePhoto src={recipe.photo_url} category={recipe.category}
+          className={styles.hero} heroPlate />
       ) : (
         /* The blueprint plate for this category, at hero size, with its caption.
            This slot still had the old emoji-on-a-tinted-block placeholder: the new

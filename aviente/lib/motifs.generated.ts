@@ -14,8 +14,8 @@ export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
     inner: "<path d=\"M33 52 q-13 2 -13 -11 q0 -12 12 -11 q1 -13 13 -13 q6 -8 15 -8 t15 8 q12 0 13 13 q12 -1 12 11 q0 13 -13 11\"></path><path d=\"M33 52 h44 v13 a4 4 0 0 1 -4 4 H37 a4 4 0 0 1 -4 -4z\"></path><path d=\"M44 56 v9 M55 56 v9 M66 56 v9\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
   },
   candle: {
-    viewBox: "0 0 110 90",
-    inner: "<!-- Drawn to fill its frame. It used to occupy a 26x51 patch in the middle of the     110x90 box, so every size= made the empty air bigger and the candle stayed a     mark you could miss — flanking a 40px title it read as punctuation. --><path d=\"M41 27 h28 v53 H41z\"></path><path d=\"M35 80 h40\" stroke-width=\"1.2\"></path><path d=\"M55 23 q-9 -9 0 -19 q9 10 0 19z\"></path><path d=\"M46 41 h18 M46 56 h18\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+    viewBox: "0 0 40 90",
+    inner: "<!-- A PORTRAIT frame, alone in this set, and deliberately.     Every other motif is a 110x90 landscape drawing because it sits on a line of     text. This one flanks a four-word title down the side of a card: in a landscape     frame the candle was 26 units of 110, so it ate 50px of width to show 15px of     drawing -- which is what pushed the title onto four lines. Thin and tall is also     simply what a Shabbat candle looks like. --><path d=\"M13 26 h14 v54 H13z\"></path><path d=\"M9 80 h22\" stroke-width=\"1.3\"></path><path d=\"M20 22 q-7 -8 0 -18 q7 9 0 18z\"></path><path d=\"M16 40 h8 M16 56 h8\" stroke-width=\"1.1\" stroke-dasharray=\"3 3\"></path>",
   },
   apple: {
     viewBox: "0 0 110 90",

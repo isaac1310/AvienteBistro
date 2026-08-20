@@ -101,7 +101,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 /* Large, burgundy, and allowed to run to two lines — the sample's title is the loudest
@@ -109,9 +109,17 @@
 .title {
   font-family: var(--ser);
   font-weight: 500;
-  font-size: 34px;
-  line-height: 1.12;
+  /* Sized to break into TWO lines, which is the shape asked for: at 34px on a phone
+     "Aviente Family Shabbat Dinner" fell to four, and a four-line title on a card
+     this small stops reading as a heading. `balance` then chooses the midpoint, so
+     the break lands between the family and the meal rather than after one word. */
+  font-size: clamp(23px, 6.4vw, 33px);
+  line-height: 1.14;
   margin: 0;
+  /* It has to be allowed to take the row's remaining width; without min-width:0 a
+     flex child refuses to shrink below its longest word. */
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--burgundy);
   text-wrap: balance;
 }
@@ -246,6 +254,11 @@
    It was three solid-filled boxes: a cream stem, a gold base, a gradient flame —
    solid fill being the one thing this drawing language never does. */
 .candle {
+  /* Thin and long. The width is what matters here — every pixel it takes is a pixel
+     the title has to wrap inside. */
+  width: 22px;
+  height: 74px;
+  flex: 0 0 22px;
   color: var(--frame);
   opacity: 0.8;
   /* The flame should sit level with the title, not with its baseline. */
@@ -255,4 +268,8 @@
 
 @media print {
   .card { max-width: none; width: 100%; box-shadow: none; }
+  /* A fixed size on paper. The screen title is clamped against `vw`, which in print
+     resolves against the SHEET — so the A4 PDF would silently pick a different size
+     than anything ever looked at on a screen. */
+  .title { font-size: 33px; }
 }

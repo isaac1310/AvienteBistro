@@ -41,3 +41,48 @@
 }
 
 .error { margin: 0; font-size: var(--t-small); color: #8c2b2b; }
+
+/* ── the progress surface ───────────────────────────────────────────────────
+   The preview slot is where the eye already is, so it is where the wait belongs. A
+   word inside one button was the only signal before, and on a phone that button sits
+   below the fold. */
+.previewWrap {
+  position: relative;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: var(--sp-2);
+  /* Legible over a photograph or over nothing: the ground is the card tone at high
+     opacity rather than a dark scrim, so it stays part of the page. */
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  color: var(--muted-ink);
+}
+
+/* An empty slot still needs height, or the overlay has nothing to sit in on a first
+   upload — which is the exact moment the feedback matters most. */
+.previewWrap:not(:has(img)) { min-height: 180px; }
+
+.overlayText {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Says the photo is UPLOADED, not saved — it is in Storage at this point, but the
+   recipe row does not point at it until Save. Claiming "saved" here would be a lie
+   that costs someone a photograph. */
+.toast {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  border-inline-start: 2px solid var(--primary);
+  border-radius: var(--radius);
+  font-size: var(--t-small);
+  color: var(--primary);
+}

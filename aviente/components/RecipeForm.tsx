@@ -107,6 +107,8 @@ export default function RecipeForm({
 
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  /* True while PhotoField is uploading. Saving mid-upload is how a photo gets lost. */
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /* The dirty guard. Without it, a mistyped back-swipe on a phone silently
@@ -197,8 +199,9 @@ export default function RecipeForm({
             onClick={() => (dirty && !confirm(t('form.discard')) ? null : router.back())}>
             {t('form.cancel')}
           </button>
-          <button type="button" className="btn" onClick={onSave} disabled={busy}>
-            {busy ? t('form.saving') : t('form.save')}
+          <button type="button" className="btn" onClick={onSave} disabled={busy || photoBusy}
+            title={photoBusy ? t('form.waitForPhoto') : undefined}>
+            {busy ? t('form.saving') : photoBusy ? t('form.waitForPhoto') : t('form.save')}
           </button>
         </div>
       </header>
@@ -208,10 +211,15 @@ export default function RecipeForm({
       {/* previewUrl is the signed URL the server minted for this render — the form
           cannot display a bucket path. It is only right while `photo` is unchanged;
           PhotoField signs its own after an upload. */}
+      {/* onBusyChange is the fix for a lost photograph: Save used to be disabled on
+          this form's own busy flag only, so it stayed live while a photo uploaded.
+          Pressing it saved the recipe without the photo — which reads exactly like
+          "I saved and the picture vanished". */}
       <PhotoField
         value={photo}
         previewUrl={photo === recipe?.photo_path ? recipe?.photo_url ?? null : null}
         onChange={touch(setPhoto)}
+        onBusyChange={setPhotoBusy}
       />
 
       {/* Only offered once a photo exists and the recipe has been saved: moving

@@ -165,7 +165,7 @@ const DICT = {
   /* The loader. 'STILL BAKING' is the artboard's line; the Hebrew is the same idea
      said the way it would be said out loud, not a gloss of the English. */
   'loading':           { he: 'טוען',           en: 'Loading' },
-  'loading.baking':    { he: 'עוד באפייה',      en: 'STILL BAKING' },
+  'loading.baking':    { he: 'באפייה עוד רגע..', en: 'STILL BAKING' },
   'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
                           en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },

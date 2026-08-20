@@ -155,8 +155,8 @@ export default function MenuCard({
  * borrowed from somewhere else. Same drawing as the menus list uses for an occasion.
  */
 function Candle() {
-  /* 46px, not 30. At 30 the drawing was smaller than the title's cap height and read
-     as punctuation rather than as an ornament flanking it — the motif has a lot of air
-     inside its own 110x90 frame, so it always looks a size smaller than its box. */
-  return <Motif name="candle" size={52} strokeWidth={1.5} className={styles.candle} />;
+  /* The box is set in CSS, not by `size`: this is the one portrait motif, and
+     Motif's height = size * 0.82 assumes a landscape drawing. Presentation
+     attributes lose to a stylesheet, so the class wins. */
+  return <Motif name="candle" size={24} strokeWidth={1.6} className={styles.candle} />;
 }

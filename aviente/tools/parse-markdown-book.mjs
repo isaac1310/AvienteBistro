@@ -67,14 +67,29 @@ const CATEGORY_HINTS = [
   [/מרק|בורשט/,                                'soups'],
   // Anchored: a sauce FOR a salad is not a salad.
   [/^סלט|כבוש|חמוצים/,                          'salads'],
-  [/עוגה|עוגת|קינוח|מלבי|מוס|פאי|טארט|בראוני|פלאן|נוקרל/, 'desserts'],
-  [/לחם|חלה|לחמני|פיתה|מאפה|בורקס|פוקצ|גזלמה|באו\s/,      'breads'],
+  /* `מוס` needs Hebrew-aware boundaries. Bare, it matches inside חומוס, so
+     "ממרח חומוס ביתי" — a hummus spread — was filed under DESSERTS, and once sauces
+     existed it was stolen from them, because this line is tested first. \b cannot do
+     this job (it is Latin-only, the trap that put eleven recipes in `other`), so the
+     boundary is spelled out as "no Hebrew letter either side". */
+  [/עוגה|עוגת|קינוח|מלבי|(?<![א-ת])מוס(?![א-ת])|פאי|טארט|בראוני|פלאן|נוקרל/, 'desserts'],
+  /* `breads` is "Breads & Baking" now, so the baked goods that used to need a
+     category of their own belong here by name: מאפין and פשטידה join the list. פאי
+     stays with desserts above, which wins by order — a pie in this book is sweet. */
+  /* Both nuns. "מאפינס" spells it with a medial נ and my first pass wrote only the
+     final ן, so the muffins the relabel exists for were still landing in `other`. */
+  [/לחם|חלה|לחמני|פיתה|מאפה|מאפינ|מאפין|בורקס|פשטיד|פוקצ|גזלמה|באו\s/, 'breads'],
   /* Proteins outrank both sauces and starches: "in red sauce" must not beat "fish
      patties", and "עוף באורז" is a chicken dish, not a rice one. */
   [/עוף|בשר|אסאדו|סלמון|דג|קציצות|ממולא|קרפעלך|יקיטורי|אושפלאו|סופריטו|פרגיות/, 'mains'],
   [/פירה|אורז|תוספת|ירקות בתנור|אטריות/,        'sides'],
-  // Components, and only when the title leads with one.
-  [/^רוטב|^ממרח|^מטבל|^בלילה|^חלוז/,            'other'],
+  /* Sauces and spreads have their own category now. Still anchored, and the reason is
+     unchanged and worth keeping in front of anyone editing this line: `רוטב` matched
+     anywhere hijacked every dish that merely COMES with a sauce — fish patties in red
+     sauce, yakitori in satay sauce. It must lead the title.
+     `בלילה` and `חלוז` stay in `other`: a batter and a cheese dish are neither. */
+  [/^רוטב|^ממרח|^מטבל/,                         'sauces'],
+  [/^בלילה|^חלוז/,                              'other'],
 ];
 
 function guessCategory(title) {

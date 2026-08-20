@@ -3,9 +3,15 @@
  * the wrong build is worse than not testing, because it produces confident wrong
  * answers. Bump APP_VERSION on every release and check it before testing.
  *
- * major = schema change · minor = features · patch = fixes
+ * major = a break in something OUTSIDE the code that someone depends on: a share
+ *   link, the backup document format, the printed card. NOT "a schema change" — that
+ *   is what this comment used to say, and it would make every additive migration a
+ *   major while a redesign of an already-shared /m/ card counted as a patch. v11.0.0
+ *   is a major by this definition, because the menu card was redrawn and existing
+ *   share links now show the new design.
+ * minor = features, additive migrations included · patch = fixes
  */
-export const APP_VERSION = '0.10.0';
+export const APP_VERSION = '11.0.0';
 
 /**
  * The highest migration this build requires.
@@ -20,6 +26,6 @@ export const APP_VERSION = '0.10.0';
  * Two numbers that mean different things must not share a name. Bump this one in the
  * SAME commit as the migration that needs it.
  */
-export const DB_SCHEMA_VERSION = 14;
+export const DB_SCHEMA_VERSION = 15;
 
 export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${DB_SCHEMA_VERSION}`;

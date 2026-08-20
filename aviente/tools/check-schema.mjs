@@ -49,6 +49,7 @@ if (!url || !key) {
    a probe here in the same commit — that is what prepr then enforces for everyone
    after you. */
 const PROBES = [
+  [15, 'menus?select=id,course_order&limit=1'],
   [14, 'family_members?select=id,language&limit=1'],
   [13, 'recipes?select=id,created_at&limit=1'],
   [12, 'family_members?select=id,role&limit=1'],

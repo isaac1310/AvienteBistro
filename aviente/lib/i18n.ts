@@ -187,6 +187,24 @@ const DICT = {
   'pdf.failed':        { he: 'ה־PDF לא נוצר',  en: 'The PDF could not be made' },
   'pdf.timeout':       { he: 'לקח יותר מדי זמן. אפשר להשתמש בכפתור ההדפסה, שלא צריך שרת.',
                           en: 'It took too long. The Print button needs no server.' },
+  /* Arranging the courses of one menu. The names on the CARD stay French; these are
+     builder labels, where English/Hebrew is what the rest of the app speaks. */
+  'menu.addCourse':    { he: 'הוספת מהלך',     en: 'Add a course' },
+  'menu.courseUp':     { he: 'הזזת המהלך למעלה', en: 'Move this course up' },
+  'menu.courseDown':   { he: 'הזזת המהלך למטה',  en: 'Move this course down' },
+  'menu.courseOff':    { he: 'הסרת המהלך',     en: 'Turn this course off' },
+  'menu.courseKept':   { he: 'מודפס בסוף',      en: 'printed at the end' },
+  /* Two forms, because Hebrew counts: "יש 1 מנות" is wrong in a way that reads as
+     machine-written, and this string appears at the moment someone is deciding
+     whether to trust the app with their card. */
+  'menu.courseHasDishes.one': {
+    he: 'במהלך הזה יש מנה אחת. היא תמשיך להופיע בכרטיס, בסוף. להסיר את המהלך?',
+    en: 'This course holds one dish. It will still print, at the end. Turn it off?',
+  },
+  'menu.courseHasDishes': {
+    he: 'במהלך הזה יש {n} מנות. הן ימשיכו להופיע בכרטיס, בסוף. להסיר את המהלך?',
+    en: 'This course holds {n} dishes. They will still print, at the end. Turn it off?',
+  },
   'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
                           en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },

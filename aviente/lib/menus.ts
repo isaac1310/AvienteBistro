@@ -6,7 +6,7 @@ import type { MealTime, OccasionRule } from './occasion';
 
 /* Course constants live in ./constants so client components (the builder) can
    import them without dragging next/headers into the browser bundle. */
-export { COURSES, courseLabel, courseIndex } from './constants';
+export { COURSES, courseLabel, courseIndex, coursesForMenu, DEFAULT_COURSE_ORDER } from './constants';
 export type { CourseKey } from './constants';
 import { courseIndex } from './constants';
 import type { CourseKey } from './constants';
@@ -37,6 +37,9 @@ export type Menu = {
   saved: boolean;
   share_id: string | null;
   share_secret: string | null;
+  /* The running order for THIS menu, or null for the app default. COURSES is a
+     catalogue, not a sequence — see DEFAULT_COURSE_ORDER and coursesForMenu. */
+  course_order: CourseKey[] | null;
   items: MenuItem[];
 };
 
@@ -48,6 +51,7 @@ export async function occasionRules(): Promise<OccasionRule[]> {
 
 const MENU_COLUMNS =
   `id, date, meal_time, title, language, chef_notes, saved, share_id, share_secret,
+   course_order,
    items:menu_items(id, recipe_id, course, position, dish_title, dish_title_en,
                     dish_description_en, dish_description_he, credit_name)`;
 
@@ -89,6 +93,10 @@ export async function fetchSharedMenu(id: string, secret: string) {
   return data as null | {
     date: string; meal_time: MealTime; title: string | null; language: 'en' | 'he';
     chef_notes: string | null;
+    /* Added to the RPC in 0016. Without it a shared card printed the DEFAULT order
+       while the owner's printed the chosen one — on the one object in this app whose
+       whole purpose is being handed to someone else. */
+    course_order: CourseKey[] | null;
     items: {
       course: CourseKey; position: number;
       dish_title: string | null; dish_title_en: string | null;

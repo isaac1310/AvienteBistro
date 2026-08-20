@@ -32,6 +32,9 @@ export default async function PrintMenu({
         date: shared.date, meal_time: shared.meal_time,
         title: shared.title, language: shared.language,
         chef_notes: shared.chef_notes,
+        /* Both branches must carry it or the printed sheet and the screen disagree
+           about the running order for the same menu. */
+        course_order: shared.course_order,
         items: shared.items.map((i) => ({
           course: i.course,
           dish_title: i.dish_title, dish_title_en: i.dish_title_en,
@@ -44,6 +47,7 @@ export default async function PrintMenu({
           date: owned.date, meal_time: owned.meal_time,
           title: owned.title, language: owned.language,
           chef_notes: owned.chef_notes,
+          course_order: owned.course_order,
           items: owned.items.map((i) => ({
             course: i.course,
             dish_title: i.dish_title, dish_title_en: i.dish_title_en,
@@ -75,6 +79,7 @@ export default async function PrintMenu({
         language={menu.language}
         chefNotes={menu.chef_notes}
         items={menu.items}
+        courseOrder={menu.course_order}
       />
     </main>
   );

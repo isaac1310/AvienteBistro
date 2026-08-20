@@ -33,6 +33,8 @@ export async function saveMenu(input: {
   title: string | null;
   language: 'en' | 'he';
   chef_notes: string | null;
+  /** The running order for this menu. null means "use the app default". */
+  course_order?: CourseKey[] | null;
   items: ItemInput[];
 }): Promise<string> {
   const member = await requireMember();
@@ -44,6 +46,11 @@ export async function saveMenu(input: {
     title: input.title?.trim() || null,
     language: input.language,
     chef_notes: input.chef_notes?.trim() || null,
+    /* An empty array is stored as null, not as []. They would print identically —
+       coursesForMenu treats both as "use the default" — but only one of them says
+       what it means, and a column full of empty arrays is a puzzle for whoever reads
+       the table next. */
+    course_order: input.course_order?.length ? input.course_order : null,
   };
 
   let menuId = input.id;

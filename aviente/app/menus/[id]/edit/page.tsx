@@ -49,6 +49,7 @@ export default async function EditMenuPage({ params }: { params: Promise<{ id: s
         title: menu.title,
         language: menu.language,
         chef_notes: menu.chef_notes,
+        course_order: menu.course_order,
         /* Rows whose recipe was since deleted are dropped rather than crashing —
            the card keeps its snapshot, but you cannot re-edit a dish that no
            longer exists. */

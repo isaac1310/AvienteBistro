@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Motif from '@/components/Motif';
 import Nav from '@/components/Nav';
 import RecipeCard from '@/components/RecipeCard';
 import { searchRecipes } from '@/lib/queries';
@@ -36,7 +37,9 @@ export default async function SearchPage({
         <main className="shell">
           {query && results.length === 0 ? (
             <div className={`card ${styles.empty}`}>
-              <p className={styles.emptyEmoji} aria-hidden="true">🔍</p>
+              <p className={styles.emptyEmoji} aria-hidden="true">
+                <Motif name="search" size={54} strokeWidth={1.6} />
+              </p>
               <p className={styles.emptyTitle}>{t('common.noMatch')}</p>
               <p className={styles.emptyBody}>
                 Search covers dish names and ingredients, in Hebrew or English —

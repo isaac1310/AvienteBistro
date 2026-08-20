@@ -16,7 +16,11 @@
 import { writeFileSync } from 'node:fs';
 import { readSvgDir } from './lib/inline-svg.mjs';
 
-const KEYS = ['loader_loaf'];
+const KEYS = [
+  'loader_loaf',
+  /* The blueprint sweep: every one of these replaced an emoji in the chrome. */
+  'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'sparkle',
+];
 
 const dir = new URL('../design/motifs/', import.meta.url).pathname;
 const out = new URL('../lib/motifs.generated.ts', import.meta.url).pathname;

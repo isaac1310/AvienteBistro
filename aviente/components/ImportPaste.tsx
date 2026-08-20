@@ -8,6 +8,7 @@ import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
 import { categoryLabel, CATEGORIES } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
 import { useT } from './LangProvider';
+import Motif from './Motif';
 import styles from './ImportPaste.module.css';
 
 
@@ -151,7 +152,7 @@ export default function ImportPaste({
         <textarea className={styles.prompt} readOnly rows={6} value={PROMPT} />
         <button type="button" className={styles.copy}
           onClick={async () => { await navigator.clipboard.writeText(PROMPT); setCopied(true); }}>
-          {copied ? '✓ Copied' : '📋 Copy the prompt'}
+          {copied ? t('import.copied') : t('import.copyPrompt')}
         </button>
       </section>
 
@@ -164,7 +165,7 @@ export default function ImportPaste({
             speak the same format in both directions. */}
         <div className={styles.fileRow}>
           <button type="button" className={styles.copy} onClick={() => file.current?.click()}>
-            📂 Choose a .json file
+            <><Motif name="folder" size={18} /> {t('import.chooseFile')}</>
           </button>
           {fileName && <span className={styles.fileName}>{fileName}</span>}
         </div>

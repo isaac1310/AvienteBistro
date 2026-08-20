@@ -7,6 +7,7 @@ import { ANIMALS, MEALS, addWeeks, weekLabel, type KidsMeal, type MealKey } from
 import { clearMeal, clearWeek, fillWeek, setChef, setMeal } from '@/lib/kidsMutations';
 import KidsArt from './KidsArt';
 import { useLang, useT } from './LangProvider';
+import Motif from './Motif';
 import styles from './KidsPlanner.module.css';
 
 /* §3.8 — pick a week, pick dishes into a tray, then place them either day by day
@@ -196,7 +197,7 @@ export default function KidsPlanner({
                         disabled={busy}
                         onChange={(e) => run(() => setChef(placed.id, e.target.value || null))}
                       >
-                        <option value="">👩‍🍳 who?</option>
+                        <option value="">{t('kids.whoPlaceholder')}</option>
                         {members.map((m) => (
                           <option key={m.id} value={m.id}>Chef {m.name}</option>
                         ))}

@@ -2,11 +2,43 @@
  * Source: design/motifs/*.svg. Run `npm run motifs` after changing one.
  */
 
-export type MotifName = 'loader_loaf';
+export type MotifName = 'loader_loaf' | 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'sparkle';
 
 export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   loader_loaf: {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M26 62 q0 -22 29 -22 t29 22 Z\"></path><path d=\"M22 62 h66 a4 4 0 0 1 -4 8 H26 a4 4 0 0 1 -4 -8 Z\"></path><path d=\"M40 50 l-5 10 M55 47 l-5 13 M70 50 l-5 10\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><g class=\"steam\" stroke-width=\"1.2\" opacity=\".75\"><path d=\"M40 30 q4 -6 0 -12 q-4 -6 0 -10\"></path><path d=\"M55 26 q4 -7 0 -14 q-4 -7 0 -12\"></path><path d=\"M70 30 q4 -6 0 -12 q-4 -6 0 -10\"></path></g>",
+  },
+  chef_hat: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M33 52 q-13 2 -13 -11 q0 -12 12 -11 q1 -13 13 -13 q6 -8 15 -8 t15 8 q12 0 13 13 q12 -1 12 11 q0 13 -13 11\"></path><path d=\"M33 52 h44 v13 a4 4 0 0 1 -4 4 H37 a4 4 0 0 1 -4 -4z\"></path><path d=\"M44 56 v9 M55 56 v9 M66 56 v9\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+  },
+  candle: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M46 34 h18 v34 H46z\"></path><path d=\"M42 68 h26\" stroke-width=\"1.2\"></path><path d=\"M55 30 q-6 -6 0 -13 q6 7 0 13z\"></path><path d=\"M50 42 h10 M50 52 h10\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+  },
+  apple: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M55 30 c-14 -8 -25 2 -25 16 s11 26 25 26 s25 -12 25 -26 s-11 -24 -25 -16z\"></path><path d=\"M55 30 v-9 q0 -6 8 -8\" stroke-width=\"1.2\"></path><path d=\"M55 30 q8 -6 14 -3\" stroke-width=\"1\"></path>",
+  },
+  search: {
+    viewBox: "0 0 110 90",
+    inner: "<circle cx=\"49\" cy=\"38\" r=\"19\"></circle><path d=\"M63 52 L78 67\"></path><path d=\"M42 32 q7 -5 14 0\" stroke-width=\"1\" opacity=\".6\"></path>",
+  },
+  folder: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M26 32 h20 l6 7 h32 a4 4 0 0 1 4 4 v22 a4 4 0 0 1 -4 4 H26 a4 4 0 0 1 -4 -4 V36 a4 4 0 0 1 4 -4z\"></path><path d=\"M22 46 h66\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+  },
+  clipboard: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M34 26 h42 a4 4 0 0 1 4 4 v38 a4 4 0 0 1 -4 4 H34 a4 4 0 0 1 -4 -4 V30 a4 4 0 0 1 4 -4z\"></path><path d=\"M46 22 h18 v8 H46z\"></path><path d=\"M40 44 h30 M40 54 h30 M40 62 h18\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",
+  },
+  link: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M48 56 l-8 8 a11 11 0 0 1 -16 -16 l8 -8 a11 11 0 0 1 16 0\"></path><path d=\"M62 34 l8 -8 a11 11 0 0 1 16 16 l-8 8 a11 11 0 0 1 -16 0\"></path><path d=\"M44 46 l22 -2\" stroke-width=\"1.2\"></path>",
+  },
+  sparkle: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M55 24 l4 13 13 4 -13 4 -4 13 -4 -13 -13 -4 13 -4z\"></path><path d=\"M78 52 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z\" stroke-width=\"1\"></path><path d=\"M32 56 l1.5 5 5 1.5 -5 1.5 -1.5 5 -1.5 -5 -5 -1.5 5 -1.5z\" stroke-width=\"1\"></path>",
   },
 };

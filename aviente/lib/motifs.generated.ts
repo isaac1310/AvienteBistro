@@ -2,7 +2,7 @@
  * Source: design/motifs/*.svg. Run `npm run motifs` after changing one.
  */
 
-export type MotifName = 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'warning' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
+export type MotifName = 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'warning' | 'menu_card' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
 
 export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   chef_hat: {
@@ -44,6 +44,10 @@ export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   warning: {
     viewBox: "0 0 110 90",
     inner: "<!-- The last emoji in the app was the ⚠ on an import warning. Drawn instead, for the     same reason as the butterflies: the glyph renders at whatever weight the device's     emoji font decides, which on the Ultra was \"not at all\". --><path d=\"M55 20 L86 72 H24 Z\"></path><path d=\"M55 38 V54\" stroke-width=\"2.4\"></path><path d=\"M55 62 v0.5\" stroke-width=\"3\"></path>",
+  },
+  menu_card: {
+    viewBox: "0 0 110 90",
+    inner: "<!-- A menu card: notched double frame, a title rule, and three courses. Drawn to be     recognisable at 24px and to read as the same object the app prints, so the page     header and the empty state show you what a menu IS. --><path d=\"M34 10 h42 l10 10 v60 h-52 z\"></path><path d=\"M39 16 h34 l8 8 v50 h-42 z\" stroke-width=\"1\"></path><path d=\"M48 30 h14\" stroke-width=\"1.6\"></path><path d=\"M46 42 h18 M46 54 h18 M46 66 h18\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M24 78 q6 -34 22 -46\" stroke-width=\"1\" opacity=\".45\"></path>",
   },
   course_aperitif: {
     viewBox: "0 0 110 90",

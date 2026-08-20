@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 90" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+<!-- A menu card: notched double frame, a title rule, and three courses. Drawn to be
+     recognisable at 24px and to read as the same object the app prints, so the page
+     header and the empty state show you what a menu IS. -->
+<path d="M34 10 h42 l10 10 v60 h-52 z"></path>
+<path d="M39 16 h34 l8 8 v50 h-42 z" stroke-width="1"></path>
+<path d="M48 30 h14" stroke-width="1.6"></path>
+<path d="M46 42 h18 M46 54 h18 M46 66 h18" stroke-width="1" stroke-dasharray="3 3"></path>
+<path d="M24 78 q6 -34 22 -46" stroke-width="1" opacity=".45"></path>
+</svg>

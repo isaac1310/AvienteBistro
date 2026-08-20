@@ -37,10 +37,22 @@ export default function KidsPlanner({
   const [picking, setPicking] = useState<{ weekday: number; meal: MealKey } | null>(null);
   const [trayOpen, setTrayOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  /* try/finally with no catch meant every thrown error became an unhandled
+     rejection: the mutations could throw all they liked and the planner would show
+     nothing. Now it catches, and the strip below has something to display — the two
+     halves are useless apart, which is why they land together. */
   const run = async (fn: () => Promise<void>) => {
-    setBusy(true);
-    try { await fn(); router.refresh(); } finally { setBusy(false); }
+    setBusy(true); setError(null);
+    try {
+      await fn();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('kids.actionFailed'));
+    } finally {
+      setBusy(false);
+    }
   };
 
   /**
@@ -77,6 +89,17 @@ export default function KidsPlanner({
 
       <header className={styles.banner}>
         <h1 className={styles.title}>{t('kids.title')}</h1>
+
+        {/* The strip the mutations had nowhere to report to. Inside the garden rather
+            than at the top of the page, because every action that can fail is here and
+            an error at the top of a scrolled planner is an error nobody reads. */}
+        {error && (
+          <p className={styles.error} role="alert">
+            {error}
+            <button type="button" className={styles.dismiss}
+              aria-label={t('common.close')} onClick={() => setError(null)}>✕</button>
+          </p>
+        )}
       </header>
 
       <div className={styles.weekRow}>
@@ -170,6 +193,7 @@ export default function KidsPlanner({
                         className={styles.chef}
                         value={placed.chef_member_id ?? ''}
                         aria-label={t('kids.whoCooks')}
+                        disabled={busy}
                         onChange={(e) => run(() => setChef(placed.id, e.target.value || null))}
                       >
                         <option value="">👩‍🍳 who?</option>
@@ -178,13 +202,15 @@ export default function KidsPlanner({
                         ))}
                       </select>
                       <button className={styles.swap} aria-label={t('kids.swapMeal')}
+                        disabled={busy}
                         onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>↻</button>
                       <button className={styles.remove} aria-label={t('kids.clearMeal')}
+                        disabled={busy}
                         onClick={() => run(() => clearMeal(weekStart, a.weekday, meal.key))}>✕</button>
                     </div>
                   </>
                 ) : (
-                  <button className={styles.empty}
+                  <button className={styles.empty} disabled={busy}
                     onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>
                     {t('kids.addSomething')}
                   </button>
@@ -196,10 +222,10 @@ export default function KidsPlanner({
       ))}
 
       <div className={styles.footer}>
-        <a className={styles.fridge} href={`/print/kids/${weekStart}`}>🧲 Fridge PDF!</a>
+        <a className={styles.fridge} href={`/print/kids/${weekStart}`}>{t('kids.print')}</a>
         <button className={styles.clear} disabled={busy}
-          onClick={() => { if (confirm('Clear every meal this week?')) run(() => clearWeek(weekStart)); }}>
-          Clear week
+          onClick={() => { if (confirm(t('kids.clearWeekConfirm'))) run(() => clearWeek(weekStart)); }}>
+          {t('kids.clearWeek')}
         </button>
       </div>
 

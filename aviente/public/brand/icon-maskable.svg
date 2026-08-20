@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Aviente">
+  <title>Aviente — maskable app icon</title>
+  <!-- MASKABLE: Android crops this to a circle, squircle or rounded square depending
+       on the launcher, so everything that matters lives inside the middle 80% —
+       the frame is pulled in to 96px where the plain icon sits at 34px. Cream to the
+       very edge so no crop shape reveals a corner of another colour. -->
+  <rect width="512" height="512" fill="#f7f2e9"/>
+  <rect x="96" y="96" width="320" height="320" fill="none" stroke="#a79a85" stroke-width="7" opacity=".5"/>
+  <rect x="116" y="116" width="280" height="280" fill="none" stroke="#a79a85" stroke-width="13"/>
+  <path fill="#2a2419" d="M256 168 L318 350 L288 350 L274 308 L238 308 L224 350 L194 350 Z M256 217 L245 286 L267 286 Z"/>
+  <rect x="186" y="350" width="50" height="9" fill="#2a2419"/>
+  <rect x="276" y="350" width="50" height="9" fill="#2a2419"/>
+</svg>

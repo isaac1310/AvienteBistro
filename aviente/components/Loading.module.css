@@ -3,18 +3,18 @@
   justify-items: center;
   gap: var(--sp-5);
   align-content: center;
-  color: var(--muted-ink);
 }
 
 /* A page boundary: centred in the space the content will fill, not hugging the top.
-   The old loader sat at the top of a tall empty page, which read as a stalled header
-   rather than as the page loading. */
+   The first loader sat at the top of a tall empty page, which read as a stalled
+   header rather than as the page loading. */
 .page {
   min-height: 52dvh;
   padding: var(--sp-8) var(--sp-4);
+  gap: var(--sp-6);
 }
 
-.page .motif { width: 132px; height: 108px; }
+.page .art { width: 240px; height: 207px; }
 
 /* Inside a control — an uploading photo, a PDF being built. */
 .inline {
@@ -23,23 +23,89 @@
   padding: 0;
 }
 
-.inline .motif { width: 54px; height: 44px; }
+.inline .art { width: 76px; height: 66px; }
 
-.motif { display: block; }
+/* The steam leaves the box on its way up, and the topmost curl is drawn touching the
+   top edge already. */
+.art { display: block; overflow: visible; }
 
-/* Only the steam moves. Drifting the dash offset animates the LINE rather than the
-   element, so the loaf never shifts — nothing jitters at the centre of a page that is
-   about to be replaced anyway. */
-.motif :global(.steam) {
-  stroke-dasharray: 5 7;
+/* ── the drawing ───────────────────────────────────────────────────────────
+   Three tones doing three jobs, per the artboard: the crust is the app's ink, the
+   scores and the ground are decorative, and the steam is the THEME colour — green by
+   default, burgundy on Itzik's, so the loader belongs to whichever palette is on. */
+.crust {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+.score {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+.ground {
+  stroke: var(--muted);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 5;
+  opacity: 0.35;
+}
+
+.fume {
+  stroke: var(--primary);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+/* Only the steam moves, and it moves the way steam does: fading in low, rising,
+   thinning out. The loaf itself never shifts — nothing should jitter at the centre of
+   a page that is about to be replaced anyway.
+   The curls sit at opacity 0 until the animation runs, so with motion disabled they
+   would vanish and the bread would look cold. Hence the static opacity here and the
+   animation confined to the query below. */
 @media (prefers-reduced-motion: no-preference) {
-  .motif :global(.steam) { animation: rise 2.6s linear infinite; }
+  .fume path {
+    opacity: 0;
+    animation: fume 2.8s ease-out infinite;
+  }
 }
-@keyframes rise {
-  from { stroke-dashoffset: 24; opacity: 0.25; }
-  50%  { opacity: 0.85; }
-  to   { stroke-dashoffset: 0; opacity: 0.25; }
+@keyframes fume {
+  0%   { opacity: 0;    transform: translateY(6px)   scaleY(0.9); }
+  30%  { opacity: 0.85; }
+  100% { opacity: 0;    transform: translateY(-22px) scaleY(1.15); }
+}
+
+/* ── the wordmark ──────────────────────────────────────────────────────────── */
+.mark { display: grid; justify-items: center; gap: var(--sp-2); }
+
+.word {
+  font-family: var(--ser);
+  font-size: 22px;
+  letter-spacing: 6px;
+  /* Letter-spacing adds its space AFTER the last letter too, so a centred tracked
+     word sits half a space left of true centre. */
+  text-indent: 6px;
+  color: var(--ink);
+}
+
+.caption {
+  font-family: var(--san);
+  font-weight: 500;
+  font-size: 9.5px;
+  line-height: 1;
+  /* --muted-ink, not --muted: this is text. The artboard uses one gold for the scores
+     and for this line, and at 2.48:1 the line would fail AA. */
+  color: var(--muted-ink);
+}
+.tracked { letter-spacing: 3.2px; text-indent: 3.2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .caption { animation: breathe 2.2s ease-in-out infinite; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
 }
 
 /* Skeleton rows in the real card geometry, so nothing jumps when content lands. */

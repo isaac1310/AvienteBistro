@@ -2,13 +2,9 @@
  * Source: design/motifs/*.svg. Run `npm run motifs` after changing one.
  */
 
-export type MotifName = 'loader_loaf' | 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
+export type MotifName = 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
 
 export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
-  loader_loaf: {
-    viewBox: "0 0 110 90",
-    inner: "<path d=\"M26 62 q0 -22 29 -22 t29 22 Z\"></path><path d=\"M22 62 h66 a4 4 0 0 1 -4 8 H26 a4 4 0 0 1 -4 -8 Z\"></path><path d=\"M40 50 l-5 10 M55 47 l-5 13 M70 50 l-5 10\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><g class=\"steam\" stroke-width=\"1.2\" opacity=\".75\"><path d=\"M40 30 q4 -6 0 -12 q-4 -6 0 -10\"></path><path d=\"M55 26 q4 -7 0 -14 q-4 -7 0 -12\"></path><path d=\"M70 30 q4 -6 0 -12 q-4 -6 0 -10\"></path></g>",
-  },
   chef_hat: {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M33 52 q-13 2 -13 -11 q0 -12 12 -11 q1 -13 13 -13 q6 -8 15 -8 t15 8 q12 0 13 13 q12 -1 12 11 q0 13 -13 11\"></path><path d=\"M33 52 h44 v13 a4 4 0 0 1 -4 4 H37 a4 4 0 0 1 -4 -4z\"></path><path d=\"M44 56 v9 M55 56 v9 M66 56 v9\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path>",

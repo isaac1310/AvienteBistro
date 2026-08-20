@@ -60,7 +60,9 @@ export const metadata: Metadata = {
       { url: '/brand/icon-small.svg', sizes: '16x16 32x32' },
       { url: '/brand/icon.svg', sizes: 'any' },
     ],
-    apple: '/brand/icon.svg',
+    /* A real PNG. iOS ignores SVG for the home screen entirely, so an SVG-only
+       brand folder meant the Aviente icon simply never appeared there. */
+    apple: '/brand/apple-touch-icon.png',
   },
   // A private family cookbook has no reason to be indexed.
   robots: { index: false, follow: false },

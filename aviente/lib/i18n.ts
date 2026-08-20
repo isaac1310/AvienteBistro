@@ -256,6 +256,7 @@ const DICT = {
   'restore.notYours': { he: 'הדלת הזאת של המנהל', en: 'This door is the admin’s' },
   'menu.editDishes':  { he: 'עריכת המנות', en: 'Edit dishes' },
   'menu.shareLink':   { he: 'קישור לשיתוף', en: 'Share link' },
+  'menu.stopSharing': { he: 'להפסיק לשתף',  en: 'Stop sharing' },
   'history.title':    { he: '⟲ גרסאות קודמות', en: '⟲ Earlier versions' },
   'photo.move':       { he: 'העברת תמונה', en: 'Move photo' },
   'brand.eyebrow':    { he: 'שרטוטים', en: 'Blueprints' },

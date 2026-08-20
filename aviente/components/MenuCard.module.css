@@ -1,11 +1,19 @@
 /* The card's own palette — deliberately NOT themed. It is a printed object and
    looks the same whether the app is green or burgundy. */
 .card {
-  --beige: #e9dfc6;
-  --panel: #ede4cd;
+  /* The ❦ divider rules are gone with the element: the course motifs separate the
+   sections now, and both together was one ornament too many.
+
+   The sample's ground is a warmer, paler cream than we had, and its type is
+     stronger against it. Measured on #f7f1e3: maroon 9.16:1, ink 13.66:1,
+     descriptions 8.25:1 — all clear of AA, which matters because this is the one
+     surface printed and read at arm's length. */
+  --beige: #efe7d6;
+  --panel: #f7f1e3;
   --frame: #6b5535;
-  --burgundy: #7a2e2e;
-  --cardInk: #2a2417;
+  --burgundy: #6e2b26;
+  --cardInk: #2a2419;
+  --cardInkSoft: #4e463a;
 
   position: relative;
   width: 100%;
@@ -20,14 +28,36 @@
   -webkit-print-color-adjust: exact;
 }
 
-/* The double frame: 1px outer, 2px inner. */
-.frameOuter,
-.frameInner {
+/* The sample's frame is NOTCHED: an outer rule, and an inner rule that stops short
+   of each corner so the corners read as brackets. A border cannot leave its own
+   corners open, so the inner rule is four spans — two edges each, meeting at a
+   right angle and going no further. */
+.frameOuter {
   position: absolute;
+  inset: 11px;
   pointer-events: none;
+  border: 1px solid var(--frame);
 }
-.frameOuter { inset: 12px; border: 1px solid var(--frame); }
-.frameInner { inset: 18px; border: 2px solid var(--frame); }
+
+.bracket {
+  position: absolute;
+  /* Above the panel. `.inner` is positioned and paints a background, so without this
+     the brackets were drawn and then covered — visible only where they stuck out past
+     the panel's edge, which looked like four broken fragments. */
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  /* Each corner turns on two sides only; which two decides the corner. */
+  border: 1.5px solid var(--frame);
+}
+/* Inset past the panel's edge, not across it. At 19px they straddled the boundary
+   between the outer rule and the panel, which read as four broken pieces rather than
+   as a frame — the sample's brackets sit cleanly inside. */
+.tl { top: 40px; left: 40px;  border-right: 0; border-bottom: 0; }
+.tr { top: 40px; right: 40px; border-left: 0;  border-bottom: 0; }
+.bl { bottom: 40px; left: 40px;  border-right: 0; border-top: 0; }
+.br { bottom: 40px; right: 40px; border-left: 0;  border-top: 0; }
 
 .fleuron {
   position: absolute;
@@ -44,15 +74,21 @@
 .inner {
   position: relative;
   background: var(--panel);
-  padding: 26px 22px 30px;
+  padding: 34px 26px 34px;
   text-align: center;
 }
 
+/* Top corner, out of the title's way. Centred above the name of the meal it competed
+   with it; the sample tucks it into the corner where it is available without being
+   announced. Absolute so it takes no vertical space from the composition. */
 .date {
-  margin: 0 0 18px;
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 2px;
+  margin: 0;
   font-family: var(--san);
-  font-size: 9px;
-  letter-spacing: 3px;
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
   color: var(--frame);
   font-variant-numeric: tabular-nums;
 }
@@ -64,13 +100,15 @@
   gap: 14px;
 }
 
+/* Large, burgundy, and allowed to run to two lines — the sample's title is the loudest
+   thing on the card and ours was competing with the dish names at 25px in ink. */
 .title {
   font-family: var(--ser);
   font-weight: 500;
-  font-size: 25px;
-  line-height: 1.2;
+  font-size: 34px;
+  line-height: 1.12;
   margin: 0;
-  color: var(--cardInk);
+  color: var(--burgundy);
   text-wrap: balance;
 }
 
@@ -84,35 +122,27 @@
 
 .course { margin-top: 18px; }
 
-.divider {
-  margin: 16px 0;
-  font-size: 11px;
-  color: var(--frame);
-  /* ❦ centred on a hairline rule */
-  position: relative;
-}
-.divider::before,
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 28%;
-  height: 1px;
-  background: var(--frame);
-  opacity: 0.55;
-}
-.divider::before { left: 6%; }
-.divider::after { right: 6%; }
 
+/* The sample sets courses in the serif at a readable size, not as tiny tracked small
+   caps — which is why its hierarchy is stronger. The motif sits on the line beside the
+   word. */
 .courseName {
-  margin: 0 0 10px;
-  font-family: var(--san);
-  font-weight: 500;
-  font-size: 9.5px;
-  letter-spacing: 3.5px;
-  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-family: var(--ser);
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 0.02em;
   color: var(--burgundy);
 }
+
+.courseMotif { color: var(--burgundy); opacity: 0.9; }
+
+/* Courses breathe rather than being separated by an ornament. */
+.course + .course { margin-top: 20px; }
 
 .dish + .dish { margin-top: 12px; }
 
@@ -127,9 +157,10 @@
 }
 
 .dishName {
+  font-weight: 600;
   margin: 0;
   font-family: var(--ser);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.3;
   color: var(--cardInk);
 }
@@ -140,9 +171,9 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.45;
-  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
-     under AA. #4e463a clears it and is indistinguishable at a glance. */
-  color: #4e463a;
+  /* The token, not a literal: the ground moved to the sample's paler cream and a
+     hardcoded value would have stopped being the measured one. 8.25:1 there. */
+  color: var(--cardInkSoft);
 }
 .dishDesc[lang='he'] { direction: rtl; }
 
@@ -160,9 +191,9 @@
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.5;
-  /* Was #5a5140 — about 4.4:1 on the card's #ede4cd panel at 12.5px italic, just
-     under AA. #4e463a clears it and is indistinguishable at a glance. */
-  color: #4e463a;
+  /* The token, not a literal: the ground moved to the sample's paler cream and a
+     hardcoded value would have stopped being the measured one. 8.25:1 there. */
+  color: var(--cardInkSoft);
 }
 
 /* ── the candles ────────────────────────────────────────────────────────── */

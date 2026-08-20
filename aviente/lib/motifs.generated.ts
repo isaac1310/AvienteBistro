@@ -2,7 +2,7 @@
  * Source: design/motifs/*.svg. Run `npm run motifs` after changing one.
  */
 
-export type MotifName = 'loader_loaf' | 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'sparkle';
+export type MotifName = 'loader_loaf' | 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
 
 export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   loader_loaf: {
@@ -37,8 +37,36 @@ export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M48 56 l-8 8 a11 11 0 0 1 -16 -16 l8 -8 a11 11 0 0 1 16 0\"></path><path d=\"M62 34 l8 -8 a11 11 0 0 1 16 16 l-8 8 a11 11 0 0 1 -16 0\"></path><path d=\"M44 46 l22 -2\" stroke-width=\"1.2\"></path>",
   },
+  link_off: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M48 56 l-8 8 a11 11 0 0 1 -16 -16 l8 -8 a11 11 0 0 1 16 0\"></path><path d=\"M62 34 l8 -8 a11 11 0 0 1 16 16 l-8 8 a11 11 0 0 1 -16 0\"></path><path d=\"M28 22 L82 68\" stroke-width=\"1.8\"></path>",
+  },
   sparkle: {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M55 24 l4 13 13 4 -13 4 -4 13 -4 -13 -13 -4 13 -4z\"></path><path d=\"M78 52 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z\" stroke-width=\"1\"></path><path d=\"M32 56 l1.5 5 5 1.5 -5 1.5 -1.5 5 -1.5 -5 -5 -1.5 5 -1.5z\" stroke-width=\"1\"></path>",
+  },
+  course_aperitif: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M40 22 h30 l-3 18 a12 12 0 0 1 -24 0z\"></path><path d=\"M40 30 h30\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M55 52 v14 M44 68 h22\"></path>",
+  },
+  course_entree: {
+    viewBox: "0 0 110 90",
+    inner: "<ellipse cx=\"55\" cy=\"58\" rx=\"40\" ry=\"14\"></ellipse><ellipse cx=\"55\" cy=\"58\" rx=\"26\" ry=\"8\" stroke-dasharray=\"3 3\"></ellipse><path d=\"M40 52 Q45 40 55 42 Q68 44 66 53\" stroke-width=\"1.2\"></path><path d=\"M50 34 q2 -6 0 -10 M58 36 q2 -6 0 -10\" stroke-width=\"1\" opacity=\".6\"></path>",
+  },
+  course_main: {
+    viewBox: "0 0 110 90",
+    inner: "<ellipse cx=\"55\" cy=\"62\" rx=\"42\" ry=\"12\"></ellipse><path d=\"M30 58 a30 22 0 0 1 50 0\"></path><path d=\"M55 36 v-8 m0 0 a4 4 0 1 1 .1 0\" stroke-width=\"1.2\"></path><path d=\"M22 62 q-8 0 -10 -4 M88 62 q8 0 10 -4\" stroke-width=\"1\" opacity=\".6\"></path>",
+  },
+  course_sides: {
+    viewBox: "0 0 110 90",
+    inner: "<rect x=\"28\" y=\"44\" width=\"54\" height=\"24\" rx=\"4\"></rect><path d=\"M28 52 h54\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M24 48 q-6 4 0 8 M86 48 q6 4 0 8\" stroke-width=\"1.2\"></path><path d=\"M40 38 q2 -6 0 -10 M55 40 q2 -7 0 -12 M70 38 q2 -6 0 -10\" stroke-width=\"1\" opacity=\".6\"></path>",
+  },
+  course_dessert: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M38 60 h34 l-4 -20 a13 13 0 0 0 -26 0 Z\"></path><path d=\"M42 40 q13 -8 26 0\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M55 30 q0 -6 5 -8\" stroke-width=\"1.2\"></path><ellipse cx=\"55\" cy=\"66\" rx=\"26\" ry=\"5\" stroke-width=\"1\"></ellipse>",
+  },
+  course_pain: {
+    viewBox: "0 0 110 90",
+    inner: "<path d=\"M26 62 q0 -22 29 -22 t29 22 Z\"></path><path d=\"M22 62 h66 a4 4 0 0 1 -4 8 H26 a4 4 0 0 1 -4 -8 Z\"></path><path d=\"M40 50 l-5 10 M55 47 l-5 13 M70 50 l-5 10\" stroke-width=\"1\" stroke-dasharray=\"3 3\"></path><path d=\"M44 34 q2 -6 0 -10 M66 34 q2 -6 0 -10\" stroke-width=\"1\" opacity=\".6\"></path>",
   },
 };

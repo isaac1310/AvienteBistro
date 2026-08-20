@@ -19,9 +19,18 @@ export const CATEGORIES = [
   { key: 'salads',   en: 'Salads',      he: 'סלטים' },
   { key: 'mains',    en: 'Mains',       he: 'עיקריות' },
   { key: 'sides',    en: 'Sides',       he: 'תוספות' },
-  { key: 'breads',   en: 'Breads',      he: 'לחמים' },
+  /* Widened by LABEL, not by key: pastries, pies and muffins live here now.
+     A separate Boulangerie category would compete with both this one and `desserts`
+     for the same recipes — a muffin is a מאפה AND a dessert, a quiche is a מאפה AND a
+     main — so neither boundary earns itself. The importer already routed
+     "מאפים מסורתיים" here, so the Hebrew word was effectively claimed already. */
+  { key: 'breads',   en: 'Breads & Baking', he: 'מאפים' },
   { key: 'desserts', en: 'Desserts',    he: 'קינוחים' },
   { key: 'kids',     en: "Kids' Table", he: 'ילדים' },
+  /* Sauces and spreads. Evidence, not a hunch: `other` held seven recipes and three
+     were sauces (ממרח חומוס ביתי, רוטב בוטנים, רוטב סאטה). Placed before `other`
+     because `other` is the end of the list by meaning, not by accident. */
+  { key: 'sauces',   en: 'Sauces & Spreads', he: 'רטבים וממרחים' },
   { key: 'other',    en: 'Other',       he: 'שונות' },
 ] as const;
 
@@ -84,6 +93,11 @@ export type Recipe = RecipeSummary & {
 export const COURSES = [
   { key: 'aperitif', fr: 'Apéritif',         en: 'Aperitif' },
   { key: 'entree',   fr: 'Entrée',           en: 'Starter' },
+  /* Pain de Table. The sample card has a bread course and ours could not reproduce
+     it — a focaccia had to be filed under Sides. Courses and categories answer
+     different questions: a category is where a recipe is filed in the book, a course
+     is where a dish sits in the running order of one printed meal. */
+  { key: 'pain',     fr: 'Pain de Table',    en: 'Bread' },
   { key: 'main',     fr: 'Plat Principal',   en: 'Main' },
   { key: 'sides',    fr: 'Accompagnements',  en: 'Sides' },
   { key: 'dessert',  fr: 'Dessert',          en: 'Dessert' },
@@ -101,6 +115,45 @@ export const courseLabelEn = (key: string) =>
 
 export const courseIndex = (key: string) =>
   COURSES.findIndex((c) => c.key === key);
+
+/**
+ * The running order a menu gets when it has not chosen one.
+ *
+ * COURSES is now a CATALOGUE, not an order: the arrangement is per menu, in
+ * `menus.course_order`. A Friday dinner opens with challah and runs six courses; a
+ * Tuesday lunch is a main and a salad, and the app already knows which is being
+ * planned.
+ *
+ * This default is the Shabbat shape, because Friday dinner is what this book is
+ * mostly for and the challah opens that meal. Deliberately NOT the sample card's
+ * order, which puts the green starter after the main — a French service convention
+ * that reads oddly on a family table. The sample is reproducible exactly by
+ * reordering that one menu.
+ */
+export const DEFAULT_COURSE_ORDER: CourseKey[] =
+  ['aperitif', 'pain', 'entree', 'main', 'sides', 'dessert'];
+
+/**
+ * The courses a menu prints, in order.
+ *
+ * The safety rule lives here rather than in each caller: a course HOLDING DISHES
+ * always renders, even when it is not in the chosen order — appended at the end
+ * rather than silently dropped. Hiding a section is not deleting its dishes, and a
+ * card that quietly omits a dish somebody planned is the worst failure this app
+ * could have.
+ */
+export function coursesForMenu(
+  order: string[] | null | undefined, occupied: Iterable<string>,
+): CourseKey[] {
+  const chosen = (order?.length ? order : DEFAULT_COURSE_ORDER)
+    .filter((k): k is CourseKey => COURSES.some((c) => c.key === k));
+  const extra = [...occupied]
+    .filter((k): k is CourseKey => COURSES.some((c) => c.key === k) && !chosen.includes(k as CourseKey))
+    /* Catalogue order for the appended ones, so two hidden-but-occupied courses do
+       not print in whatever order the dishes happened to be read in. */
+    .sort((a, b) => courseIndex(a) - courseIndex(b));
+  return [...chosen, ...extra];
+}
 
 import { todayAnchor } from './today';
 

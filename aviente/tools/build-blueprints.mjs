@@ -20,7 +20,7 @@ import { readSvgDir } from './lib/inline-svg.mjs';
 const SRC = new URL('../design/blueprints/', import.meta.url).pathname;
 const OUT = new URL('../lib/blueprints.generated.ts', import.meta.url).pathname;
 
-const KEYS = ['entrees', 'soups', 'salads', 'mains', 'sides', 'breads', 'desserts', 'kids', 'other'];
+const KEYS = ['entrees', 'soups', 'salads', 'mains', 'sides', 'breads', 'desserts', 'kids', 'sauces', 'other'];
 
 /* The reader is shared with tools/build-icons.mjs — same currentColor constraint,
    same "keep only the inner markup" rule. */

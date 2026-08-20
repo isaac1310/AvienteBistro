@@ -18,7 +18,7 @@ export const UNITS = ['kg', 'g', 'ml', 'l', 'cup', 'pcs', 'tbsp', 'tsp', 'pinch'
 
 export const CATEGORIES = [
   'entrees', 'soups', 'salads', 'mains', 'sides',
-  'breads', 'desserts', 'kids', 'other',
+  'breads', 'desserts', 'kids', 'sauces', 'other',
 ];
 
 /* Hebrew category names seen in the sources → enum. Breads absorbs every baked
@@ -41,6 +41,16 @@ const CATEGORY_MAP = {
   'קינוחים': 'desserts',
   'עוגות': 'desserts',
   'ילדים': 'kids',
+  /* Sauces and spreads, as a stated CATEGORY name from a source. This map answers
+     "the source said this category" — the anchored title guesses live in
+     tools/parse-markdown-book.mjs and are a different question. */
+  'רטבים': 'sauces',
+  'רטבים וממרחים': 'sauces',
+  'ממרחים': 'sauces',
+  'רוטב': 'sauces',
+  /* Baked goods all land in breads, which is now labelled מאפים / Breads & Baking. */
+  'פשטידות': 'breads',
+  'מאפים ופשטידות': 'breads',
 };
 
 /* Hebrew measure words → unit enum. Plural and singular both appear. */

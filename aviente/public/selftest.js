@@ -137,19 +137,27 @@
     group('type');
 
     check('the serif stack resolves, not Times', () => {
-      /* [data-wordmark] first, `header h1` second. This asked only for `header h1`,
-         and the wordmark is a <span> — it has never been an h1 — so on the homepage,
-         the one page built around it, this check skipped itself and said why, which is
-         exactly what made the skip look acceptable. It has been blind since the header
-         was redesigned. Both selectors, so a page with an ordinary heading in its
-         header is still covered. */
-      const el = document.querySelector('[data-wordmark]') || document.querySelector('header h1');
-      if (!el) return skip('no header wordmark or heading on this page');
+/* Which face is EXPECTED here, rather than one rule for every page.
+         Two corrections live in these four lines:
+           - it asked only for `header h1`, and the wordmark is a <span>, so on the
+             homepage — the page built around it — the check skipped itself and printed
+             a reason, which is what made the skip look acceptable. It had been blind
+             since the header was redesigned.
+           - widening it to any header heading then went RED on /kids, correctly from
+             the check's point of view and wrongly from the app's: that section is set
+             in Baloo 2 on purpose. Demanding one face everywhere asserts a rule the
+             design does not have.
+         So each hook says which face belongs to it. */
+      const wordmark = document.querySelector('[data-wordmark]');
+      const kid = document.querySelector('[data-kid-heading]');
+      const el = wordmark || kid || document.querySelector('header h1');
+      if (!el) return skip('no wordmark, kid heading or header heading on this page');
+      const want = kid && !wordmark ? /Baloo/i : /Cormorant/i;
       const fam = css(el, 'font-family');
       // The bug this exists for: next/font classes on <body> left --font-* undefined
       // at :root, --ser collapsed, and every heading silently became Times.
-      return /Cormorant/i.test(fam) ? true
-        : `wordmark font-family is "${fam}" — the token stack has collapsed`;
+      return want.test(fam) ? true
+        : `font-family here is "${fam}", expected ${want.source} — the token stack has collapsed`;
     });
 
     check('Cormorant Garamond actually rendered', () =>

@@ -105,7 +105,12 @@ export default function KidsPlanner({
       <KidsArt name="butterfly" size={22} className={`${styles.butterfly} ${styles.b2}`} />
 
       <header className={styles.banner}>
-        <h1 className={styles.title}>{t('kids.title')}</h1>
+        {/* data-kid-heading is a hook for the suite, and it is here because a fixed
+            check went red on this page for a GOOD reason: the kids' section is set in
+            Baloo 2 by design, and a check demanding Cormorant of every header heading
+            was demanding the wrong thing here. This says "assert the kid font on this
+            one", which is a real assertion rather than an exemption. */}
+        <h1 className={styles.title} data-kid-heading>{t('kids.title')}</h1>
 
         {/* The strip the mutations had nowhere to report to. Inside the garden rather
             than at the top of the page, because every action that can fail is here and

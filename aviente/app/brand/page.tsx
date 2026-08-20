@@ -1,5 +1,6 @@
 import BackLink from '@/components/BackLink';
 import Cachet from '@/components/Cachet';
+import Loading from '@/components/Loading';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
 import { serverT } from '@/lib/lang';
@@ -66,6 +67,30 @@ export default async function BrandSheet() {
               <li className={styles.hero}>
                 <span className={styles.card}><Cachet variant="header" /></span>
                 <span className={styles.heroName}>4B · header</span>
+              </li>
+            </ul>
+          </section>
+
+          {/* The loader lives here because it IS design-system work now, and because
+              a route boundary flashes for 200ms — there is nowhere else it can be
+              looked at properly. */}
+          <section className={styles.block}>
+            <h2 className={styles.h2}>The loader</h2>
+            <p className={styles.note} dir="ltr">
+              A loaf with steam, in the plate language. Replaced a rotating gold
+              diamond that belonged to the retired palette. Only the steam animates,
+              by dash-offset, so the loaf never moves — nothing should jitter at the
+              centre of a page that is about to be replaced. Stops under{' '}
+              <code>prefers-reduced-motion</code>.
+            </p>
+            <ul className={styles.heroes}>
+              <li className={styles.hero}>
+                <span className={styles.card}><Loading /></span>
+                <span className={styles.heroName}>page</span>
+              </li>
+              <li className={styles.hero}>
+                <span className={styles.card}><Loading size="inline" /></span>
+                <span className={styles.heroName}>inline · in a control</span>
               </li>
             </ul>
           </section>

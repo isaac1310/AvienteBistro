@@ -15,7 +15,8 @@
     "blueprints": "node tools/build-blueprints.mjs",
     "icons": "node tools/build-icons.mjs",
     "kids-art": "node tools/build-kids-art.mjs",
-    "db-check": "node tools/db-check.mjs"
+    "db-check": "node tools/db-check.mjs",
+    "motifs": "node tools/build-motifs.mjs"
   },
   "dependencies": {
     "@hebcal/core": "^6.9.1",

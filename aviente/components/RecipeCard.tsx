@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import CategoryPlate from './CategoryPlate';
 import RecipeCardActions from './RecipeCardActions';
+import RecipePhoto from './RecipePhoto';
 import { type CategoryKey, type RecipeSummary } from '@/lib/constants';
 import styles from './RecipeCard.module.css';
 
@@ -39,8 +40,8 @@ export default function RecipeCard({
     <div className={`card ${styles.card}`}>
       <Link href={href} className={styles.link}>
         {recipe.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- signed Storage URLs
-          <img src={recipe.photo_url} alt="" className={styles.thumb} loading="lazy" />
+          <RecipePhoto src={recipe.photo_url} category={recipe.category}
+            className={styles.thumb} />
         ) : (
           /* Most of the book has no photograph, so this is the ordinary case, not a
              fallback — an engraved plate per category rather than an emoji. */

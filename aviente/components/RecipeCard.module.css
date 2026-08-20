@@ -6,7 +6,15 @@
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  min-height: 92px;
+  /* A FIXED height, not a minimum.
+     Every card was sized by its own contents, so a two-line Hebrew title, a recipe
+     with an English subtitle, and one with neither produced three different heights —
+     and in a two- or three-column grid each ROW then sized to its tallest card while
+     the shorter ones stretched, so the same recipe looked different depending on what
+     it happened to sit beside. A photograph made it worse: a portrait crop and a
+     square one gave the plate column two different widths of neighbour.
+     One height for every card, on every page, whatever is in it. */
+  height: 104px;
 }
 
 .thumb {
@@ -15,6 +23,10 @@
   object-fit: cover;
   align-self: stretch;
 }
+
+/* Fills its 92px column at a fixed card height, cropping rather than letter-boxing —
+   the alternative is a band of card colour beside a portrait photograph. */
+.thumb { height: 100%; }
 
 /* The photo-less case is handled by CategoryPlate, which brings its own sizing.
    The striped "blueprint" ground with a category emoji that used to live here is
@@ -28,6 +40,10 @@
   gap: 2px;
   padding: var(--sp-3) var(--sp-4) var(--sp-3) 0;
   min-width: 0;
+  /* The text now has a ceiling, so long titles are clamped instead of setting the
+     card's height. Overflow hidden here rather than on .card, which would clip the
+     plate's border. */
+  overflow: hidden;
 }
 
 .title {
@@ -35,6 +51,12 @@
   font-size: 1.25rem;
   line-height: 1.2;
   color: var(--primary);
+  /* Two lines, then an ellipsis. Nothing in the book needs three: the longest title
+     here is פשטידת פטריות / ברוקולי / בצל, which fits two at phone width. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .titleEn {
@@ -50,7 +72,12 @@
   font-style: italic;
   font-size: 0.875rem;
   color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.titleEn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @media (hover: hover) {
   .card:hover { border-color: var(--gold-deep); }

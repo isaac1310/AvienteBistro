@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CategoryPlate from '@/components/CategoryPlate';
+import ExportPdfButton from '@/components/ExportPdfButton';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import RecipeHistory from '@/components/RecipeHistory';
@@ -168,7 +169,11 @@ export default async function RecipePage({ params }: Params) {
 
         <div className={styles.actions}>
           <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
-          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('recipe.exportPdf')}</a>
+          {/* Two actions, because these were one and it was mislabelled: the button
+              said "Export PDF" and opened the print PAGE, downloading nothing. */}
+          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
+          <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
+            className="btn btn--ghost" />
         </div>
 
         <div className={styles.history}>

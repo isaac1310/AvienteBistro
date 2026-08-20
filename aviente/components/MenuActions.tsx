@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
+import ExportPdfButton from './ExportPdfButton';
 import Motif from './Motif';
 import styles from './MenuActions.module.css';
 
@@ -70,9 +71,7 @@ export default function MenuActions({
 
         <a className="btn btn--ghost" href={`/print/menu/${id}`}>{t('common.print')}</a>
 
-        <a className="btn" href={`/api/pdf?path=${encodeURIComponent(`/print/menu/${id}`)}&name=aviente-menu-${date}`}>
-          Export PDF
-        </a>
+        <ExportPdfButton path={`/print/menu/${id}`} name={`aviente-menu-${date}`} />
       </div>
 
       <div className={styles.share}>

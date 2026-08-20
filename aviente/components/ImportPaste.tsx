@@ -11,6 +11,7 @@ import { useT } from './LangProvider';
 import Link from 'next/link';
 import Motif from './Motif';
 import styles from './ImportPaste.module.css';
+import Arrow from './Arrow';
 
 /** Where an imported recipe now lives. The category is in the path, which is why the
  *  import result had to start returning it. */
@@ -110,7 +111,7 @@ export default function ImportPaste({
             named as plain text and no way to open it. */}
         {result.imported.length + result.replaced.length === 1 && (
           <Link href={rowHref([...result.imported, ...result.replaced][0])} className="btn">
-            {t('import.goToRecipe')}
+            {t('import.goToRecipe')} <Arrow dir="forward" />
           </Link>
         )}
 

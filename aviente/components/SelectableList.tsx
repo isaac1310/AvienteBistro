@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RecipeCard from './RecipeCard';
+import { useT } from './LangProvider';
 import { clearBasket, onBasketChange, readBasket, writeBasket } from '@/lib/basket';
 import type { RecipeSummary } from '@/lib/constants';
 import styles from './SelectableList.module.css';
+import Arrow from './Arrow';
 
 /* §3.2's select mode — "N SELECTED — BUILD MENU →".
  *
@@ -19,6 +21,7 @@ import styles from './SelectableList.module.css';
  * It still dies with the tab.
  */
 export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }) {
+  const t = useT();
   const router = useRouter();
   const [chosen, setChosen] = useState<string[]>([]);
 
@@ -112,7 +115,7 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
               router.push(`/menus/new?dish=${ids}`);
             }}
           >
-            Build menu →
+            {t('book.buildMenu')} <Arrow dir="forward" />
           </button>
         </div>
       )}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import CategoryPlate from '@/components/CategoryPlate';
 import ExportPdfButton from '@/components/ExportPdfButton';
+import Arrow from '@/components/Arrow';
 import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
@@ -95,7 +96,9 @@ export default async function RecipePage({ params }: Params) {
       )}
 
       <div className={styles.overlay}>
-        <Link href={`/recipes/${category}`} className={styles.chip}>←</Link>
+        {/* The overlay chip. Was a bare ←, which points the wrong way in Hebrew. */}
+        <Link href={`/recipes/${category}`} className={styles.chip}
+          aria-label={t('book.back')}><Arrow /></Link>
         <Link href={`/recipes/${category}/${id}/edit`} className={styles.chip}>{t('recipe.edit')}</Link>
       </div>
 

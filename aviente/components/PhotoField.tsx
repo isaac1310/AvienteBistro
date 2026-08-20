@@ -18,6 +18,13 @@ import styles from './PhotoField.module.css';
  * a phone. Roughly a third of the previous size.
  */
 
+/* Measured, not guessed. photo-05.jpg (1542x2048, 492 KB from the book) encodes to
+   335 KB at the old 1600@0.85 and 123 KB at these settings — 63% smaller. Measured
+   with sharp rather than with canvas.toBlob, which is what the browser actually uses,
+   so read it as the ratio between the two SETTINGS rather than as the exact bytes a
+   phone will produce.
+   Safe because of what the app renders: the card thumb is 92px and the recipe hero is
+   about 800px wide, so 1200 is still more pixels than any screen asks for. */
 const MAX_EDGE = 1200;
 const QUALITY = 0.72;
 

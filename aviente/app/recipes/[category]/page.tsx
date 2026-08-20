@@ -13,6 +13,7 @@ import UndoToast from '@/components/UndoToast';
 import SortSelect from '@/components/SortSelect';
 import { CATEGORIES, categoryLabel, isSortKey, recipesInCategory } from '@/lib/queries';
 import styles from './category.module.css';
+import Arrow from '@/components/Arrow';
 
 type Params = {
   params: Promise<{ category: string }>;
@@ -46,7 +47,7 @@ export default async function CategoryPage({ params, searchParams }: Params) {
       <Suspense fallback={null}><UndoToast /></Suspense>
       <div className={styles.frame}>
         <div className={`shell ${styles.backRow}`}>
-          <Link href="/recipes" className={styles.back}>{t('book.back')}</Link>
+          <Link href="/recipes" className={styles.back}><Arrow /> {t('book.back')}</Link>
         </div>
 
         <PageHeader>

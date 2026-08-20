@@ -162,6 +162,8 @@ const DICT = {
   'menu.untitled':     { he: 'ללא כותרת',    en: 'Untitled' },
   'menu.cardLang':     { he: 'תיאורים על הכרטיס', en: 'Card descriptions in' },
   'menu.chefNotes':    { he: 'הערות השף',    en: 'Chef’s notes' },
+  'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
+                          en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },
   'menu.chooseDish':   { he: 'בחירת מנה',    en: 'Choose a dish' },
   'menu.changeDish':   { he: 'החלפת המנה',   en: 'Change this dish' },

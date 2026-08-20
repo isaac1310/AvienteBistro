@@ -22,42 +22,46 @@
   padding: 34px 30px;
   background: var(--beige);
   color: var(--cardInk);
+  /* Laid-paper texture: two nearly-invisible rulings crossing at right angles. At
+     1.5% they are not a pattern you can see, only a surface that stops the cream
+     reading as flat screen fill — which is what a printed card should not look like.
+     Cheap enough to print, and print-color-adjust keeps it on paper. */
+  background-image:
+    repeating-linear-gradient(90deg,
+      rgba(107, 85, 53, 0.028) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg,
+      rgba(107, 85, 53, 0.022) 0 1px, transparent 1px 4px);
   /* Without this the browser drops every background colour when printing and the
      card comes out as black type on white paper. */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
 
-/* The sample's frame is NOTCHED: an outer rule, and an inner rule that stops short
-   of each corner so the corners read as brackets. A border cannot leave its own
-   corners open, so the inner rule is four spans — two edges each, meeting at a
-   right angle and going no further. */
-.frameOuter {
+/* Two continuous rules. Both sit ABOVE the panel (z-index) — the first attempt was
+   painted and then covered by `.inner`, so only the parts sticking out past the panel
+   showed, which is why it read as four broken pieces.
+   The inner rule's corners are CLIPPED rather than absent: clip-path cuts the border
+   along with the box, so each corner opens at 45° — the sample's notch. */
+.frameOuter,
+.frameInner {
   position: absolute;
-  inset: 11px;
+  z-index: 2;
   pointer-events: none;
   border: 1px solid var(--frame);
 }
 
-.bracket {
-  position: absolute;
-  /* Above the panel. `.inner` is positioned and paints a background, so without this
-     the brackets were drawn and then covered — visible only where they stuck out past
-     the panel's edge, which looked like four broken fragments. */
-  z-index: 2;
-  width: 38px;
-  height: 38px;
-  pointer-events: none;
-  /* Each corner turns on two sides only; which two decides the corner. */
-  border: 1.5px solid var(--frame);
+.frameOuter { inset: 9px; }
+
+.frameInner {
+  inset: 16px;
+  border-width: 1.5px;
+  --notch: 13px;
+  clip-path: polygon(
+    var(--notch) 0, calc(100% - var(--notch)) 0,
+    100% var(--notch), 100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%, var(--notch) 100%,
+    0 calc(100% - var(--notch)), 0 var(--notch));
 }
-/* Inset past the panel's edge, not across it. At 19px they straddled the boundary
-   between the outer rule and the panel, which read as four broken pieces rather than
-   as a frame — the sample's brackets sit cleanly inside. */
-.tl { top: 40px; left: 40px;  border-right: 0; border-bottom: 0; }
-.tr { top: 40px; right: 40px; border-left: 0;  border-bottom: 0; }
-.bl { bottom: 40px; left: 40px;  border-right: 0; border-top: 0; }
-.br { bottom: 40px; right: 40px; border-left: 0;  border-top: 0; }
 
 .fleuron {
   position: absolute;
@@ -133,16 +137,54 @@
   gap: 7px;
   margin: 0 0 8px;
   font-family: var(--ser);
-  font-weight: 400;
-  font-size: 19px;
-  letter-spacing: 0.02em;
+  /* Bold, per Itzik: the French course name is the card's structure and it was
+     competing with the dish names at the same weight. */
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.01em;
   color: var(--burgundy);
 }
 
 .courseMotif { color: var(--burgundy); opacity: 0.9; }
 
-/* Courses breathe rather than being separated by an ornament. */
-.course + .course { margin-top: 20px; }
+/* A drawn rule between courses.
+   Space alone was doing this job, and on a card with six sections the eye could not
+   tell a long course from the start of the next one. This is the sample's device: a
+   burgundy hairline that fades at both ends, interrupted in the middle by a small
+   lozenge in the card's ink — burgundy for the line, black for the mark, so the two
+   read as one ornament rather than two.
+   Drawn with gradients and a rotated square, not a glyph: ❦ and its relatives are
+   typographic ornaments that render differently on every device and print at whatever
+   weight the fallback serif happens to carry. */
+.course + .course { margin-top: 24px; }
+.course + .course::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin: 0 auto 22px;
+  width: min(62%, 200px);
+  background:
+    linear-gradient(90deg,
+      transparent,
+      color-mix(in srgb, var(--burgundy) 55%, transparent) 22%,
+      color-mix(in srgb, var(--burgundy) 55%, transparent) 78%,
+      transparent);
+}
+/* The lozenge, centred on the rule. It sits on the section rather than on the rule's
+   own box so it can overlap the line without a second pseudo-element on ::before. */
+.course + .course { position: relative; }
+.course + .course::after {
+  content: '';
+  position: absolute;
+  top: -2.5px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--cardInk);
+  /* The ground shows through around the mark, so the rule appears to pass behind it. */
+  box-shadow: 0 0 0 4px var(--panel);
+}
 
 .dish + .dish { margin-top: 12px; }
 
@@ -157,12 +199,15 @@
 }
 
 .dishName {
-  font-weight: 600;
+  /* Delicate, not bold. With the course heading in bold burgundy above it, a bold
+     dish name gave the card two competing voices and no hierarchy — the eye had
+     nowhere to land first. The dish is the content; the course is the label. */
+  font-weight: 400;
   margin: 0;
   font-family: var(--ser);
   font-size: 18px;
   line-height: 1.3;
-  color: var(--cardInk);
+  color: var(--cardInkSoft);
 }
 
 .dishDesc {
@@ -197,24 +242,16 @@
 }
 
 /* ── the candles ────────────────────────────────────────────────────────── */
-
+/* The blueprint drawing now, so it belongs to the same hand as everything else.
+   It was three solid-filled boxes: a cream stem, a gold base, a gradient flame —
+   solid fill being the one thing this drawing language never does. */
 .candle {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+  color: var(--frame);
+  opacity: 0.8;
+  /* The flame should sit level with the title, not with its baseline. */
+  align-self: center;
   flex: 0 0 auto;
 }
-
-.flame {
-  width: 7px;
-  height: 11px;
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  background: radial-gradient(ellipse at 50% 62%, #e8a13c 0%, #c47a2a 100%);
-  margin-bottom: 2px;
-}
-
-.wax { width: 4px; height: 26px; background: #d9cfb4; }
-.base { width: 10px; height: 3px; background: #a8905e; }
 
 @media print {
   .card { max-width: none; width: 100%; box-shadow: none; }

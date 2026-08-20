@@ -9,7 +9,12 @@ import type { CourseKey } from './menus';
  * recipe in 2027 silently rewrites the 2026 Shabbat card, and deleting one blanks
  * it entirely. */
 
-export type ItemInput = { recipe_id: string; course: CourseKey };
+export type ItemInput = {
+  recipe_id: string;
+  course: CourseKey;
+  /** Written on the card for this meal. Falls back to the recipe's description. */
+  note?: string | null;
+};
 
 async function requireMember() {
   const m = await currentMember();
@@ -84,8 +89,13 @@ export async function saveMenu(input: {
         position,
         dish_title: r?.title ?? null,
         dish_title_en: r?.title_en ?? null,
-        dish_description_en: r?.description_en ?? null,
-        dish_description_he: r?.description_he ?? null,
+        /* A description typed on the CARD wins over the recipe's own.
+           Until now this only ever copied the recipe's description, so the italic
+           line under each dish — the thing the sample menu is largely made of —
+           could not be written at all: you had to go and edit the recipe, which
+           changes it everywhere it appears. A menu note is about this meal. */
+        dish_description_en: item.note ?? r?.description_en ?? null,
+        dish_description_he: item.note ?? r?.description_he ?? null,
         credit_name: r?.source?.name ?? null,
       };
     });

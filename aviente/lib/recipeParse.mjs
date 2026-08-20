@@ -317,16 +317,81 @@ export function normalizeStep(input) {
   return { heading, body };
 }
 
+
+/* ── guessing a category from the TITLE ───────────────────────────────────────
+ *
+ * These lived in tools/parse-markdown-book.mjs, used only by the one-off markdown
+ * import, while the paste-from-AI path had no title fallback at all — so an export
+ * that omitted the category put every recipe in `other`, and the two paths disagreed
+ * about where the same dish belongs. Same lesson as toRecipeInput: one rule, one
+ * place, or a fix lands in one path and not the other.
+ *
+ * These patterns only fire on words unambiguous in a recipe TITLE — מרק is always a
+ * soup, עוגה is always a cake. Order matters: the first match wins, and proteins
+ * deliberately outrank both sauces and starches.
+ *
+ * Hebrew has no word boundary \b can see (it is Latin-only — the trap that once put
+ * eleven recipes in `other`), so anything short enough to hide inside another word
+ * carries an explicit anchor or a spelled-out "no Hebrew letter either side".
+ */
+const CATEGORY_HINTS = [
+  [/מרק|בורשט/,                                'soups'],
+  // Anchored: a sauce FOR a salad is not a salad.
+  [/^סלט|כבוש|חמוצים/,                          'salads'],
+  /* `מוס` needs Hebrew-aware boundaries. Bare, it matches inside חומוס, so
+     "ממרח חומוס ביתי" — a hummus spread — was filed under DESSERTS, and once sauces
+     existed it was stolen from them, because this line is tested first. \b cannot do
+     this job (it is Latin-only, the trap that put eleven recipes in `other`), so the
+     boundary is spelled out as "no Hebrew letter either side". */
+  [/עוגה|עוגת|קינוח|מלבי|(?<![א-ת])מוס(?![א-ת])|פאי|טארט|בראוני|פלאן|נוקרל/, 'desserts'],
+  /* `breads` is "Breads & Baking" now, so the baked goods that used to need a
+     category of their own belong here by name: מאפין and פשטידה join the list. פאי
+     stays with desserts above, which wins by order — a pie in this book is sweet. */
+  /* Both nuns. "מאפינס" spells it with a medial נ and my first pass wrote only the
+     final ן, so the muffins the relabel exists for were still landing in `other`. */
+  [/לחם|חלה|לחמני|פיתה|מאפה|מאפינ|מאפין|בורקס|פשטיד|פוקצ|גזלמה|באו\s/, 'breads'],
+  /* Proteins outrank both sauces and starches: "in red sauce" must not beat "fish
+     patties", and "עוף באורז" is a chicken dish, not a rice one. */
+  [/עוף|בשר|אסאדו|סלמון|דג|קציצות|ממולא|קרפעלך|יקיטורי|אושפלאו|סופריטו|פרגיות/, 'mains'],
+  [/פירה|אורז|תוספת|ירקות בתנור|אטריות/,        'sides'],
+  /* Sauces and spreads have their own category now. Still anchored, and the reason is
+     unchanged and worth keeping in front of anyone editing this line: `רוטב` matched
+     anywhere hijacked every dish that merely COMES with a sauce — fish patties in red
+     sauce, yakitori in satay sauce. It must lead the title.
+     `בלילה` and `חלוז` stay in `other`: a batter and a cheese dish are neither. */
+  [/^רוטב|^ממרח|^מטבל/,                         'sauces'],
+  [/^בלילה|^חלוז/,                              'other'],
+];
+
+/** A category guessed from the title. `guessed` is never silently trusted. */
+export function guessCategoryFromTitle(title) {
+  const s = clean(title) ?? '';
+  for (const [re, key] of CATEGORY_HINTS) if (re.test(s)) return { category: key, guessed: true };
+  return { category: 'other', guessed: false };
+}
+
 /* ── whole recipe ──────────────────────────────────────────────────────────── */
+
+/* Longest key first, computed once. Insertion order let a SHORT key win over a
+   longer one that also matched: a stated category of "מאפים מסורתיים" was decided by
+   whichever of the three מאפים entries came first in the object, and "רטבים לסלט"
+   was decided by `סלט` — which sits earlier — rather than by `רטבים`. Longest match
+   is the ordinary way to disambiguate overlapping keys and it costs one sort. */
+const CATEGORY_MAP_BY_LENGTH = Object.entries(CATEGORY_MAP)
+  .sort(([a], [b]) => b.length - a.length);
 
 export function mapCategory(raw) {
   const s = clean(raw);
   if (!s) return { category: 'other', resolved: false };
   if (CATEGORIES.includes(s)) return { category: s, resolved: true };
   if (CATEGORY_MAP[s]) return { category: CATEGORY_MAP[s], resolved: true };
-  // partial match — "מאפים ואסייתי" style compounds
-  for (const [he, en] of Object.entries(CATEGORY_MAP)) {
-    if (s.includes(he)) return { category: en, resolved: true };
+  /* A partial match — "מאפים ואסייתי" style compounds — is a GUESS, and used to
+     report itself as resolved. That mattered: `resolved` is what decides whether the
+     import preview flags the row, so a substring hit landing in the wrong category
+     arrived with full confidence and no warning. `סלט` inside `לסלט` is exactly how
+     that goes wrong. */
+  for (const [he, en] of CATEGORY_MAP_BY_LENGTH) {
+    if (s.includes(he)) return { category: en, resolved: true, partial: he };
   }
   return { category: 'other', resolved: false };
 }
@@ -358,9 +423,32 @@ export function normalizeRecipe(input, opts = {}) {
      whenever the title had no parentheses. */
   const titleEn = nonEmpty(pick(input, 'titleEn', 'title_en')) ?? derivedEn;
 
-  const { category, resolved } = mapCategory(input.category);
-  if (!resolved && input.category) warnings.push(`category "${input.category}" unrecognised → other`);
-  else if (!input.category) warnings.push('no category → other');
+  /* Stated category first, then the title, then `other`.
+     The stated one is authoritative when it resolves cleanly. A PARTIAL match says so
+     out loud, because it is a substring guess. And with nothing stated at all, the
+     title is a far better guess than `other` — an AI export that omits the field used
+     to dump the whole batch into one category. Every guess is warned about, so the
+     preview's dropdown is the one that decides. */
+  let { category, resolved, partial } = mapCategory(input.category);
+  if (partial) {
+    warnings.push(`category "${input.category}" matched on "${partial}" → ${category} (check this)`);
+  } else if (!resolved && input.category) {
+    const fromTitle = guessCategoryFromTitle(title);
+    if (fromTitle.guessed) {
+      category = fromTitle.category;
+      warnings.push(`category "${input.category}" unrecognised → guessed ${category} from the title`);
+    } else {
+      warnings.push(`category "${input.category}" unrecognised → other`);
+    }
+  } else if (!input.category) {
+    const fromTitle = guessCategoryFromTitle(title);
+    if (fromTitle.guessed) {
+      category = fromTitle.category;
+      warnings.push(`no category stated → guessed ${category} from the title`);
+    } else {
+      warnings.push('no category → other');
+    }
+  }
 
   const servings = parseNumber(pick(input, 'servings', 'portions'));
   const yieldText = nonEmpty(pick(input, 'yieldText', 'yield', 'makes'));

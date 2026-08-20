@@ -34,3 +34,17 @@ photos/*.jpeg
 photos/*.png
 my_recipes_gemini.json
 aviente/public/_upload/
+
+# ── backups and diagnostics — never versioned ────────────────────────────────
+# `aviente-backup-<date>.json` is the WHOLE cookbook in one file: 74 recipes, 721
+# ingredients, 420 steps. One got committed and pushed to this repo while it was
+# public, because `git add -A` was run from `aviente/` while the git root is one level
+# up — so `-A` staged every untracked file at the root as well. The patterns are
+# deliberately wide: a backup is named for the day it was taken, so an exact filename
+# can never cover the next one.
+aviente-backup-*.json
+supabase_logs*.json
+*.dc.html
+# Design references dropped in the root while working. The one that got committed was
+# 432KB of somebody else's menu.
+menu sample*.jpg

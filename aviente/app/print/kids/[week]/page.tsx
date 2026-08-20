@@ -1,7 +1,7 @@
 import { serverT } from '@/lib/lang';
 import KidsArt from '@/components/KidsArt';
 import PrintExit from '@/components/PrintExit';
-import { ANIMALS, MEALS, getKidsWeek, weekLabel } from '@/lib/kids';
+import { ANIMALS, MEALS, dishLabel, getKidsWeek, weekLabel } from '@/lib/kids';
 import Motif from '@/components/Motif';
 import styles from './fridge.module.css';
 
@@ -19,8 +19,12 @@ export default async function FridgePrint({
   // grid rather than a 500, the same way the menu print route does.
   const { meals } = await getKidsWeek(week).catch(() => ({ meals: [] }));
 
+  /* A LIST. This was `.find()`, and with several dishes in a slot it would have
+     printed the first one and silently dropped the rest — on a sheet that goes on the
+     fridge and is trusted as the week's plan. Ordered by the query, so the sheet and
+     the planner cannot disagree about which dish comes first. */
   const at = (weekday: number, meal: string) =>
-    meals.find((m) => m.weekday === weekday && m.meal === meal);
+    meals.filter((m) => m.weekday === weekday && m.meal === meal);
 
   return (
     <main className={styles.page}>
@@ -70,15 +74,31 @@ export default async function FridgePrint({
                 const placed = at(a.weekday, meal.key);
                 return (
                   <td key={a.weekday} className={styles.cell} style={{ borderColor: meal.colour }}>
-                    {placed ? (
-                      <>
-                        <span className={styles.dish} lang="he">{placed.recipe?.title}</span>
-                        {placed.chef?.name && (
-                          <span className={styles.chef}>
-                            <Motif name="chef_hat" size={14} strokeWidth={2.6} /> {placed.chef.name}
-                          </span>
+                    {placed.length ? (
+                      /* Every dish, and the type shrinks after two — the grid is a
+                         fixed landscape table, so three dishes in one cell would clip
+                         rather than reflow. Shrinking is not a fix for ten, and the
+                         cap is stated rather than silent: past four the cell says how
+                         many are not shown, because a sheet that quietly omits a
+                         dish somebody planned is worse than one that admits it. */
+                      <ul className={`${styles.dishes} ${placed.length > 2 ? styles.tight : ''}`}>
+                        {placed.slice(0, 4).map((dish) => (
+                          <li key={dish.id}>
+                            {/* Free text prints like any other dish — it is not a
+                                lesser kind of dish, and dishLabel answers for both. */}
+                            <span className={styles.dish} lang="he">{dishLabel(dish)}</span>
+                            {dish.chef && (
+                              <span className={styles.chef}>
+                                <Motif name="chef_hat" size={14} strokeWidth={2.6} />{' '}
+                                {dish.chef.display_name ?? dish.chef.name}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                        {placed.length > 4 && (
+                          <li className={styles.more}>+{placed.length - 4}</li>
                         )}
-                      </>
+                      </ul>
                     ) : (
                       <span className={styles.blank}>·</span>
                     )}

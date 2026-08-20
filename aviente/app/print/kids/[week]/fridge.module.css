@@ -124,3 +124,31 @@
   font-size: 0.8rem;
   line-height: 1.1;
 }
+
+/* Several dishes in one cell. The grid is a fixed landscape table, so this list must
+   fit rather than push the row taller — hence the tighter type once there are three,
+   and the stated cap in the cell itself. */
+.dishes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.dishes > li + li {
+  padding-top: 3px;
+  border-top: 1px dotted rgba(0, 0, 0, 0.12);
+}
+
+.tight .dish { font-size: 0.8em; }
+.tight .chef { font-size: 0.7em; }
+
+/* "+2" — said out loud. A fridge sheet that silently omits a dish somebody planned is
+   worse than one that admits the cell is full. */
+.more {
+  font-family: var(--san);
+  font-size: 0.7em;
+  letter-spacing: 1px;
+  color: #9a8c7c;
+}

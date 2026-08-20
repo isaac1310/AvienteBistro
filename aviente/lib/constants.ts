@@ -199,11 +199,34 @@ export type KidsMeal = {
   id: string;
   weekday: number;
   meal: MealKey;
-  recipe_id: string;
+  /* NULLABLE since migration 17, and the type mattered: it was `string`, while both
+     the planner and the fridge sheet wrapped the title in a Link to
+     /recipes/kids/{recipe_id}. A free-text dish would have linked to
+     /recipes/kids/null — a 404 on a row that is working exactly as intended. */
+  recipe_id: string | null;
+  /** A dish with no recipe. Exactly one of recipe_id / free_text is set. */
+  free_text: string | null;
+  /** Order within its slot. Maintained by the kids_* functions, never by hand. */
+  position: number;
   chef_member_id: string | null;
   recipe: { id: string; title: string; title_en: string | null } | null;
-  chef: { name: string } | null;
+  chef: { name: string; display_name: string | null } | null;
 };
+
+/**
+ * What to write on a dish, whichever kind it is.
+ *
+ * Shared rather than repeated, because there are four places that answer this
+ * question — the planner, the fridge sheet, and (once menus use the same idea) the
+ * builder and the card. Four copies of "recipe title, or the free text" is four
+ * places for a free-text dish to render blank.
+ */
+export function dishLabel(row: {
+  free_text?: string | null;
+  recipe?: { title: string; title_en?: string | null } | null;
+}): string {
+  return row.free_text?.trim() || row.recipe?.title || '';
+}
 
 
 /**

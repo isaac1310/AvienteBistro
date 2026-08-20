@@ -18,7 +18,7 @@ export default async function KidsPage({
   const [{ meals }, recipes, { data: members }] = await Promise.all([
     getKidsWeek(weekStart),
     kidsRecipes(),
-    db.from('family_members').select('id, name').order('name'),
+    db.from('family_members').select('id, name, display_name').order('name'),
   ]);
 
   return (

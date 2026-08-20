@@ -81,9 +81,23 @@ if (menus?.length) {
   if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
 }
 
-if (!doomed?.length && !menus?.length) { console.log('nothing to clean.'); process.exit(0); }
+/* Kids dishes are tagged through their free text — the only field a test can write
+   freely. Added when free-text dishes arrived and a verification run left
+   "__test__ bread and white cheese" sitting in Friday dinner: a fixture this script
+   could not see is a fixture that becomes real data. */
+const { data: kids, error: kidsErr } = await db
+  .from('kids_meals').select('id').like('free_text', `${FIXTURE_TAG}%`);
+if (kidsErr) { console.error(`✗ ${kidsErr.message}`); process.exit(1); }
+if (kids?.length) {
+  const { error } = await db.from('kids_meals').delete().like('free_text', `${FIXTURE_TAG}%`);
+  if (error) { console.error(`✗ ${error.message}`); process.exit(1); }
+}
 
-console.log(`✓ removed ${doomed?.length ?? 0} test recipe(s) and ${menus?.length ?? 0} test menu(s).`);
+if (!doomed?.length && !menus?.length && !kids?.length) {
+  console.log('nothing to clean.'); process.exit(0);
+}
+
+console.log(`✓ removed ${doomed?.length ?? 0} test recipe(s), ${menus?.length ?? 0} test menu(s), ${kids?.length ?? 0} test kids dish(es).`);
 
 /* Counted, not remembered. This line used to read "the 13 real recipes are
    untouched" — a number hardcoded when the book held 13 recipes, printed as

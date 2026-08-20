@@ -182,6 +182,7 @@ const DICT = {
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
   'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },
   'card.delete':       { he: 'מחיקת {title}',   en: 'Delete {title}' },
+  'settings.downloadPhotos': { he: 'גיבוי התמונות', en: 'Download the photographs' },
   'sort.label':        { he: 'סדר',            en: 'Sort' },
   'sort.title':        { he: 'לפי שם',          en: 'By name' },
   'sort.updated':      { he: 'עודכנו לאחרונה',  en: 'Recently updated' },

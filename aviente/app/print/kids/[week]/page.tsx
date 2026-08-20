@@ -90,7 +90,13 @@ export default async function FridgePrint({
                             {dish.chef && (
                               <span className={styles.chef}>
                                 <Motif name="chef_hat" size={14} strokeWidth={2.6} />{' '}
-                                {dish.chef.display_name ?? dish.chef.name}
+                                {/* "Chef Papa", not "Papa". The hat says cook to
+                                    someone who already knows what the sheet is; the
+                                    WORD says it to a child reading it on the fridge,
+                                    and it matches the planner's select exactly rather
+                                    than being the same person titled on one screen and
+                                    bare on the other. */}
+                                {t('kids.chefName', { name: dish.chef.display_name ?? dish.chef.name })}
                               </span>
                             )}
                           </li>

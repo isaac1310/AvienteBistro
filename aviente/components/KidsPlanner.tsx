@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ANIMALS, MEALS, addWeeks, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
-import { clearMeal, clearWeek, fillWeek, setChef, setMeal } from '@/lib/kidsMutations';
+import { ANIMALS, MEALS, addWeeks, dishLabel, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
+import { addMeal, clearMeal, clearWeek, fillWeek, moveMeal, removeMeal, setChef } from '@/lib/kidsMutations';
 import KidsArt from './KidsArt';
 import { useLang, useT } from './LangProvider';
 import Motif from './Motif';
@@ -21,7 +21,7 @@ export default function KidsPlanner({
   weekStart: string;
   meals: KidsMeal[];
   recipes: Recipe[];
-  members: { id: string; name: string }[];
+  members: { id: string; name: string; display_name: string | null }[];
 }) {
   const t = useT();
   const lang = useLang();
@@ -35,7 +35,18 @@ export default function KidsPlanner({
      Saturday are off until someone turns them on, rather than presenting seven empty
      columns most of which will never be filled. */
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4]);
-  const [picking, setPicking] = useState<{ weekday: number; meal: MealKey } | null>(null);
+  /* `replaceId` is what stops the swap button inserting a second dish: the add and
+     the swap are the same sheet, and with the unique constraint gone the database can
+     no longer tell them apart on our behalf. */
+  const [picking, setPicking] =
+    useState<{ weekday: number; meal: MealKey; replaceId?: string } | null>(null);
+  /* Free text, typed in the picker. "לחם עם גבינה לבנה" needs no recipe, and half of
+     what a week actually contains never had one. */
+  const [freeText, setFreeText] = useState('');
+  /* A dish waiting to be moved. The picker for WHERE, rather than drag — two taps,
+     works with a keyboard and a screen reader, and on a phone a drag between two
+     small boxes is a coin toss. */
+  const [moving, setMoving] = useState<KidsMeal | null>(null);
   const [trayOpen, setTrayOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,8 +88,13 @@ export default function KidsPlanner({
     }
   }
 
-  const mealAt = (weekday: number, meal: MealKey) =>
-    meals.find((m) => m.weekday === weekday && m.meal === meal);
+  /* A LIST, not a find. A slot holds several dishes since migration 17, and every
+     single-dish assumption had to move with the schema — this one was `.find()`,
+     which would have silently shown the first dish and hidden the rest. Already
+     ordered by the query; no sorting here, so the planner and the fridge sheet
+     cannot disagree. */
+  const dishesAt = (weekday: number, meal: MealKey) =>
+    meals.filter((m) => m.weekday === weekday && m.meal === meal);
 
   return (
     <div className={styles.garden}>
@@ -183,41 +199,71 @@ export default function KidsPlanner({
           </h2>
 
           {MEALS.map((meal) => {
-            const placed = mealAt(a.weekday, meal.key);
+            const placed = dishesAt(a.weekday, meal.key);
             return (
               <div key={meal.key} className={styles.meal} style={{ borderColor: meal.colour }}>
                 <span className={styles.mealLabel}>{mealName(meal)}</span>
 
-                {placed ? (
-                  <>
-                    <Link href={`/recipes/kids/${placed.recipe_id}`} className={styles.dish} lang="he">
-                      {placed.recipe?.title ?? '—'}
-                    </Link>
+                {placed.map((dish) => (
+                  <div key={dish.id} className={styles.dishRow}>
+                    {/* A free-text dish is NOT a link. recipe_id is null for one, and
+                        this used to be an unconditional Link — so "bread with white
+                        cheese" would have pointed at /recipes/kids/null. */}
+                    {dish.recipe_id ? (
+                      <Link href={`/recipes/kids/${dish.recipe_id}`} className={styles.dish} lang="he">
+                        {dishLabel(dish)}
+                      </Link>
+                    ) : (
+                      <span className={`${styles.dish} ${styles.dishPlain}`} lang="he">
+                        {dishLabel(dish)}
+                      </span>
+                    )}
                     <div className={styles.mealFoot}>
                       <select
                         className={styles.chef}
-                        value={placed.chef_member_id ?? ''}
+                        value={dish.chef_member_id ?? ''}
                         aria-label={t('kids.whoCooks')}
                         disabled={busy}
-                        onChange={(e) => run(() => setChef(placed.id, e.target.value || null))}
+                        onChange={(e) => run(() => setChef(dish.id, e.target.value || null))}
                       >
                         <option value="">{t('kids.whoPlaceholder')}</option>
                         {members.map((m) => (
-                          <option key={m.id} value={m.id}>Chef {m.name}</option>
+                          /* display_name, falling back to name. The app greets you as
+                             "Papa" and this select said "Chef Itzik" — one person under
+                             two names on two screens. */
+                          <option key={m.id} value={m.id}>
+                            {t('kids.chefName', { name: m.display_name ?? m.name })}
+                          </option>
                         ))}
                       </select>
+                      <button className={styles.swap} aria-label={t('kids.moveDish')}
+                        disabled={busy} onClick={() => setMoving(dish)}>⇄</button>
                       <button className={styles.swap} aria-label={t('kids.swapMeal')}
                         disabled={busy}
-                        onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>↻</button>
-                      <button className={styles.remove} aria-label={t('kids.clearMeal')}
+                        onClick={() => setPicking({
+                          weekday: a.weekday, meal: meal.key, replaceId: dish.id,
+                        })}>↻</button>
+                      {/* ONE dish, not the slot. This called clearMeal(week, day,
+                          meal), which with several dishes in a slot would have deleted
+                          all of them from a ✕ sitting on one. */}
+                      <button className={styles.remove} aria-label={t('kids.removeDish')}
                         disabled={busy}
-                        onClick={() => run(() => clearMeal(weekStart, a.weekday, meal.key))}>✕</button>
+                        onClick={() => run(() => removeMeal(dish.id))}>✕</button>
                     </div>
-                  </>
-                ) : (
-                  <button className={styles.empty} disabled={busy}
-                    onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>
-                    {t('kids.addSomething')}
+                  </div>
+                ))}
+
+                <button className={styles.empty} disabled={busy}
+                  onClick={() => setPicking({ weekday: a.weekday, meal: meal.key })}>
+                  {placed.length ? t('kids.addAnother') : t('kids.addSomething')}
+                </button>
+
+                {/* Only when there is something to clear, and it clears the SLOT —
+                    the bulk action the ✕ above deliberately stopped being. */}
+                {placed.length > 1 && (
+                  <button className={styles.clearSlot} disabled={busy}
+                    onClick={() => run(() => clearMeal(weekStart, a.weekday, meal.key))}>
+                    {t('kids.clearSlot')}
                   </button>
                 )}
               </div>
@@ -243,8 +289,44 @@ export default function KidsPlanner({
                 meal: mealName(MEALS.find((m) => m.key === picking.meal)!),
               })}
             </strong>
-            <button onClick={() => setPicking(null)}>{t('common.close')}</button>
+            <button onClick={() => { setPicking(null); setFreeText(''); }}>
+              {t('common.close')}
+            </button>
           </div>
+
+          {/* Free text FIRST, and that placement is the argument. A tired parent
+              planning the week wants to know what to shop for and what to prepare,
+              and "bread with white cheese" needs no recipe — putting it under a list
+              of twenty recipes would make the common case the buried one.
+              It contributes no ingredients, so it can never feed a shopping list. If
+              one is ever built these appear as their own verbatim line. */}
+          <form
+            className={styles.freeRow}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!freeText.trim() || !picking) return;
+              run(async () => {
+                await addMeal(weekStart, picking.weekday, picking.meal,
+                  { freeText }, { replaceId: picking.replaceId ?? null });
+                setPicking(null); setFreeText('');
+              });
+            }}
+          >
+            <label className={styles.freeLabel}>
+              <span>{t('kids.orSomething')}</span>
+              <input
+                className={styles.freeField}
+                lang="he"
+                value={freeText}
+                placeholder={t('kids.freeTextHint')}
+                onChange={(e) => setFreeText(e.target.value)}
+              />
+            </label>
+            <button className={styles.pill} disabled={busy || !freeText.trim()}>
+              {t('kids.addFreeText')}
+            </button>
+          </form>
+
           <ul className={styles.picks}>
             {/* A dish tagged for another meal still shows, but the matching ones
                 come first — the tag is a hint, not a rule. */}
@@ -253,8 +335,9 @@ export default function KidsPlanner({
               .map((r) => (
                 <li key={r.id}>
                   <button className={styles.pick} onClick={() => run(async () => {
-                    await setMeal(weekStart, picking.weekday, picking.meal, r.id);
-                    setPicking(null);
+                    await addMeal(weekStart, picking.weekday, picking.meal,
+                      { recipeId: r.id }, { replaceId: picking.replaceId ?? null });
+                    setPicking(null); setFreeText('');
                   })}>
                     <span lang="he">{r.title}</span>
                     {r.meal_type && <span className={styles.pickTag}>{r.meal_type}</span>}
@@ -266,6 +349,39 @@ export default function KidsPlanner({
                 No kids&rsquo; recipes yet. Add one and set its category to Kids&rsquo; Table.
               </li>
             )}
+          </ul>
+        </div>
+      )}
+
+      {/* Where to move a dish. Drag-and-drop is deferred deliberately: on a phone a
+          drag between two small boxes is a coin toss, and kids_move is built either
+          way, so drag can be added later without touching the data path. */}
+      {moving && (
+        <div className={styles.sheet} role="dialog"
+             aria-label={t('kids.moveWhere', { dish: dishLabel(moving) })}>
+          <div className={styles.sheetHead}>
+            <strong>{t('kids.moveWhere', { dish: dishLabel(moving) })}</strong>
+            <button onClick={() => setMoving(null)}>{t('common.close')}</button>
+          </div>
+          <ul className={styles.picks}>
+            {ANIMALS.flatMap((a) => MEALS.map((meal) => {
+              const here = moving.weekday === a.weekday && moving.meal === meal.key;
+              return (
+                <li key={`${a.weekday}-${meal.key}`}>
+                  <button className={styles.pick} disabled={busy || here}
+                    onClick={() => run(async () => {
+                      await moveMeal(moving.id, a.weekday, meal.key);
+                      setMoving(null);
+                      /* A dish moved onto a day that is switched off would vanish from
+                         the screen while sitting perfectly well in the database. */
+                      if (!days.includes(a.weekday)) setDays([...days, a.weekday]);
+                    })}>
+                    <span>{dayName(a)} · {mealName(meal)}</span>
+                    {here && <span className={styles.pickTag}>{t('kids.hereNow')}</span>}
+                  </button>
+                </li>
+              );
+            }))}
           </ul>
         </div>
       )}

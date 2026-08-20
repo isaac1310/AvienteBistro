@@ -48,7 +48,16 @@ if (!url || !key) {
    MAINTENANCE RULE, stated where it bites: a new migration that adds a column adds
    a probe here in the same commit — that is what prepr then enforces for everyone
    after you. */
-/* WHAT THIS CANNOT SEE, stated where it bites: these probes ask for COLUMNS, because
+/* These probes DO see through RLS, which is worth recording because it looks as
+   though they could not: kids_meals and menus both refuse anon outright. PostgREST
+   parses the column list BEFORE checking privileges, so a missing column answers
+   42703 (400) while an existing column on a protected table answers 42501 (401) —
+   two different codes, and `missing()` below tests for the first. Checked against the
+   live database rather than reasoned about, because if it were the other way round
+   every probe on a protected table would pass unconditionally and this whole gate
+   would be theatre.
+
+   WHAT THIS CANNOT SEE, stated where it bites: these probes ask for COLUMNS, because
    this script runs with the anon key and RLS hides schema_migrations from anyone
    without a session. A migration that only rewrites a FUNCTION adds no column, so it
    is invisible here — migration 16 rewrote fetch_shared_menu and is covered by
@@ -56,6 +65,12 @@ if (!url || !key) {
    directly. Hence 16 maps to 15's column: reaching 15 is all this gate can prove, and
    claiming more would be the fail-open behaviour the block below exists to prevent. */
 const PROBES = [
+  /* 18 adds only ROWS (the two credit-only chefs), so there is no column to ask for
+     and it is invisible here — same blind spot as 16, covered by db-check, which
+     reads schema_migrations with the service key. It maps to 17's probe: reaching 17
+     is all this gate can prove. */
+  [18, 'kids_meals?select=id,free_text&limit=1'],
+  [17, 'kids_meals?select=id,free_text&limit=1'],
   [16, 'menus?select=id,course_order&limit=1'],
   [15, 'menus?select=id,course_order&limit=1'],
   [14, 'family_members?select=id,language&limit=1'],

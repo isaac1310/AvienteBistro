@@ -2,7 +2,7 @@
  * Source: design/motifs/*.svg. Run `npm run motifs` after changing one.
  */
 
-export type MotifName = 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
+export type MotifName = 'chef_hat' | 'candle' | 'apple' | 'search' | 'folder' | 'clipboard' | 'link' | 'link_off' | 'sparkle' | 'warning' | 'course_aperitif' | 'course_entree' | 'course_main' | 'course_sides' | 'course_dessert' | 'course_pain';
 
 export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   chef_hat: {
@@ -40,6 +40,10 @@ export const MOTIFS: Record<MotifName, { viewBox: string; inner: string }> = {
   sparkle: {
     viewBox: "0 0 110 90",
     inner: "<path d=\"M55 24 l4 13 13 4 -13 4 -4 13 -4 -13 -13 -4 13 -4z\"></path><path d=\"M78 52 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z\" stroke-width=\"1\"></path><path d=\"M32 56 l1.5 5 5 1.5 -5 1.5 -1.5 5 -1.5 -5 -5 -1.5 5 -1.5z\" stroke-width=\"1\"></path>",
+  },
+  warning: {
+    viewBox: "0 0 110 90",
+    inner: "<!-- The last emoji in the app was the ⚠ on an import warning. Drawn instead, for the     same reason as the butterflies: the glyph renders at whatever weight the device's     emoji font decides, which on the Ultra was \"not at all\". --><path d=\"M55 20 L86 72 H24 Z\"></path><path d=\"M55 38 V54\" stroke-width=\"2.4\"></path><path d=\"M55 62 v0.5\" stroke-width=\"3\"></path>",
   },
   course_aperitif: {
     viewBox: "0 0 110 90",

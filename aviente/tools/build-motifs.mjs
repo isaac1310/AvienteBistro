@@ -20,6 +20,7 @@ const KEYS = [
   /* The blueprint sweep: every one of these replaced an emoji in the chrome. */
   'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'link_off',
   'sparkle',
+  'warning',
   /* One per course, for the menu card. Five borrow their drawing from the category
      plate of the same food, so a course on the card and its shelf in the book are
      recognisably the same object; only the wine glass had no plate to borrow from.

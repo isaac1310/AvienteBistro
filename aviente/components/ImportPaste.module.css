@@ -35,7 +35,17 @@
   align-items: center; padding: var(--sp-3) var(--sp-4); }
 .title { margin: 0; font-family: var(--ser); font-size: 1.125rem; color: var(--primary); }
 .meta { margin: 0; font-size: 0.75rem; color: var(--ink-soft); }
-.warn { margin: 2px 0 0; font-size: 0.75rem; color: var(--gold-ink); }
+.warn {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--gold-ink);
+  /* The mark sits on the line with the text rather than above it, so a two-line
+     warning stays one block. */
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+.warnMark { flex: 0 0 auto; margin-top: 1px; }
 
 .error { margin: 0; padding: var(--sp-3); border: 1px solid #d9b3b3;
   border-left: 2px solid #8c2b2b; background: #fdf4f4; color: #8c2b2b;

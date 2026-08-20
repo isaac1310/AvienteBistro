@@ -238,7 +238,11 @@ export default function ImportPaste({
                       {r.servings ? ` · serves ${r.servings}` : r.yieldText ? ` · ${r.yieldText}` : ''}
                     </p>
                     {r.warnings?.map((w: string) => (
-                      <p key={w} className={styles.warn}>⚠ {w}</p>
+                      <p key={w} className={styles.warn}>
+                        <Motif name="warning" size={15} strokeWidth={2.2}
+                          className={styles.warnMark} />
+                        {w}
+                      </p>
                     ))}
                   </div>
                   <select

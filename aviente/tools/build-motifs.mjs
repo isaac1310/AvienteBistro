@@ -19,7 +19,14 @@ import { readSvgDir } from './lib/inline-svg.mjs';
 const KEYS = [
   'loader_loaf',
   /* The blueprint sweep: every one of these replaced an emoji in the chrome. */
-  'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'sparkle',
+  'chef_hat', 'candle', 'apple', 'search', 'folder', 'clipboard', 'link', 'link_off',
+  'sparkle',
+  /* One per course, for the menu card. Five borrow their drawing from the category
+     plate of the same food, so a course on the card and its shelf in the book are
+     recognisably the same object; only the wine glass had no plate to borrow from.
+     `course_pain` is drawn ahead of the course itself, which arrives with 0017. */
+  'course_aperitif', 'course_entree', 'course_main',
+  'course_sides', 'course_dessert', 'course_pain',
 ];
 
 const dir = new URL('../design/motifs/', import.meta.url).pathname;

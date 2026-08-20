@@ -95,7 +95,7 @@ export default function MenuActions({
             </div>
             <button type="button" className={styles.revoke} disabled={busy}
               onClick={() => run(async () => { await unshareMenu(id); setLink(null); setCopied(false); })}>
-              ⛔ Stop sharing
+              <><Motif name="link_off" size={18} /> {t('menu.stopSharing')}</>
             </button>
           </>
         ) : (

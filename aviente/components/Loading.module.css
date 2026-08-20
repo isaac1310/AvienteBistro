@@ -23,7 +23,17 @@
   padding: 0;
 }
 
-.inline .art { width: 76px; height: 66px; }
+.inline .art { width: 34px; height: 30px; }
+
+/* Inside a control the drawing takes the CONTROL's colour, all three tones.
+   Verified wrong first: on the burgundy Export button the crust is --ink, so a dark
+   loaf sat on a dark ground and only the pale scores showed. A loader that is
+   invisible exactly while it matters is worse than no loader. */
+.inline .crust,
+.inline .score,
+.inline .fume { stroke: currentColor; }
+.inline .score { opacity: 0.55; }
+.inline .fume { opacity: 0.7; }
 
 /* The steam leaves the box on its way up, and the topmost curl is drawn touching the
    top edge already. */

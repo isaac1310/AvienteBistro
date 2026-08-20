@@ -70,7 +70,10 @@ export default function MenuBuilder({
   /* What the printed card will actually say. Save falls back to the occasion when
      the field is blank, so the preview has to apply the SAME fallback — otherwise
      the preview and the card disagree, which is worse than having no preview. */
-  const effectiveTitle = title.trim() || suggested || 'Menu';
+  /* No 'Menu' tail. A blank field with no occasion means the card HAS no title, and
+     the preview has to show that rather than inventing a word the card will not
+     print. The occasion fallback stays, because save applies it too. */
+  const effectiveTitle = title.trim() || suggested || null;
 
   /* Has anything been touched? Compared against the props we were handed, so
      opening an existing menu and pressing Cancel is silent, while abandoning ten
@@ -167,7 +170,7 @@ export default function MenuBuilder({
       <div className={styles.preview} aria-live="polite">
         <span className={styles.previewTag}>{t('menu.onTheCard')}</span>
         <p className={styles.previewDate}>{cardDate(new Date(`${date}T18:00:00`))}</p>
-        <p className={styles.previewTitle}>{effectiveTitle}</p>
+        {effectiveTitle && <p className={styles.previewTitle}>{effectiveTitle}</p>}
         <p className={styles.previewNote}>
           {title.trim()
             ? (rows.length === 1 ? t('menu.dishes.one') : t('menu.dishes.many', { n: rows.length }))

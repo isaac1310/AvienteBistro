@@ -166,6 +166,12 @@ const DICT = {
      said the way it would be said out loud, not a gloss of the English. */
   'loading':           { he: 'טוען',           en: 'Loading' },
   'loading.baking':    { he: 'באפייה עוד רגע..', en: 'STILL BAKING' },
+  /* The PDF export. The route boots headless Chromium, so the wait is real and the
+     failure modes are worth naming rather than saying "that did not work". */
+  'pdf.working':       { he: 'מכינים PDF…',    en: 'Building the PDF…' },
+  'pdf.failed':        { he: 'ה־PDF לא נוצר',  en: 'The PDF could not be made' },
+  'pdf.timeout':       { he: 'לקח יותר מדי זמן. אפשר להשתמש בכפתור ההדפסה, שלא צריך שרת.',
+                          en: 'It took too long. The Print button needs no server.' },
   'menu.dishNote':     { he: 'תיאור למנה על הכרטיס (לא חובה)',
                           en: 'How this dish reads on the card (optional)' },
   'menu.addDish':      { he: '＋ הוספת מנה', en: '＋ Add a dish' },

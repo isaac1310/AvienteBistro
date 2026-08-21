@@ -11,40 +11,31 @@ assert is already asserted in `public/selftest.js` or `tools/db-check.mjs`.
 
 ---
 
-## 1 · Ingredient parts ⚠️ — the two items I could not verify myself
+## 1 · Ingredient parts ⚠️
 
-The reorder logic is proven by an extracted test (nine cases, including a negative
-control showing the old behaviour splitting a heading). What is NOT machine-verified is
-the interface around it: the Chrome tab available during the build would not hydrate,
-and the in-app browser has no session. These two steps are the gap.
+Machine-verified since this file was first written: the drafting field appears empty
+and focused, blur-empty returns to the offer, and a real HTML drag moved a row across a
+part boundary (11+1 → 10+2 rows) and onto a heading (10+2 → 9+3) with the part count
+staying at two — i.e. no split heading. Left unsaved; the recipe was read back from the
+database unchanged. What remains here is TOUCH, which no desktop browser can answer.
 
 Open any recipe → **Edit**.
 
-1. Press **＋ מתן שם לקבוצה** (name this part).
-   **Expect:** a heading field appears, **empty**, with the cursor already in it and
-   the placeholder "לדוגמה: לרוטב" showing. ⚠️ It used to write the word **לקציצות**
-   into the recipe the moment you pressed the button.
+1. Press **＋ מתן שם לקבוצה** (name this part), type a name, then press **↓** on an
+   ingredient in the part above until it crosses in.
+   **Expect:** the field arrived empty with the cursor in it — ⚠️ it used to write the
+   word **לקציצות** into the recipe on the button press — and the ingredient JOINS the
+   part it lands in. ⚠️ It used to keep its old label, which both failed to join and
+   split the heading in two.
    ☐ pass ☐ fail
 
-2. Type nothing and tap elsewhere.
-   **Expect:** the field disappears and the offer button comes back. Nothing was saved.
-   ☐ pass ☐ fail
-
-3. Type a part name, then press **↓** on an ingredient in the part ABOVE it until it
-   crosses into your new part.
-   **Expect:** the ingredient joins that part. ⚠️ It used to keep its old label, which
-   both failed to join AND split the heading in two with a foreign row wedged between.
-   ☐ pass ☐ fail
-
-4. ⚠️ **Drag** an ingredient by its ↑↓ handle onto a row in another part.
-   **Expect:** it lands there and belongs to that part. Native drag does not fire on
-   touch — if nothing lifts on the phone, that is the known limit, not a bug: the ↑↓
-   buttons are the guaranteed path. **Say which happened.**
-   ☐ works on touch ☐ mouse only ☐ fail
-
-5. ⚠️ Drag an ingredient onto a part's **heading**.
-   **Expect:** it goes to the end of that part.
-   ☐ pass ☐ fail
+2. ⚠️ **THE ONE THING NO DESKTOP CAN ANSWER.** Press and hold an ingredient's ↑↓ handle
+   and try to drag the row into another part.
+   **Expect:** honestly, unknown. Native HTML drag does not fire on touch, so this may
+   simply not lift — that is a known limit, not a bug, and the ↑↓ buttons do the same
+   job. **Please say which happened**, because it decides whether v11.2 needs
+   pointer-event emulation.
+   ☐ lifts and drops ☐ nothing happens ☐ lifts but drops in the wrong place
 
 ## 2 · Photographs ⚠️
 

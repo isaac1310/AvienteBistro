@@ -29,12 +29,20 @@ import styles from './Loading.module.css';
  * rendered. There the wordmark is dropped: a control is not a splash screen.
  */
 export default function Loading({
-  rows = 0, label, size = 'page',
+  rows = 0, label, size = 'page', done = false,
 }: {
   rows?: number;
   /** Only when the surrounding text does not already say what is being waited for. */
   label?: string;
   size?: 'page' | 'inline';
+  /**
+   * The finished beat: the steam stops and a tick draws in the same stroke.
+   *
+   * A loader that simply vanishes leaves nothing behind to say the thing worked —
+   * which for an import or a restore is the only question the person had. Held for
+   * about 700ms by the caller, not here: this component does not own the clock.
+   */
+  done?: boolean;
 }) {
   const t = useT();
   const lang = useLang();
@@ -43,8 +51,14 @@ export default function Loading({
          aria-label={label ?? t('loading')}>
       {/* overflow visible: the steam animates UPWARD out of the box, and the artboard
           draws the topmost curl already touching y=32. */}
-      <svg className={styles.art} viewBox="0 0 220 190" fill="none"
-           aria-hidden="true" focusable="false">
+      <svg className={`${styles.art} ${done ? styles.artDone : ''}`} viewBox="0 0 220 190"
+           fill="none" aria-hidden="true" focusable="false">
+        {/* The tick, drawn in the crust's own weight and only when done — same hand as
+            the bread, so it reads as the drawing finishing rather than an icon
+            arriving from somewhere else. */}
+        {done && (
+          <path className={styles.tick} d="M92 96 L118 122 L170 66" />
+        )}
         <g className={styles.fume}>
           {/* Three curls on one keyframe, staggered — one rising ribbon reads as a
               progress bar, three read as heat coming off bread. */}

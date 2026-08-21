@@ -1,0 +1,19 @@
+/* The drawing and the label on one line. The button keeps its height either way, so a
+   row of buttons does not shift when one of them starts working. */
+.inner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* A fixed box, so the label does not slide sideways as the drawing arrives and
+   leaves — the same reservation the sort control needed. */
+.mark {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 22px;
+  flex: 0 0 26px;
+  --loader-inline-w: 26px;
+  --loader-inline-h: 22px;
+}

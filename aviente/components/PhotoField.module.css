@@ -78,6 +78,9 @@
    recipe row does not point at it until Save. Claiming "saved" here would be a lie
    that costs someone a photograph. */
 .toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   margin: 0;
   padding: var(--sp-2) var(--sp-3);
   background: color-mix(in srgb, var(--primary) 10%, var(--card));
@@ -85,4 +88,16 @@
   border-radius: var(--radius);
   font-size: var(--t-small);
   color: var(--primary);
+}
+
+/* The tick beside the upload confirmation. Sized to the line, not to a button. */
+.toastMark {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 20px;
+  flex: 0 0 24px;
+  vertical-align: -4px;
+  --loader-inline-w: 24px;
+  --loader-inline-h: 20px;
 }

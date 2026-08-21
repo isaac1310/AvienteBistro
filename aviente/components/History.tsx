@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useT } from './LangProvider';
+import BusyButton from './BusyButton';
 import styles from './History.module.css';
 
 /* ⟲ Earlier versions — the other half of the safety net.
@@ -71,9 +72,11 @@ export default function History({
 
   return (
     <>
-      <button type="button" className={styles.trigger} onClick={show} disabled={busy}>
-        ⟲ Earlier versions
-      </button>
+      {/* Fetching the revision list is a round trip and this said nothing. */}
+      <BusyButton busy={busy} className={styles.trigger} onClick={show}
+        busyLabel={t('history.loading')}>
+        {t('history.earlier')}
+      </BusyButton>
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {open && (

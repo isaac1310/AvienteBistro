@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { movePhoto, recipesWithoutPhoto } from '@/lib/mutations';
 import { categoryLabel } from '@/lib/constants';
+import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import styles from './MovePhoto.module.css';
 
@@ -56,18 +57,21 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
 
   return (
     <>
-      <button type="button" className={styles.trigger} onClick={openPicker} disabled={busy}>
-        ↗ Move this photo to another recipe
-      </button>
+      {/* The picker loads every photo-less recipe over the network, and this said
+          nothing at all while it did — on kitchen wifi a tap looked ignored. */}
+      <BusyButton busy={busy && !open} className={styles.trigger} onClick={openPicker}
+        busyLabel={t('photo.loading')}>
+        {t('photo.moveThis')}
+      </BusyButton>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {open && (
         <div className={styles.sheet} role="dialog" aria-label={t('photo.move')}>
           <div className={styles.head}>
-            <strong>Which recipe is this a photo of?</strong>
+            <strong>{t('photo.whichRecipe')}</strong>
             <button type="button" className={styles.close} onClick={() => setOpen(false)}>
-              Close
+              {t('common.close')}
             </button>
           </div>
 
@@ -76,19 +80,16 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
             onChange={(e) => setQuery(e.target.value)}
           />
 
-          <p className={styles.hint}>
-            Only recipes without a photo are listed — a photograph belongs to one
-            dish, so nothing is overwritten.
-          </p>
+          <p className={styles.hint}>{t('photo.onlyEmpty')}</p>
 
           <ul className={styles.list}>
             {shown.map((o) => (
               <li key={o.id}>
-                <button type="button" className={styles.pick} disabled={busy}
-                  onClick={() => moveTo(o.id)}>
+                <BusyButton busy={busy} className={styles.pick}
+                  busyLabel={t('photo.moving')} onClick={() => moveTo(o.id)}>
                   <span lang="he">{o.title}</span>
                   <span className={styles.meta}>{categoryLabel(o.category).en}</span>
-                </button>
+                </BusyButton>
               </li>
             ))}
             {shown.length === 0 && (

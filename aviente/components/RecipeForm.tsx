@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MovePhoto from './MovePhoto';
 import PhotoField from './PhotoField';
+import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
 import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
@@ -256,10 +257,15 @@ export default function RecipeForm({
             onClick={() => (dirty && !confirm(t('form.discard')) ? null : router.back())}>
             {t('form.cancel')}
           </button>
-          <button type="button" className="btn" onClick={onSave} disabled={busy || photoBusy}
-            title={photoBusy ? t('form.waitForPhoto') : undefined}>
-            {busy ? t('form.saving') : photoBusy ? t('form.waitForPhoto') : t('form.save')}
-          </button>
+          {/* photoBusy keeps Save disabled AND now shows the loader — the P0 from
+              v11 was that you could save while a photograph was still uploading and
+              it saved without it. Disabled with a changed label said so; the drawing
+              says it while you are looking at the photo field rather than the button.
+              No `done`: a successful save navigates to the recipe. */}
+          <BusyButton busy={busy || photoBusy} onClick={onSave}
+            busyLabel={photoBusy && !busy ? t('form.waitForPhoto') : t('form.saving')}>
+            {t('form.save')}
+          </BusyButton>
         </div>
       </header>
 

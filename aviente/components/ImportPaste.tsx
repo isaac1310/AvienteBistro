@@ -12,6 +12,7 @@ import Link from 'next/link';
 import Motif from './Motif';
 import styles from './ImportPaste.module.css';
 import Arrow from './Arrow';
+import BusyButton from './BusyButton';
 
 /** Where an imported recipe now lives. The category is in the path, which is why the
  *  import result had to start returning it. */
@@ -146,18 +147,20 @@ export default function ImportPaste({
 
         <div className={styles.actions}>
           <button className="btn" onClick={() => { setResult(null); setText(''); }}>
-            Import more
+            {t('import.more')}
           </button>
-          <button className="btn btn--ghost" disabled={busy}
+          {/* Undo showed NOTHING while it ran — not a label change, not a spinner,
+              just a disabled button while it deleted twenty recipes. */}
+          <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('import.undoing')}
             onClick={async () => {
               setBusy(true);
               await undoImport(result.imported.map((r) => r.id));
               setResult(null); setText(''); setBusy(false); router.refresh();
             }}>
             {result.replaced.length > 0
-              ? `Undo — removes the ${result.imported.length} new ones`
-              : 'Undo this import'}
-          </button>
+              ? t('import.undoNew', { n: result.imported.length })
+              : t('import.undoAll')}
+          </BusyButton>
         </div>
       </div>
     );
@@ -293,9 +296,11 @@ export default function ImportPaste({
             })}
           </ul>
 
-          <button className="btn" onClick={onImport} disabled={busy}>
-            {busy ? 'Importing…' : `Import ${parsed.recipes.length} ${parsed.recipes.length === 1 ? 'recipe' : 'recipes'}`}
-          </button>
+          <BusyButton busy={busy} onClick={onImport} busyLabel={t('import.importing')}>
+            {parsed.recipes.length === 1
+              ? t('import.importOne')
+              : t('import.importN', { n: parsed.recipes.length })}
+          </BusyButton>
         </section>
       )}
     </div>

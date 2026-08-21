@@ -178,7 +178,16 @@ export default function PhotoField({
       )}
 
       {saved && !busy && (
-        <p className={styles.toast} role="status">{t('form.photoSaved')}</p>
+        /* The tick beside the sentence, and the SENTENCE is what carries the meaning:
+           "the photograph uploaded — save the recipe to attach it". A bare ✓ after a
+           photo upload would read as "saved", which is exactly the wrong thing to
+           believe here — the row does not know about this file until Save. */
+        <p className={styles.toast} role="status">
+          <span className={styles.toastMark} aria-hidden="true">
+            <Loading size="inline" done />
+          </span>
+          {t('form.photoSaved')}
+        </p>
       )}
 
       <div className={styles.buttons}>
@@ -193,7 +202,7 @@ export default function PhotoField({
         {value && (
           <button type="button" className={styles.remove} disabled={busy}
             onClick={() => { onChange(null); setPreview(null); }}>
-            Remove
+            {t('form.removePhoto')}
           </button>
         )}
       </div>

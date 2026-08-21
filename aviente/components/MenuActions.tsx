@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
+import BusyButton from './BusyButton';
 import ExportPdfButton from './ExportPdfButton';
 import Motif from './Motif';
 import styles from './MenuActions.module.css';
@@ -47,7 +48,7 @@ export default function MenuActions({
   }
 
   async function onDuplicate() {
-    const when = prompt('Copy this menu onto which date?', new Date().toISOString().slice(0, 10));
+    const when = prompt(t('menu.copyDate'), new Date().toISOString().slice(0, 10));
     if (!when) return;
     await run(async () => {
       const newId = await duplicateMenu(id, when);
@@ -58,14 +59,15 @@ export default function MenuActions({
   return (
     <div className={styles.wrap}>
       <div className={styles.buttons}>
-        <button className="btn btn--ghost" disabled={busy}
+        <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('menu.working')}
           onClick={() => run(() => toggleSaved(id, !saved))}>
-          {saved ? '★ Kept' : '☆ Keep this one'}
-        </button>
+          {saved ? t('menu.kept') : t('menu.keepThis')}
+        </BusyButton>
 
-        <button className="btn btn--ghost" disabled={busy} onClick={onDuplicate}>
-          Duplicate
-        </button>
+        <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('menu.working')}
+          onClick={onDuplicate}>
+          {t('menu.duplicate')}
+        </BusyButton>
 
         <a className="btn btn--ghost" href={`/menus/${id}/edit`}>{t('menu.editDishes')}</a>
 
@@ -77,9 +79,7 @@ export default function MenuActions({
       <div className={styles.share}>
         {link ? (
           <>
-            <p className={styles.shareNote}>
-              Anyone with this link can see this menu — nothing else in the cookbook.
-            </p>
+            <p className={styles.shareNote}>{t('menu.shareNote')}</p>
             <div className={styles.linkRow}>
               <input className={styles.linkField} readOnly value={
                 typeof window === 'undefined' ? link : `${window.location.origin}${link}`
@@ -89,18 +89,19 @@ export default function MenuActions({
                   await navigator.clipboard.writeText(`${window.location.origin}${link}`);
                   setCopied(true);
                 }}>
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? t('menu.copied') : t('menu.copy')}
               </button>
             </div>
-            <button type="button" className={styles.revoke} disabled={busy}
+            <BusyButton busy={busy} className={styles.revoke} busyLabel={t('menu.working')}
               onClick={() => run(async () => { await unshareMenu(id); setLink(null); setCopied(false); })}>
-              <><Motif name="link_off" size={18} /> {t('menu.stopSharing')}</>
-            </button>
+              <Motif name="link_off" size={18} /> {t('menu.stopSharing')}
+            </BusyButton>
           </>
         ) : (
-          <button className="btn btn--ghost" disabled={busy} onClick={onShare}>
-            <><Motif name="link" size={18} /> {t('menu.shareLink')}</>
-          </button>
+          <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('menu.working')}
+            onClick={onShare}>
+            <Motif name="link" size={18} /> {t('menu.shareLink')}
+          </BusyButton>
         )}
       </div>
 

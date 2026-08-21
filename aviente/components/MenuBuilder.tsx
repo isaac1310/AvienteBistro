@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
 import { COURSES, DEFAULT_COURSE_ORDER, categoryLabel, courseLabelEn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
+import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
 
@@ -202,9 +203,11 @@ export default function MenuBuilder({
           <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>
             {t('form.cancel')}
           </button>
-          <button className="btn" onClick={onSave} disabled={busy}>
-            {busy ? t('menu.saving') : t('menu.save')}
-          </button>
+          {/* No `done`: saving navigates to the finished menu, so a tick would be
+              one beat before the page changes anyway. */}
+          <BusyButton busy={busy} onClick={onSave} busyLabel={t('menu.saving')}>
+            {t('menu.save')}
+          </BusyButton>
         </div>
       </header>
 

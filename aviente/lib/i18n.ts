@@ -203,6 +203,12 @@ const DICT = {
      importing at the time, which is why they survived four releases. */
   /* The menu actions were English throughout on a Hebrew-first app, and every one of
      them went `disabled` with no other sign it was working. */
+  /* The prompt assumed a photograph. A recipe that arrives as text — pasted from a
+     chat, a message, a website — needed no photograph at all, and the instructions
+     told you to take one. */
+  'import.howto':      { he: 'להדביק את המתכון כטקסט, או לצלם אותו ולצרף את התמונה — ואז להדביק את ההוראות שמתחת.',
+                          en: 'Paste the recipe as text, or photograph it and attach the picture — then paste the instructions below.' },
+  'book.categories':   { he: 'קטגוריות',        en: 'Categories' },
   'history.earlier':   { he: '⟲ גרסאות קודמות',  en: '⟲ Earlier versions' },
   'history.loading':   { he: 'טוענים גרסאות…',   en: 'Loading versions…' },
   /* MovePhoto: the trigger loads a list over the network with no sign it is doing so. */

@@ -83,3 +83,7 @@
   gap: var(--sp-2) var(--sp-4);
   text-align: center;
 }
+
+/* The chip strip. Tight to the header above it and loose to the count below, so it
+   groups with the page's identity rather than with the list. */
+.chipRow { padding: var(--sp-3) 0 var(--sp-1); }

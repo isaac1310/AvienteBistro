@@ -17,7 +17,11 @@
 .page .art { width: 240px; height: 207px; }
 
 /* Inside a control — an uploading photo, a PDF being built. */
+/* display:grid explicitly, because this element is a SPAN when inline — see the note
+   in Loading.tsx about <div> inside <button> and <p>. An inline span would collapse
+   the drawing's box. */
 .inline {
+  display: grid;
   min-height: 0;
   gap: var(--sp-2);
   padding: 0;

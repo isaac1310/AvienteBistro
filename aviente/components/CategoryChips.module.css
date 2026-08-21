@@ -1,0 +1,63 @@
+/* A single row that scrolls sideways. In RTL it starts from the right on its own —
+   the document direction does that — so nothing here reverses anything by hand. */
+.wrap {
+  /* Bleeds past the shell so the first and last chip can sit at the screen edge,
+     which is what makes it read as a strip that continues rather than a boxed list. */
+  margin-inline: calc(var(--sp-4) * -1);
+  padding-inline: var(--sp-4);
+  overflow-x: auto;
+  /* No vertical scrollbar from a one-line row on any platform. */
+  overflow-y: hidden;
+  /* Momentum on iOS, and a chip always ends up aligned rather than half-cut. */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.wrap::-webkit-scrollbar { display: none; }
+
+.row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--sp-2);
+  /* Chips keep their size; the ROW scrolls. Without this they squeeze to fit and the
+     drawings collapse. */
+  width: max-content;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  /* --tap tall, like every control in main. */
+  min-height: var(--tap);
+  padding: 0 var(--sp-3) 0 var(--sp-2);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+
+.name {
+  font-family: var(--san);
+  font-size: var(--t-small);
+  letter-spacing: 0.02em;
+}
+
+/* Where you are. Marked by ink and weight rather than by a colour fill, so it reads
+   as "this page" instead of "selected item". */
+.on {
+  background: color-mix(in srgb, var(--primary) 8%, var(--card));
+  border-color: var(--primary);
+  color: var(--primary);
+  cursor: default;
+}
+.on .name { font-weight: 600; }
+
+@media (hover: hover) {
+  .chip:hover:not(.on) { border-color: var(--primary); color: var(--primary); }
+}

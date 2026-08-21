@@ -46,9 +46,19 @@ export default function Loading({
 }) {
   const t = useT();
   const lang = useLang();
+  /* A SPAN when inline, a DIV when it fills a page — and this is a correctness fix,
+     not a preference. Inline loaders live inside <button> and <p>, both of which take
+     phrasing content only, so a <div> there is invalid HTML: React reported "In HTML,
+     <div> cannot be a descendant of <p>" and the page it happened on failed to
+     hydrate — every control on it dead, with the layout looking perfectly fine. The
+     span is display:grid, so nothing about the drawing changes.
+     Page size keeps the div because it wraps the skeleton <ul>, which a span cannot
+     legally contain either. */
+  const Wrap = size === 'inline' ? 'span' : 'div';
+
   return (
-    <div className={`${styles.wrap} ${styles[size]}`} role="status" aria-live="polite"
-         aria-label={label ?? t('loading')}>
+    <Wrap className={`${styles.wrap} ${styles[size]}`} role="status" aria-live="polite"
+          aria-label={label ?? t('loading')}>
       {/* overflow visible: the steam animates UPWARD out of the box, and the artboard
           draws the topmost curl already touching y=32. */}
       <svg className={`${styles.art} ${done ? styles.artDone : ''}`} viewBox="0 0 220 190"
@@ -100,6 +110,6 @@ export default function Loading({
           ))}
         </ul>
       )}
-    </div>
+    </Wrap>
   );
 }

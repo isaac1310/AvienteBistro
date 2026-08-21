@@ -42,7 +42,7 @@ export default function CategoryPlate({
   category, size = 'thumb', caption, plateNumber = false,
 }: {
   category: CategoryKey;
-  size?: 'thumb' | 'row' | 'hero';
+  size?: 'thumb' | 'row' | 'hero' | 'chip';
   /** The category name under the drawing. Hero only — a 92px column has no room. */
   caption?: string;
   /** The "PL. IV — PLATS" line. For the /brand series sheet only. */
@@ -72,8 +72,9 @@ export default function CategoryPlate({
         /* Heavier at thumbnail size, as the blueprint README asks: 1.4 disappears
            when the drawing is 44px wide. */
         /* Heavier only where the drawing is small enough to lose its lines: the 92px
-           thumb needs 2.4, the hero and the 56px row do not. */
-        strokeWidth={size === 'thumb' ? 2.4 : 1.6}
+           thumb needs 2.4, the hero and the 56px row do not — and the 26px chip needs
+           more still, or the plate is a grey smudge next to its own name. */
+        strokeWidth={size === 'chip' ? 3.2 : size === 'thumb' ? 2.4 : 1.6}
         strokeLinecap="round"
         role="presentation"
         dangerouslySetInnerHTML={{ __html: plate.inner }}

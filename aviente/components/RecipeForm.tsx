@@ -93,13 +93,28 @@ export default function RecipeForm({
   const [descEn, setDescEn] = useState(recipe?.description_en ?? '');
   const [lang, setLang] = useState<'he' | 'en'>('he');
 
+  /* `?? ` was not enough, and the difference crashed the page. A recipe with no
+     ingredients has `ingredients: []`, not undefined — so `.map()` returned an empty
+     array, `??` never fired, and `rows` was empty. groupRuns then produced its
+     one-empty-run fallback, whose `rows[0]` does not exist, and the JSX reads
+     `run.rows[0].key`. The whole edit form threw: "This page couldn't load", on both
+     the dev server and the production build.
+     Found with a fixture recipe created with no ingredients — the state you are in
+     when you want to ADD some, which is exactly when this form has to work. The bug
+     predates the parts rewrite (git log -S on that expression). `.length` is the
+     check, not nullishness. */
+  const blankRow = (): Row =>
+    ({ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '', group: '' });
+
   const [rows, setRows] = useState<Row[]>(
-    recipe?.ingredients.map((i) => ({
-      key: i.id, name: i.name,
-      amount: i.amount == null ? '' : String(i.amount),
-      amountMax: i.amount_max == null ? '' : String(i.amount_max),
-      unit: i.unit ?? '', note: i.note ?? '', group: i.group_label ?? '',
-    })) ?? [{ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '', group: '' }],
+    recipe?.ingredients.length
+      ? recipe.ingredients.map((i) => ({
+        key: i.id, name: i.name,
+        amount: i.amount == null ? '' : String(i.amount),
+        amountMax: i.amount_max == null ? '' : String(i.amount_max),
+        unit: i.unit ?? '', note: i.note ?? '', group: i.group_label ?? '',
+      }))
+      : [blankRow()],
   );
 
   /**
@@ -222,7 +237,14 @@ export default function RecipeForm({
       }
       const id = await saveRecipe(input);
       setDirty(false);
-      router.push(`/recipes/${category}/${id}`);
+      /* Refiling a recipe returns you to where you were WORKING, not to where the
+         recipe went. Going through a category tidying things up, every move used to
+         throw you into the destination category and leave you to navigate back — and
+         `category` here is the form's NEW value, so it was the wrong list twice over.
+         The delete path has always used `recipe.category`, the untouched prop; this
+         borrows it. A new recipe has no origin, so it still opens. */
+      const moved = recipe && category !== recipe.category;
+      router.push(moved ? `/recipes/${recipe.category}` : `/recipes/${category}/${id}`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save.');
@@ -376,7 +398,7 @@ export default function RecipeForm({
 
         {groupRuns(rows).map((run) => (
           <div
-            key={run.rows[0].key}
+            key={run.rows[0]?.key ?? 'unnamed'}
             className={`${styles.part} ${dropOn === `run:${run.group}` ? styles.partDrop : ''}`}
             /* Dropping onto the HEADING sends the row to the end of that part — the
                one gesture ↑↓ cannot express, because stepping a row into a part means
@@ -394,7 +416,7 @@ export default function RecipeForm({
               setDragKey(null); setDropOn(null);
             }}
           >
-            {run.group === null && !drafting.has(run.rows[0].key) ? (
+            {run.group === null && !drafting.has(run.rows[0]?.key ?? 'unnamed') ? (
               /* The unnamed run at the top: most recipes are only this. Offer the
                  name rather than demanding it. */
               /* This used to write the literal 'לקציצות' into every row of the run —
@@ -405,7 +427,7 @@ export default function RecipeForm({
                  the runs whose heading is being typed. Nothing is written to a row
                  until a character is. */
               <button type="button" className={styles.nameSection}
-                onClick={() => setDrafting(new Set(drafting).add(run.rows[0].key))}>
+                onClick={() => setDrafting(new Set(drafting).add(run.rows[0]?.key ?? 'unnamed'))}>
                 {t('form.nameThisPart')}
               </button>
             ) : (
@@ -420,7 +442,8 @@ export default function RecipeForm({
                        callback ref runs on mount, which is exactly when a freshly
                        drafted heading appears. */
                     ref={(el) => {
-                      if (el && drafting.has(run.rows[0].key) && document.activeElement !== el) {
+                      if (el && drafting.has(run.rows[0]?.key ?? 'unnamed')
+                        && document.activeElement !== el) {
                         el.focus();
                       }
                     }}
@@ -432,7 +455,7 @@ export default function RecipeForm({
                     onBlur={(e) => {
                       if (e.target.value.trim() === '') {
                         const next = new Set(drafting);
-                        next.delete(run.rows[0].key);
+                        next.delete(run.rows[0]?.key ?? 'unnamed');
                         setDrafting(next);
                       }
                     }}
@@ -442,7 +465,7 @@ export default function RecipeForm({
                   aria-label={t('form.removeHeadingLabel')}
                   onClick={() => {
                     const next = new Set(drafting);
-                    next.delete(run.rows[0].key);
+                    next.delete(run.rows[0]?.key ?? 'unnamed');
                     setDrafting(next);
                     touch(setRows)(renameRun(rows, run, ''));
                   }}>

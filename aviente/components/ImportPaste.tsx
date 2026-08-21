@@ -26,17 +26,19 @@ const rowHref = (r: ImportedRow) => `/recipes/${r.category}/${r.id}`;
  * written. Nothing is saved until IMPORT is pressed.
  */
 
-const PROMPT = `קרא את המתכון בתמונה והחזר JSON בלבד, בלי טקסט נוסף, במבנה הזה:
+const PROMPT = `קרא את המתכון — מתמונה, מקובץ, או מהטקסט שאני מדביק כאן — והחזר JSON בלבד, בלי טקסט נוסף, במבנה הזה:
 
 {"schemaVersion":1,"title":"שם המתכון","titleEn":"Latin name or null",
  "category":"mains|soups|salads|entrees|sides|breads|desserts|kids|other",
  "servings":6,"yieldText":null,"prepMinutes":20,"cookMinutes":40,
  "descriptionHe":"תיאור קצר לתפריט","story":null,
  "servingSuggestions":"איך להגיש",
- "ingredients":[{"name":"קמח","amount":500,"unit":"g","note":null}],
+ "ingredients":[{"name":"קמח","amount":500,"unit":"g","note":null,"group":null},
+                {"name":"טחינה","amount":3,"unit":"tbsp","note":null,"group":"לרוטב"}],
  "steps":[{"heading":null,"body":"..."}]}
 
 unit חייב להיות אחד מ: g, kg, ml, l, cup, tbsp, tsp, pcs, pinch, to taste.
+group הוא החלק שהמרכיב שייך אליו — "לרוטב", "למילוי", "לקציצות". אם המתכון מחולק לחלקים, סמן כל מרכיב בחלק שלו; אם לא, השאר null בכולם. מרכיבים של אותו חלק חייבים להופיע רצוף.
 לטווח כמויות השתמש ב-amount ו-amountMax. אם אין כמות, השמט את amount.
 אפשר להחזיר מערך של כמה מתכונים.`;
 

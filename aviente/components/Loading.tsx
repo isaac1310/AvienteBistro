@@ -61,7 +61,15 @@ export default function Loading({
           aria-label={label ?? t('loading')}>
       {/* overflow visible: the steam animates UPWARD out of the box, and the artboard
           draws the topmost curl already touching y=32. */}
-      <svg className={`${styles.art} ${done ? styles.artDone : ''}`} viewBox="0 0 220 190"
+      {/* CROPPED when small, and this is the same lesson the category thumbnails
+          taught: the artboard puts generous air around the drawing, which is right at
+          240px and wrong at 30px — the air ate most of the box, the loaf came out a
+          third of its size, and the steam was sub-pixel and simply absent. Reported
+          three times as "the loader is not clear enough" and "it has no fumes".
+          The crop is to where the ink actually is (the steam starts at y=32 and the
+          ground line at y=182 is dropped), so the bread and its steam fill the box. */}
+      <svg className={`${styles.art} ${done ? styles.artDone : ''}`}
+           viewBox={size === 'inline' ? '10 26 200 152' : '0 0 220 190'}
            fill="none" aria-hidden="true" focusable="false">
         {/* The tick, drawn in the crust's own weight and only when done — same hand as
             the bread, so it reads as the drawing finishing rather than an icon

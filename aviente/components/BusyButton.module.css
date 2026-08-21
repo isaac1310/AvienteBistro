@@ -11,9 +11,11 @@
 .mark {
   display: inline-grid;
   place-items: center;
-  width: 26px;
-  height: 22px;
-  flex: 0 0 26px;
-  --loader-inline-w: 26px;
-  --loader-inline-h: 22px;
+  /* 34px, not 26. At 26 the drawing was a smudge — the first thing Itzik said about
+     it was that it is not clear enough, in three separate places. */
+  width: 34px;
+  height: 26px;
+  flex: 0 0 34px;
+  --loader-inline-w: 34px;
+  --loader-inline-h: 26px;
 }

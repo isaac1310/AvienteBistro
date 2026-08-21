@@ -123,17 +123,6 @@ export default function KidsPlanner({
           </p>
         )}
 
-        {/* ONE loader for the whole planner, not one per control. Ten of these
-            controls used to go `disabled` and say nothing else, so adding a dish over
-            kitchen wifi looked like an app that had stopped responding — while a
-            loader on each of the ten would be its own kind of noise. The planner is
-            the thing that is busy, so the planner is what shows it. */}
-        {busy && (
-          <p className={styles.working}>
-            <Loading size="inline" label={t('kids.working')} />
-            {t('kids.working')}
-          </p>
-        )}
       </header>
 
       <div className={styles.weekRow}>
@@ -367,6 +356,20 @@ export default function KidsPlanner({
               </li>
             )}
           </ul>
+        </div>
+      )}
+
+      {/* ONE loader for the whole planner, not one per control — ten controls used to
+          go `disabled` and say nothing else, while a loader on each would be its own
+          kind of noise.
+          FIXED, not in the header: it was in the header strip, and the planner is a
+          long page — scroll down to Thursday, tap a dish, and the only sign anything
+          was happening was off the top of the screen. A busy indicator you have to
+          scroll to find is not one. Above the nav bar, where a toast would go. */}
+      {busy && (
+        <div className={styles.working} role="status">
+          <Loading size="inline" label={t('kids.working')} />
+          {t('kids.working')}
         </div>
       )}
 

@@ -255,17 +255,28 @@
 }
 .freeField:focus-visible { outline: none; border-color: #c2417e; }
 
-/* The planner is busy. Centred under the week strip, where the eye already is after
-   tapping a bubble or a dish. */
+/* The planner is busy — and it says so wherever you are on the page.
+   This sat under the week strip, which is fine until you scroll to Thursday: the only
+   sign the app was working was then off the top of the screen. Fixed above the nav bar
+   instead, the way a toast sits. */
 .working {
+  position: fixed;
+  /* Clear of the bottom nav, which is 64px plus the safe-area inset on the Ultra. */
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--sp-2);
-  margin: var(--sp-2) 0 0;
+  padding: var(--sp-2) var(--sp-4);
+  background: #fff;
+  border: 2px solid #bfe3cd;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(47, 107, 79, 0.18);
   font-family: var(--kid);
   font-size: var(--t-small);
   color: #2f6b4f;
-  --loader-inline-w: 30px;
-  --loader-inline-h: 26px;
+  --loader-inline-w: 34px;
+  --loader-inline-h: 28px;
 }

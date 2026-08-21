@@ -99,3 +99,40 @@ Open any recipe → **Edit**.
 
 **Found something?** Note the step number and what you saw instead. A failure here is
 worth more than a green run — every ⚠️ above is something that shipped broken once.
+
+---
+
+## Pass of 21 Aug 2026 — what Itzik reported
+
+Confirmed: 1 (parts), 2 (drag — see below), 6 and 7 (photographs), 8 and 9 (chips and
+the origin category), 10 (photo toast), 12 and 13 (sharing), 14 (print exit).
+
+Three things came back, all fixed in the same session:
+
+- **"The small baguette loader is not clear enough"**, said of three different places.
+  Two causes, both measured: the drawing was rendered inside the artboard's generous
+  air, so at 26px the loaf was a third of its box; and the steam animates 0 → 0.85 → 0,
+  which at that size means moments with genuinely NO steam. Sampling the opacity over a
+  full cycle proved it hit zero. Inline now crops to the ink, strokes heavier, is 34px,
+  and its steam breathes between 0.35 and 1 rather than in and out of nothing.
+- **The kids loader scrolled out of sight.** It sat in the header, and the planner is a
+  long page: scroll to Thursday, tap a dish, and the only sign of life was off-screen.
+  It is fixed above the nav bar now.
+- **The home-screen icon is still green.** Not the app — production serves cream icons
+  and a cream manifest, verified by decoding the live PNG's pixels. Chrome installs a
+  WebAPK, a real Android package, and its icon is baked in at install time; removing the
+  home-screen shortcut does not uninstall it. See the note below.
+
+## The icon: removing the shortcut is not uninstalling the app
+
+1. Long-press the Aviente icon → **App info** → **Uninstall**. (Or Settings → Apps →
+   Aviente → Uninstall.) This is the step that matters — dragging the icon off the home
+   screen leaves the WebAPK, and re-adding reuses its baked-in artwork.
+2. Chrome → ⋮ → Settings → Site settings → All sites → the Aviente entry →
+   **Clear & reset**.
+3. Open the site in Chrome, check the footer says **v11.1.0**, then Add to home screen.
+
+Chrome also re-checks the manifest roughly daily and rebuilds the WebAPK on its own, so
+this may correct itself without any of the above. `id` was added to the manifest this
+release, which is what lets Chrome recognise an update as the same app rather than
+keying it off `start_url` alone.

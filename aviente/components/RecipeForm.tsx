@@ -100,6 +100,23 @@ export default function RecipeForm({
       unit: i.unit ?? '', note: i.note ?? '', group: i.group_label ?? '',
     })) ?? [{ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '', group: '' }],
   );
+
+  /**
+   * Runs whose heading is being typed, keyed by the run's first row.
+   *
+   * Editor state, never data: a part that exists only because someone pressed "name
+   * this part" has no label yet, and `group_label = ''` cannot represent that —
+   * groupRuns collapses blank to the unnamed run, which is the whole reason the old
+   * fix of passing '' was a no-op. So "unnamed" and "being named" are two states
+   * here, and only here. Nothing reaches a row until a character is typed, and
+   * nothing about the saved shape changes.
+   */
+  const [drafting, setDrafting] = useState<Set<string>>(new Set());
+
+  /** The row currently lifted by a drag, or null. */
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  /** Where it would land: a row key, or a run's label for a drop onto a heading. */
+  const [dropOn, setDropOn] = useState<string | null>(null);
   const [steps, setSteps] = useState<StepRow[]>(
     recipe?.steps.map((s) => ({ key: s.id, heading: s.heading ?? '', body: s.body })) ??
       [{ key: uid(), heading: '', body: '' }],
@@ -130,6 +147,46 @@ export default function RecipeForm({
     const [item] = copy.splice(from, 1);
     copy.splice(to, 0, item);
     return copy;
+  }
+
+  /**
+   * Move an ingredient, and let it JOIN the part it lands in.
+   *
+   * Plain `move` splices positions and never touches `group`, and sections are
+   * DERIVED from contiguous equal labels — so a row crossing a boundary kept its old
+   * label, which did two wrong things at once: it did not join the destination, and
+   * it split the destination's heading in two with a foreign row wedged between.
+   *
+   * The rule: a moved row adopts the label of whichever row it now sits beside.
+   * Preferring the row it displaced (`to`) makes dragging INTO a section mean what it
+   * looks like. Both the ↑↓ buttons and the drag handle come through here, so the two
+   * mechanisms cannot drift apart — one invariant, two ways to reach it.
+   */
+  function moveIngredient(list: Row[], from: number, to: number): Row[] {
+    if (to < 0 || to >= list.length || from === to) return list;
+    const reordered = move(list, from, to);
+    /* The neighbour that decides the part. Moving DOWN, the row now sits after the
+       one it passed, so that one's label is the section it entered; moving UP, the
+       row below it. Falling back to the other side covers the ends of the list. */
+    const behind = reordered[to - 1]?.group;
+    const ahead = reordered[to + 1]?.group;
+    const adopt = (to > from ? behind : ahead) ?? behind ?? ahead;
+    if (adopt === undefined) return reordered;
+    return reordered.map((r, i) => (i === to ? { ...r, group: adopt } : r));
+  }
+
+  /** Send a row to the END of a named run — what dropping onto a heading means. */
+  function moveIngredientToRun(list: Row[], key: string, group: string | null): Row[] {
+    const from = list.findIndex((r) => r.key === key);
+    if (from < 0) return list;
+    const target = list.map((r, i) => ({ r, i }))
+      .filter(({ r }) => (r.group.trim() === '' ? null : r.group) === group && r.key !== key);
+    if (!target.length) return list;
+    const lastOfRun = target[target.length - 1].i;
+    const to = from < lastOfRun ? lastOfRun : lastOfRun + 1;
+    const reordered = move(list, from, to);
+    const landed = reordered.findIndex((r) => r.key === key);
+    return reordered.map((r, i) => (i === landed ? { ...r, group: group ?? '' } : r));
   }
 
   async function onSave() {
@@ -312,12 +369,37 @@ export default function RecipeForm({
         <h2 className={styles.h2}>{t('form.ingredients')}</h2>
 
         {groupRuns(rows).map((run) => (
-          <div key={run.rows[0].key} className={styles.part}>
-            {run.group === null ? (
+          <div
+            key={run.rows[0].key}
+            className={`${styles.part} ${dropOn === `run:${run.group}` ? styles.partDrop : ''}`}
+            /* Dropping onto the HEADING sends the row to the end of that part — the
+               one gesture ↑↓ cannot express, because stepping a row into a part means
+               passing through it. An EMPTY part cannot be a target: runs are derived
+               from rows, so a part with nothing in it does not exist on screen. */
+            onDragOver={(e) => {
+              if (!dragKey) return;
+              e.preventDefault();
+              setDropOn(`run:${run.group}`);
+            }}
+            onDrop={(e) => {
+              if (!dragKey) return;
+              e.preventDefault();
+              touch(setRows)(moveIngredientToRun(rows, dragKey, run.group));
+              setDragKey(null); setDropOn(null);
+            }}
+          >
+            {run.group === null && !drafting.has(run.rows[0].key) ? (
               /* The unnamed run at the top: most recipes are only this. Offer the
                  name rather than demanding it. */
+              /* This used to write the literal 'לקציצות' into every row of the run —
+                 a real label, in real data, from a button press. Passing '' instead
+                 does nothing at all: groupRuns coerces blank to null, so the run
+                 stays unnamed and the input never appears. Empty and unnamed have to
+                 be different states, and only in the FORM — so a DRAFTING set holds
+                 the runs whose heading is being typed. Nothing is written to a row
+                 until a character is. */
               <button type="button" className={styles.nameSection}
-                onClick={() => touch(setRows)(renameRun(rows, run, 'לקציצות'))}>
+                onClick={() => setDrafting(new Set(drafting).add(run.rows[0].key))}>
                 {t('form.nameThisPart')}
               </button>
             ) : (
@@ -325,17 +407,39 @@ export default function RecipeForm({
                 <label className={styles.partLabel}>
                   <span className={styles.label}>{t('form.part')}</span>
                   <input
-                    className={styles.input} value={run.group} lang="he"
+                    className={styles.input} value={run.group ?? ''} lang="he"
                     placeholder={t('form.partPlaceholder')}
                     aria-label={t('form.partName')}
+                    /* Focused on arrival, so naming a part is one action. The
+                       callback ref runs on mount, which is exactly when a freshly
+                       drafted heading appears. */
+                    ref={(el) => {
+                      if (el && drafting.has(run.rows[0].key) && document.activeElement !== el) {
+                        el.focus();
+                      }
+                    }}
                     /* Renames every row in the run at once — the point of the
                        change. */
                     onChange={(e) => touch(setRows)(renameRun(rows, run, e.target.value))}
+                    /* Left empty, it was never a part. Drop back to the offer rather
+                       than leaving a nameless heading on screen. */
+                    onBlur={(e) => {
+                      if (e.target.value.trim() === '') {
+                        const next = new Set(drafting);
+                        next.delete(run.rows[0].key);
+                        setDrafting(next);
+                      }
+                    }}
                   />
                 </label>
                 <button type="button" className={styles.unname}
                   aria-label={t('form.removeHeadingLabel')}
-                  onClick={() => touch(setRows)(renameRun(rows, run, ''))}>
+                  onClick={() => {
+                    const next = new Set(drafting);
+                    next.delete(run.rows[0].key);
+                    setDrafting(next);
+                    touch(setRows)(renameRun(rows, run, ''));
+                  }}>
                   {t('form.removeHeading')}
                 </button>
               </div>
@@ -345,12 +449,53 @@ export default function RecipeForm({
               {run.rows.map((r) => {
                 const i = rows.findIndex((x) => x.key === r.key);
                 return (
-                  <li key={r.key} className={styles.row}>
-                    <div className={styles.handle}>
+                  <li
+                    key={r.key}
+                    className={[
+                      styles.row,
+                      dragKey === r.key ? styles.rowLifted : '',
+                      dropOn === r.key ? styles.rowDropTarget : '',
+                    ].filter(Boolean).join(' ')}
+                    /* The LI is draggable, not the inputs: a draggable input cannot
+                       be selected with the mouse, so the handle below is what starts
+                       a drag and the fields stay ordinary fields. */
+                    onDragOver={(e) => {
+                      if (!dragKey || dragKey === r.key) return;
+                      e.preventDefault();
+                      /* stopPropagation, or the run wrapper underneath also claims
+                         the drop and "between two rows" becomes "end of the part". */
+                      e.stopPropagation();
+                      setDropOn(r.key);
+                    }}
+                    onDrop={(e) => {
+                      if (!dragKey || dragKey === r.key) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const from = rows.findIndex((x) => x.key === dragKey);
+                      touch(setRows)(moveIngredient(rows, from, i));
+                      setDragKey(null); setDropOn(null);
+                    }}
+                  >
+                    <div
+                      className={styles.handle}
+                      draggable
+                      onDragStart={(e) => {
+                        setDragKey(r.key);
+                        /* Firefox refuses to start a drag with no payload. */
+                        e.dataTransfer.setData('text/plain', r.key);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragEnd={() => { setDragKey(null); setDropOn(null); }}
+                    >
+                      {/* Both paths go through moveIngredient, so a row dragged into
+                          a part and a row stepped into it with ↑↓ end up with the
+                          same label. Two mechanisms, one invariant. The buttons stay
+                          the guaranteed path: native drag does not fire on touch, and
+                          §3.4 requires a keyboard route regardless. */}
                       <button type="button" aria-label={t('form.moveUp')} className={styles.move}
-                        onClick={() => touch(setRows)(move(rows, i, i - 1))}>↑</button>
+                        onClick={() => touch(setRows)(moveIngredient(rows, i, i - 1))}>↑</button>
                       <button type="button" aria-label={t('form.moveDown')} className={styles.move}
-                        onClick={() => touch(setRows)(move(rows, i, i + 1))}>↓</button>
+                        onClick={() => touch(setRows)(moveIngredient(rows, i, i + 1))}>↓</button>
                     </div>
                     <div className={styles.rowFields}>
                       <input className={styles.input} placeholder={t('form.ingredient')} value={r.name} lang="he"
@@ -386,11 +531,19 @@ export default function RecipeForm({
 
         {/* A new part, at the end. This is what did not exist: there was no way to
             say "and now the sauce" without knowing to retype a label per row. */}
+        {/* A new part starts with one blank row and NO label — the label is typed
+            into the heading that appears. It used to arrive stamped 'לרוטב', a real
+            Hebrew word written into real data by a button press, on an app whose
+            interface might be in English. The row is added and its run is put
+            straight into drafting, so the heading input is on screen and focused. */}
         <button type="button" className={styles.addPart}
-          onClick={() => touch(setRows)([...rows, {
-            key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '',
-            group: 'לרוטב',
-          }])}>
+          onClick={() => {
+            const key = uid();
+            touch(setRows)([...rows, {
+              key, name: '', amount: '', amountMax: '', unit: '', note: '', group: '',
+            }]);
+            setDrafting(new Set(drafting).add(key));
+          }}>
           {t('form.addPart')}
         </button>
       </section>

@@ -120,27 +120,90 @@ export function isSortKey(v: string | undefined): v is SortKey {
   return !!v && v in SORTS;
 }
 
+/**
+ * Hebrew alphabetical order, א to ת.
+ *
+ * Postgres sorted these and could not be told how: PostgREST's `order` exposes no
+ * collation, the column is a bare `text` with the database's default collation, and
+ * that default is not Hebrew-aware. Two things went wrong at once — Latin titles
+ * clumped away from Hebrew ones (code points, not letters), and the Hebrew block was
+ * not in א-ת order within itself.
+ *
+ * So the ordering moved here, where `Intl.Collator('he')` knows the alphabet. At ~80
+ * recipes the cost is nothing; the day the corpus is large enough to care, the fix is
+ * a Postgres index on `title COLLATE "he-IL-x-icu"` and an RPC, not this.
+ *
+ * `numeric` so "מרק 2" follows "מרק 1" rather than preceding "מרק 10".
+ */
+const hebrew = new Intl.Collator('he', { numeric: true, sensitivity: 'base' });
+
+/** Sort by title, in place-safe fashion, using the Hebrew alphabet. */
+export function byTitle<T extends { title: string }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => hebrew.compare(a.title, b.title));
+}
+
+/**
+ * Keep a date order, but settle its ties in Hebrew.
+ *
+ * Every recipe from one import shares a timestamp to the second, so "recently added"
+ * is mostly one enormous tie — and a tie Postgres breaks by whatever it feels like
+ * returning. Sorting the whole list by title instead would discard the date, which is
+ * the obvious wrong fix. So: walk the rows, and reorder only the runs that share a
+ * timestamp.
+ */
+function tiebreakByTitle<T extends { title: string }>(
+  rows: T[], column: 'updated_at' | 'created_at',
+): T[] {
+  const stamp = (r: T) => (r as unknown as Record<string, string | null>)[column] ?? '';
+  const out: T[] = [];
+  let run: T[] = [];
+  for (const row of rows) {
+    if (run.length && stamp(run[0]) === stamp(row)) run.push(row);
+    else { out.push(...byTitle(run)); run = [row]; }
+  }
+  out.push(...byTitle(run));
+  return out;
+}
+
 export async function recipesInCategory(
   category: string, sort: SortKey = 'title',
 ): Promise<RecipeSummary[]> {
   const db = await supabaseServer();
   const order = SORTS[sort] ?? SORTS.title;
   const { rows } = await selectTolerant<SummaryRow>('recipesInCategory', SUMMARY_COLUMNS,
-    (cols) => db
-      .from('recipes')
-      .select(cols)
-      .eq('category', category)
-      .is('deleted_at', null)
-      /* Title second, always. Ordering by a date alone leaves rows with the same
-         timestamp — every recipe from one import — in whatever order Postgres
-         happens to return, which changes between requests and makes the list look
-         like it is shuffling itself. */
-      .order(order.column, { ascending: order.ascending, nullsFirst: false })
-      .order('title'));
+    (cols) => {
+      let q = db
+        .from('recipes')
+        .select(cols)
+        .eq('category', category)
+        .is('deleted_at', null);
+      /* By NAME, the database does not order at all — see byTitle. Asking Postgres
+         for `.order('title')` here and then re-sorting would only cost a sort. */
+      if (sort !== 'title') {
+        /* Title second, always. Ordering by a date alone leaves rows with the same
+           timestamp — every recipe from one import — in whatever order Postgres
+           happens to return, which changes between requests and makes the list look
+           like it is shuffling itself. The tiebreak is applied in Hebrew below; this
+           one only has to be STABLE. */
+        q = q
+          .order(order.column, { ascending: order.ascending, nullsFirst: false })
+          .order('title');
+      }
+      return q;
+    });
+
+  const flat = rows.map(flatten);
+
+  /* The date orders stay as Postgres returned them; only their TIEBREAK is redone in
+     Hebrew, on runs of equal timestamps. Sorting the whole list by title here would
+     throw the dates away — which is the trap in "just sort it in the app". */
+  const ordered = sort === 'title'
+    ? byTitle(flat)
+    : tiebreakByTitle(flat, order.column as 'updated_at' | 'created_at');
 
   /* Sign the stored paths for this request. See lib/photos.ts — the alternative was
      a one-year signed URL frozen into the row at upload time. */
-  return attachPhotoUrls(db, rows.map(flatten));
+  return attachPhotoUrls(db, ordered);
 }
 
 export async function getRecipe(id: string): Promise<Recipe | null> {
@@ -201,8 +264,13 @@ export async function searchRecipes(query: string): Promise<RecipeSummary[]> {
       .select(cols)
       .is('deleted_at', null)
       .ilike('search_text', `%${q}%`)
-      .order('title')
-      .limit(50));
+      /* No .order('title') — see byTitle. And the limit is the WHOLE corpus with room
+         to spare, not 50: cutting at 50 in the database and then sorting those 50 in
+         Hebrew gives the wrong first fifty, because the rows that would have sorted
+         first may be among the ones already dropped. At ~80 recipes "fetch all the
+         matches" is the honest answer; a real limit belongs with a real collated
+         index. */
+      .limit(500));
 
-  return attachPhotoUrls(db, rows.map(flatten));
+  return attachPhotoUrls(db, byTitle(rows.map(flatten)));
 }

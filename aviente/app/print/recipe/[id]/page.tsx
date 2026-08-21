@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation';
 import { getRecipe } from '@/lib/queries';
 import { scaleAmount } from '@/lib/scale';
 import PrintExit from '@/components/PrintExit';
@@ -16,7 +15,13 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
   const t = await serverT();
   const { id } = await params;
   const recipe = await getRecipe(id).catch(() => null);
-  if (!recipe) notFound();
+  /* Not notFound(): this route is PUBLIC (see proxy.ts), so the commonest way to get
+     here with nothing is an anonymous visitor whose read RLS refused — someone
+     following a link to a recipe that is not theirs. They were left on the loader
+     with no explanation. Same shape as the menu sheet, which has always said it. */
+  if (!recipe) {
+    return <main className="printPage"><p>{t('print.notAvailable')}</p></main>;
+  }
 
   const timing = [
     recipe.prep_minutes && `PREP ${recipe.prep_minutes} min`,

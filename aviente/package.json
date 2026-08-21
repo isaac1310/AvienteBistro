@@ -15,6 +15,7 @@
     "dev:test": "node tools/dev-sandbox.mjs",
     "blueprints": "node tools/build-blueprints.mjs",
     "icons": "node tools/build-icons.mjs",
+    "brand:png": "node tools/build-brand-png.mjs",
     "kids-art": "node tools/build-kids-art.mjs",
     "db-check": "node tools/db-check.mjs",
     "motifs": "node tools/build-motifs.mjs"

@@ -1,12 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Aviente">
   <title>Aviente — maskable app icon</title>
   <!-- MASKABLE: Android crops this to a circle, squircle or rounded square depending
-       on the launcher, so everything that matters lives inside the middle 80% —
-       the frame is pulled in to 96px where the plain icon sits at 34px. Cream to the
-       very edge so no crop shape reveals a corner of another colour. -->
+       on the launcher, so everything that matters must sit inside the SAFE CIRCLE —
+       centred, radius 40% of the width, i.e. 204.8px here.
+       The frames were at 96 and 116, and the outer one's CORNERS sat 226px from the
+       centre: 21px outside the circle, so a round launcher shaved them off. Measured,
+       not eyeballed — a square's corner is half-side x root-2 from the middle, which
+       is the thing that catches you out when the edges look comfortably inside.
+       Now 112 and 132: half-sides of 144 and 124, so corners land at 203.6 and 175.4.
+       Both inside, and the 20px gap between the frames is unchanged.
+       Cream to the very edge so no crop shape reveals a corner of another colour. -->
   <rect width="512" height="512" fill="#f7f2e9"/>
-  <rect x="96" y="96" width="320" height="320" fill="none" stroke="#a79a85" stroke-width="7" opacity=".5"/>
-  <rect x="116" y="116" width="280" height="280" fill="none" stroke="#a79a85" stroke-width="13"/>
+  <rect x="112" y="112" width="288" height="288" fill="none" stroke="#a79a85" stroke-width="7" opacity=".5"/>
+  <rect x="132" y="132" width="248" height="248" fill="none" stroke="#a79a85" stroke-width="13"/>
   <path fill="#2a2419" d="M256 168 L318 350 L288 350 L274 308 L238 308 L224 350 L194 350 Z M256 217 L245 286 L267 286 Z"/>
   <rect x="186" y="350" width="50" height="9" fill="#2a2419"/>
   <rect x="276" y="350" width="50" height="9" fill="#2a2419"/>

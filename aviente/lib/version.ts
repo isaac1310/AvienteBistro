@@ -11,7 +11,7 @@
  *   share links now show the new design.
  * minor = features, additive migrations included · patch = fixes
  */
-export const APP_VERSION = '11.0.0';
+export const APP_VERSION = '11.1.0';
 
 /**
  * The highest migration this build requires.

@@ -186,6 +186,11 @@ const DICT = {
   /* Print-sheet chrome. The Print button was hardcoded English on a Hebrew-first
      app, and only the kids sheet had a way out at all — the recipe and menu sheets
      were dead ends in the installed PWA, which has no browser Back. */
+  /* /print is public — it must be, or a guest tapping "save as PDF" on a shared menu
+     hits a login screen. Recipes are still refused by RLS, so an anonymous visitor
+     gets nothing; they just got nothing SILENTLY, sitting on a loader forever, where
+     the menu sheet has always said so plainly. */
+  'print.notAvailable': { he: 'המתכון הזה לא זמין.', en: 'This recipe is not available.' },
   'print.print':        { he: 'הדפסה',          en: 'Print' },
   'print.backToRecipe': { he: 'חזרה למתכון',    en: 'Back to the recipe' },
   'print.backToMenu':   { he: 'חזרה לתפריט',    en: 'Back to the menu' },

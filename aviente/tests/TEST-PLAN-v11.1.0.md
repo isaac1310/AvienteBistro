@@ -1,6 +1,6 @@
 # Manual pass — v11.1.0
 
-Five minutes on the Ultra. **Check the footer says `v11.1.0 · schema 19` before you
+Five minutes on the Ultra. **Check the footer says `v11.1.1 · schema 18` before you
 start** — a pass performed against a cached build is worse than no pass, because it
 produces a confident wrong answer.
 
@@ -130,7 +130,8 @@ Three things came back, all fixed in the same session:
    screen leaves the WebAPK, and re-adding reuses its baked-in artwork.
 2. Chrome → ⋮ → Settings → Site settings → All sites → the Aviente entry →
    **Clear & reset**.
-3. Open the site in Chrome, check the footer says **v11.1.0**, then Add to home screen.
+3. Open the site in Chrome, check the footer says **v11.1.1** or later, then Add to
+   home screen.
 
 Chrome also re-checks the manifest roughly daily and rebuilds the WebAPK on its own, so
 this may correct itself without any of the above. `id` was added to the manifest this

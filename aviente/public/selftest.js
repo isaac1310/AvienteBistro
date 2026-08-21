@@ -126,7 +126,11 @@
       const before = token('--primary');
       html.setAttribute('data-theme', other);
       const after = token('--primary');
-      had ? html.setAttribute('data-theme', had) : html.removeAttribute('data-theme');
+      /* Put back exactly what was there — including nothing. Written as an if,
+         not a ternary-as-statement: the ternary form reads like a comparison whose
+         result was dropped by mistake. */
+      if (had) html.setAttribute('data-theme', had);
+      else html.removeAttribute('data-theme');
       return before !== after
         ? true
         : `--primary stayed ${after} when switching ${had ?? 'green'} → ${other}`;

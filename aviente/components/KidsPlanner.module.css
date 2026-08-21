@@ -254,3 +254,18 @@
   width: 100%;
 }
 .freeField:focus-visible { outline: none; border-color: #c2417e; }
+
+/* The planner is busy. Centred under the week strip, where the eye already is after
+   tapping a bubble or a dish. */
+.working {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 0;
+  font-family: var(--kid);
+  font-size: var(--t-small);
+  color: #2f6b4f;
+  --loader-inline-w: 30px;
+  --loader-inline-h: 26px;
+}

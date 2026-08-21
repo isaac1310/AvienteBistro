@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { ANIMALS, MEALS, addWeeks, dishLabel, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
 import { addMeal, clearMeal, clearWeek, fillWeek, moveMeal, removeMeal, setChef } from '@/lib/kidsMutations';
 import KidsArt from './KidsArt';
+import Loading from './Loading';
 import { useLang, useT } from './LangProvider';
-import Motif from './Motif';
 import styles from './KidsPlanner.module.css';
 
 /* §3.8 — pick a week, pick dishes into a tray, then place them either day by day
@@ -120,6 +120,18 @@ export default function KidsPlanner({
             {error}
             <button type="button" className={styles.dismiss}
               aria-label={t('common.close')} onClick={() => setError(null)}>✕</button>
+          </p>
+        )}
+
+        {/* ONE loader for the whole planner, not one per control. Ten of these
+            controls used to go `disabled` and say nothing else, so adding a dish over
+            kitchen wifi looked like an app that had stopped responding — while a
+            loader on each of the ten would be its own kind of noise. The planner is
+            the thing that is busy, so the planner is what shows it. */}
+        {busy && (
+          <p className={styles.working}>
+            <Loading size="inline" label={t('kids.working')} />
+            {t('kids.working')}
           </p>
         )}
       </header>

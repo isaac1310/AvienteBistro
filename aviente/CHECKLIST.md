@@ -121,7 +121,7 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       query filtering `deleted_at is null`.
 
 - [x] **Search** (§5.1) — recipes only: title, `title_en`, ingredient names, both
-      descriptions. NOTE: shipped as `ilike` on `search_text`, NOT `pg_trgm` — the extension is not enabled and substring is adequate at 41 recipes. Tracked in REMAINING.md. Needs a results
+      descriptions. NOTE: shipped as `ilike` on `search_text`, NOT `pg_trgm` — the extension IS enabled (0001_init.sql:9; this line used to say otherwise) but the query is substring, which is adequate at ~80 recipes. Tracked in REMAINING.md. Needs a results
       screen and an empty state; neither exists in the design file.
 
 ---

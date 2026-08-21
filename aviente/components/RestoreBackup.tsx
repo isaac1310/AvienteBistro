@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { restoreBackup, undoImport, type ImportResult } from '@/lib/importMutations';
 import { normalizeDocument } from '@/lib/recipeParse.mjs';
 import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
+import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import Motif from './Motif';
 import styles from './RestoreBackup.module.css';
@@ -86,14 +87,15 @@ export default function RestoreBackup() {
             it back one at a time.
           </p>
           {result.imported.length > 0 && !undone && (
-            <button type="button" className="btn btn--ghost" disabled={busy}
+            <BusyButton busy={busy} className="btn btn--ghost"
+              busyLabel={t('import.undoing')}
               onClick={async () => {
                 setBusy(true);
                 await undoImport(result.imported.map((r) => r.id));
                 setUndone(true); setBusy(false);
               }}>
-              Undo the {result.imported.length} added
-            </button>
+              {t('import.undoAdded', { n: result.imported.length })}
+            </BusyButton>
           )}
         </div>
       </div>
@@ -136,9 +138,12 @@ export default function RestoreBackup() {
           </p>
           {/* The button says the number. A restore is an overwrite wearing a
               friendly name, and the moment of clicking is when that must be plain. */}
-          <button type="button" className="btn" disabled={busy} onClick={onRestore}>
-            {busy ? 'Restoring…' : `Restore — overwrite up to ${parsed.recipes.length} recipes`}
-          </button>
+          {/* `done` here, and not on a Save button: a restore leaves you on this
+              page, so the tick is the only confirmation there is. */}
+          <BusyButton busy={busy} done={!!result} onClick={onRestore}
+            busyLabel={t('restore.restoring')} doneLabel={t('restore.restored')}>
+            {t('restore.overwrite', { n: parsed.recipes.length })}
+          </BusyButton>
         </div>
       )}
     </div>

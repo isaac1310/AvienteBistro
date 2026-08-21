@@ -178,11 +178,79 @@ const DICT = {
      deleting became one tap from every card rather than a trip into the edit form. */
   'import.editTitle':  { he: 'שם המתכון',      en: 'Recipe name' },
   'import.goToRecipe': { he: 'למתכון',       en: 'Go to the recipe' },
+  /* Ten seconds, said out loud. The confirm promised the recipe "can be restored
+     afterwards", which is true of the DATABASE and not of anything on screen: the
+     undo toast lasts ten seconds and after that there is no restore UI at all. A
+     promise the app cannot keep is worse than a blunt warning. A trash list would
+     make the original sentence true; until then, this. */
+  /* Print-sheet chrome. The Print button was hardcoded English on a Hebrew-first
+     app, and only the kids sheet had a way out at all — the recipe and menu sheets
+     were dead ends in the installed PWA, which has no browser Back. */
+  /* /print is public — it must be, or a guest tapping "save as PDF" on a shared menu
+     hits a login screen. Recipes are still refused by RLS, so an anonymous visitor
+     gets nothing; they just got nothing SILENTLY, sitting on a loader forever, where
+     the menu sheet has always said so plainly. */
+  'print.notAvailable': { he: 'המתכון הזה לא זמין.', en: 'This recipe is not available.' },
+  'print.print':        { he: 'הדפסה',          en: 'Print' },
+  'print.backToRecipe': { he: 'חזרה למתכון',    en: 'Back to the recipe' },
+  'print.backToMenu':   { he: 'חזרה לתפריט',    en: 'Back to the menu' },
+  'form.deleteConfirm': {
+    he: 'למחוק את «{title}»? אפשר לבטל במשך עשר שניות בלבד.',
+    en: 'Delete “{title}”? You have ten seconds to undo it.',
+  },
   'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
   'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },
   'card.delete':       { he: 'מחיקת {title}',   en: 'Delete {title}' },
   /* The kids planner, once a slot holds several dishes. */
+  /* Busy and finished states, in the dictionary at last. Three of these were
+     hardcoded English on a Hebrew-first app — visible only to whoever happened to be
+     importing at the time, which is why they survived four releases. */
+  /* The menu actions were English throughout on a Hebrew-first app, and every one of
+     them went `disabled` with no other sign it was working. */
+  /* The prompt assumed a photograph. A recipe that arrives as text — pasted from a
+     chat, a message, a website — needed no photograph at all, and the instructions
+     told you to take one. */
+  'import.howto':      { he: 'להדביק את המתכון כטקסט, או לצלם אותו ולצרף את התמונה — ואז להדביק את ההוראות שמתחת.',
+                          en: 'Paste the recipe as text, or photograph it and attach the picture — then paste the instructions below.' },
+  'book.categories':   { he: 'קטגוריות',        en: 'Categories' },
+  'history.earlier':   { he: '⟲ גרסאות קודמות',  en: '⟲ Earlier versions' },
+  'history.loading':   { he: 'טוענים גרסאות…',   en: 'Loading versions…' },
+  /* MovePhoto: the trigger loads a list over the network with no sign it is doing so. */
+  'photo.moveThis':    { he: '↗ העברת התמונה למתכון אחר', en: '↗ Move this photo to another recipe' },
+  'photo.loading':     { he: 'טוענים מתכונים…',   en: 'Loading recipes…' },
+  'photo.moving':      { he: 'מעבירים…',          en: 'Moving…' },
+  'photo.whichRecipe': { he: 'של איזה מתכון התמונה הזאת?', en: 'Which recipe is this a photo of?' },
+  'photo.onlyEmpty':   { he: 'מוצגים רק מתכונים בלי תמונה — תמונה שייכת למנה אחת, כך שדבר לא נדרס.',
+                          en: 'Only recipes without a photo are listed — a photograph belongs to one dish, so nothing is overwritten.' },
+  'menu.kept':         { he: '★ נשמר',          en: '★ Kept' },
+  'menu.keepThis':     { he: '☆ לשמור את זה',    en: '☆ Keep this one' },
+  'menu.duplicate':    { he: 'שכפול',            en: 'Duplicate' },
+  'menu.working':      { he: 'רגע…',             en: 'Working…' },
+  'menu.copied':       { he: 'הועתק',            en: 'Copied' },
+  'menu.copy':         { he: 'העתקה',            en: 'Copy' },
+  'menu.shareNote':    { he: 'כל מי שיש לו את הקישור יראה את התפריט הזה — ולא שום דבר אחר בספר.',
+                          en: 'Anyone with this link can see this menu — nothing else in the cookbook.' },
+  'menu.copyDate':     { he: 'להעתיק את התפריט לאיזה תאריך?',
+                          en: 'Copy this menu onto which date?' },
+  'import.importing':  { he: 'מייבאים…',        en: 'Importing…' },
+  'import.imported':   { he: 'יובאו',           en: 'Imported' },
+  'import.importN':    { he: 'ייבוא {n} מתכונים', en: 'Import {n} recipes' },
+  'import.importOne':  { he: 'ייבוא מתכון אחד',  en: 'Import one recipe' },
+  'import.more':       { he: 'ייבוא נוסף',       en: 'Import more' },
+  'import.undoing':    { he: 'מבטלים…',          en: 'Undoing…' },
+  'import.undoNew':    { he: 'ביטול — יוסרו {n} החדשים', en: 'Undo — removes the {n} new ones' },
+  'import.undoAll':    { he: 'ביטול הייבוא',     en: 'Undo this import' },
+  'import.undoAdded':  { he: 'ביטול {n} שנוספו', en: 'Undo the {n} added' },
+  'restore.restoring': { he: 'משחזרים…',         en: 'Restoring…' },
+  'restore.restored':  { he: 'שוחזר',            en: 'Restored' },
+  'restore.overwrite': { he: 'שחזור — דריסה של עד {n} מתכונים',
+                          en: 'Restore — overwrite up to {n} recipes' },
+  'fill.filling':      { he: 'ממלאים…',          en: 'Filling…' },
+  'fill.filled':       { he: 'מולא',             en: 'Filled' },
+  'fill.action':       { he: 'מילוי תיאורים חסרים לתפריט',
+                          en: 'Fill in missing menu descriptions' },
+  'kids.working':      { he: 'רגע…',            en: 'Working…' },
   'kids.chefName':     { he: 'שף {name}',       en: 'Chef {name}' },
   'kids.addAnother':   { he: '＋ עוד משהו',     en: '＋ Something else' },
   'kids.removeDish':   { he: 'הסרת המנה',       en: 'Remove this dish' },

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import CategoryChips from '@/components/CategoryChips';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
 import PageHeader from '@/components/PageHeader';
@@ -63,6 +64,13 @@ export default async function CategoryPage({ params, searchParams }: Params) {
             {categoryName(cat, lang)}
           </PageTitle>
         </PageHeader>
+
+        {/* Sideways in the book. Below the header so the page still announces itself
+            first, and above the count so the chips are the first thing the thumb
+            reaches when scrolling up from the list. */}
+        <div className={`shell ${styles.chipRow}`}>
+          <CategoryChips current={category} />
+        </div>
 
         <div className={`shell ${styles.countRow}`}>
           <p className={styles.count}>

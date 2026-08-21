@@ -224,28 +224,47 @@ export async function restoreMenuRevision(revisionId: string) {
     .from('menu_revisions').select('menu_id, snapshot').eq('id', revisionId).maybeSingle();
   if (!rev) throw new Error('That version is no longer there.');
 
+  /* The full field set a revision holds. Typing it narrowly was how three fields
+     came to be dropped on restore — the snapshot is `select('*')`, so anything
+     missing from this type is invisible to the restore rather than absent from the
+     data. Optional because an old revision predates the newer columns. */
   const snap = rev.snapshot as {
     date: string; title: string | null; language: 'en' | 'he'; chef_notes: string | null;
+    meal_time?: 'evening' | 'day'; course_order?: string[] | null; saved?: boolean;
     menu_items: Record<string, unknown>[];
   };
 
   // Snapshot the CURRENT state first, so restoring is itself undoable.
   await snapshotMenu(rev.menu_id, member.id);
 
-  await db.from('menus').update({
+  const { error: upErr } = await db.from('menus').update({
     date: snap.date, title: snap.title,
     language: snap.language, chef_notes: snap.chef_notes,
+    /* meal_time, course_order and saved were NOT restored, so "put it back the way
+       it was" produced a menu that differed from the version you chose — a Friday
+       evening could come back as a lunch, losing its candles and its occasion, and
+       a rearranged running order silently reverted to the default. The snapshot held
+       all three the whole time; only the restore ignored them. `?? null` because a
+       revision taken before a column existed has no value for it. */
+    meal_time: snap.meal_time ?? 'evening',
+    course_order: snap.course_order ?? null,
+    saved: snap.saved ?? false,
   }).eq('id', rev.menu_id);
+  if (upErr) throw new Error(`restore: ${upErr.message}`);
 
-  await db.from('menu_items').delete().eq('menu_id', rev.menu_id);
+  /* Checked, both of them. A refused delete left the old items in place and the
+     insert below appended to them — a restored menu with every dish twice. */
+  const { error: delErr } = await db.from('menu_items').delete().eq('menu_id', rev.menu_id);
+  if (delErr) throw new Error(`restore items: ${delErr.message}`);
   if (snap.menu_items?.length) {
-    await db.from('menu_items').insert(
+    const { error } = await db.from('menu_items').insert(
       snap.menu_items.map((i) => {
         const { id, ...rest } = i as { id?: string };
         void id;                       // a fresh row, not the old one
         return rest;
       }),
     );
+    if (error) throw new Error(`restore items: ${error.message}`);
   }
   revalidatePath('/menus');
 }

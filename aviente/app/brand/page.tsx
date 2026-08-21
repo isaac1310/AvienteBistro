@@ -90,6 +90,17 @@ export default async function BrandSheet() {
               than disappearing.
             </p>
             <p className={styles.note} dir="ltr">
+              The FINISHED state stops the steam and draws a tick over the loaf in the
+              crust&rsquo;s own weight — the drawing completing rather than an icon
+              arriving from elsewhere. It is shown only where success leaves you on the
+              page: an import, a restore, a photo upload. A save that navigates away
+              does not get one, because a tick followed immediately by a new page is a
+              beat too many. Every busy control in the app renders it through
+              <code>BusyButton</code>, which also holds the loader on screen for a
+              minimum of 500ms — a drawing that appears for one frame reads as a
+              glitch, not an answer.
+            </p>
+            <p className={styles.note} dir="ltr">
               The inline size drops the wordmark and takes <code>currentColor</code>
               {' '}for all three tones, so it stays legible on a filled button. It is
               used by the photo upload, the PDF export and the category sort — and
@@ -102,6 +113,10 @@ export default async function BrandSheet() {
               <li className={styles.hero}>
                 <span className={styles.card}><Loading /></span>
                 <span className={styles.heroName}>page</span>
+              </li>
+              <li className={styles.hero}>
+                <span className={styles.card}><Loading size="inline" done /></span>
+                <span className={styles.heroName}>inline · finished</span>
               </li>
               <li className={styles.hero}>
                 <span className={styles.card}><Loading size="inline" /></span>
@@ -138,7 +153,8 @@ export default async function BrandSheet() {
             <ul className={styles.heroes}>
               {CATEGORIES.map((c) => (
                 <li key={c.key} className={styles.hero}>
-                  <CategoryPlate category={c.key as CategoryKey} size="hero" caption={c.en} />
+                  <CategoryPlate category={c.key as CategoryKey} size="hero" caption={c.en}
+                    plateNumber />
                   <span className={styles.heroName}>{c.en}</span>
                 </li>
               ))}

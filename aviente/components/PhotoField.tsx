@@ -132,10 +132,14 @@ export default function PhotoField({
       setPreview(data?.signedUrl ?? null);
       setSaved(true);
 
-      // Replacing a photo must delete the old object, or orphans accumulate
-      // forever in a bucket nobody ever looks at.
-      if (value) await db.storage.from('recipe-photos').remove([value]);
-
+      /* The old object is NOT deleted here any more, and that is the fix rather than
+         an omission. Deleting it now removes a file the RECIPE ROW still points at:
+         the row does not learn the new path until Save, so cancelling the edit,
+         closing the tab, or a failed save left the recipe pointing at an object that
+         no longer existed — the dangling state one recipe was actually found in.
+         saveRecipe now removes the replaced object after the row is written, and
+         only when the path really changed. An abandoned upload leaves an orphan
+         instead, which the photo backup's manifest already names. */
       onChange(path);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'upload failed');
@@ -174,7 +178,16 @@ export default function PhotoField({
       )}
 
       {saved && !busy && (
-        <p className={styles.toast} role="status">{t('form.photoSaved')}</p>
+        /* The tick beside the sentence, and the SENTENCE is what carries the meaning:
+           "the photograph uploaded — save the recipe to attach it". A bare ✓ after a
+           photo upload would read as "saved", which is exactly the wrong thing to
+           believe here — the row does not know about this file until Save. */
+        <p className={styles.toast} role="status">
+          <span className={styles.toastMark} aria-hidden="true">
+            <Loading size="inline" done />
+          </span>
+          {t('form.photoSaved')}
+        </p>
       )}
 
       <div className={styles.buttons}>
@@ -189,7 +202,7 @@ export default function PhotoField({
         {value && (
           <button type="button" className={styles.remove} disabled={busy}
             onClick={() => { onChange(null); setPreview(null); }}>
-            Remove
+            {t('form.removePhoto')}
           </button>
         )}
       </div>

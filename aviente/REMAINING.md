@@ -1,6 +1,6 @@
 # What is actually left
 
-Rewritten 21 Aug 2026 for v11.0.0, against the code rather than against the last
+Rewritten 21 Aug 2026 for v11.1.0, against the code rather than against the last
 version of this file. Everything below was checked; nothing is carried forward on
 trust.
 
@@ -9,10 +9,43 @@ category browse" as open, months after `components/SelectableList.tsx` shipped, 
 code review repeated the claim back to us as a finding. A stale plan is worse than no
 plan — it is read as evidence.
 
+## Open · after v11.1.0
+
+- **Recipe sharing is DROPPED, not deferred** (Itzik's call, and the right one). A
+  guest share needed a migration for three reasons — somewhere to keep the secret, a
+  `security definer` function because RLS refuses a visitor with no session outright,
+  and a storage policy so the photograph is fetchable. The alternative that needed no
+  migration was signing the id and reading with the service key from a route, which
+  would put the service-role key in Vercel; that key is local tooling only. **A PDF
+  does the job with no schema at all**: Export PDF produces a real 197KB A4 file that
+  can be sent anywhere, works with no account, and cannot be revoked because there is
+  nothing to revoke. What it does not give is a LIVING copy — fix a typo and the PDF
+  someone holds is the old one. If that ever matters, the plan is still written.
+- **Transactional saves.** `saveRecipe`, `saveMenu` and the import replace path each
+  do snapshot → update → delete children → insert children as separate statements. All
+  three snapshot FIRST and now check every result, so a partial failure loses the
+  display and not the data, and says so. The right long-term shape is one plpgsql
+  function per operation; deliberately not done for a two-user app with no write
+  concurrency, and recorded here so the reasoning is not re-derived.
+- **A recipe trash list.** Delete is soft and the undo toast lasts ten seconds; after
+  that `restoreRecipe` exists with no screen. The confirm now says ten seconds rather
+  than promising "afterwards", which makes the copy honest but does not make the
+  recipe reachable.
+- **Touch drag in the recipe form.** Native HTML drag does not fire on touch, so the
+  ingredient drag is mouse-only until proven otherwise on the Ultra — step 2 of the
+  test plan asks. The ↑↓ buttons do the same job and are the guaranteed path.
+- **`icon-maskable.svg` had no recorded provenance.** It is the source of the 512
+  maskable PNG, and the PNGs were hand-made with rsvg-convert in one session. Now
+  `npm run brand:png` regenerates all four plus `app/favicon.ico`.
+
 ## Open · after v11.0.0
 
-- **The self-test suite only ever sees the login page.** `:3001` is a separate origin
-  by design, so it carries no session, and `?selftest=1` there runs against `/login`.
+- **The self-test suite sees the login page unless someone signs in on `:3001` first.**
+  `:3001` is a separate origin by design, so it carries no session of its own. Signing
+  in there once fixes it for as long as the cookie lasts, and v11.1's pass was done
+  that way — nine pages walked, not one. But an UNATTENDED run still lands on `/login`
+  and reports green against a sign-in form, so this stays open until the suite can
+  authenticate itself.
   The run is genuinely green — 58 passed, 0 failed — and it is green against a sign-in
   form. The checks that matter to the app skip themselves with a printed reason, which
   is what made this invisible: it looked like a clean run with two honest skips.
@@ -44,7 +77,10 @@ plan — it is read as evidence.
 - **`softDeleteMenu` has no caller.** The mutation exists; no UI reaches it. Either
   add delete + undo to `MenuActions`, or remove the mutation.
 - **Search is `ilike`, not `pg_trgm`.** `lib/queries.ts` does a substring match on
-  `search_text`. §3.2 specifies trigram similarity, and `pg_trgm` is not enabled.
+  `search_text`. §3.2 specifies trigram similarity. **The extension IS enabled** —
+  `0001_init.sql:9` creates it, and this file claimed for three releases that it was
+  not, which is the sort of stale line a reviewer reads back as a finding. Only the
+  QUERY is still substring.
   Substring is adequate for 41 recipes; revisit at a few hundred.
 - **The kids' fridge sheet has now been seen with content** — two dishes in one cell
   with a divider, a free-text dish, chefs by alias — but never on PAPER. The grid is a

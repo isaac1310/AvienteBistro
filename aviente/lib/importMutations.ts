@@ -47,6 +47,31 @@ export async function restoreBackup(recipes: RecipeInput[]): Promise<ImportResul
   return runImport(member, recipes, { onDuplicate: 'replace' });
 }
 
+/**
+ * A revision of a recipe about to be REPLACED by an import.
+ *
+ * A copy of `snapshot()` in lib/mutations.ts rather than an import of it, for one
+ * reason: that one is inside a `'use server'` module where every export becomes a
+ * server ACTION, and a helper is not an action. Keeping the shape identical matters
+ * more than the duplication — the ⟲ restore reads whatever is in `snapshot`, so the
+ * two must agree about what a recipe is.
+ */
+async function snapshotForImport(
+  db: Awaited<ReturnType<typeof supabaseServer>>, recipeId: string, memberId: string,
+) {
+  const { data } = await db
+    .from('recipes')
+    .select('*, ingredients(*), steps(*)')
+    .eq('id', recipeId)
+    .maybeSingle();
+  if (!data) return;
+  const { error } = await db.from('recipe_revisions').insert({
+    recipe_id: recipeId, snapshot: data, edited_by: memberId,
+  });
+  /* Loud, because the whole point of the snapshot is the delete that follows it. */
+  if (error) throw new Error(`snapshot before replace failed: ${error.message}`);
+}
+
 async function runImport(
   member: NonNullable<Awaited<ReturnType<typeof currentMember>>>,
   recipes: RecipeInput[],
@@ -112,17 +137,51 @@ async function runImport(
         }).eq('id', existingId);
         if (upErr) { result.failed.push({ title, why: upErr.message }); continue; }
 
-        await db.from('ingredients').delete().eq('recipe_id', existingId);
-        await db.from('steps').delete().eq('recipe_id', existingId);
+        /* SNAPSHOT BEFORE DELETING. Replace tears down a real recipe's ingredients
+           and steps and builds them again from a pasted document; if the rebuild
+           fails halfway, what was there is gone. The edit form has snapshotted since
+           the beginning and this path never did — the one place in the app where a
+           partial failure was unrecoverable. Cheap insurance: the revision list
+           already exists and the ⟲ restore already works. */
+        await snapshotForImport(db, existingId, member.id);
+
+        /* Every result read, and each failure recorded against THIS recipe. All four
+           of these were discarded, so a recipe could be reported "replaced" with its
+           ingredients deleted and nothing put back — the worst outcome the importer
+           can produce, announced as success. */
+        const delIng = await db.from('ingredients').delete().eq('recipe_id', existingId);
+        if (delIng.error) {
+          result.failed.push({ title, why: `clearing ingredients: ${delIng.error.message}` });
+          continue;
+        }
+        const delSteps = await db.from('steps').delete().eq('recipe_id', existingId);
+        if (delSteps.error) {
+          result.failed.push({ title, why: `clearing steps: ${delSteps.error.message}` });
+          continue;
+        }
         if (input.ingredients.length) {
-          await db.from('ingredients').insert(
+          const { error } = await db.from('ingredients').insert(
             input.ingredients.map((i, position) => ({ ...i, recipe_id: existingId, position })),
           );
+          if (error) {
+            result.failed.push({
+              title,
+              why: `ingredients not written — the previous version is under ⟲: ${error.message}`,
+            });
+            continue;
+          }
         }
         if (input.steps.length) {
-          await db.from('steps').insert(
+          const { error } = await db.from('steps').insert(
             input.steps.map((st, position) => ({ ...st, recipe_id: existingId, position })),
           );
+          if (error) {
+            result.failed.push({
+              title,
+              why: `steps not written — the previous version is under ⟲: ${error.message}`,
+            });
+            continue;
+          }
         }
         result.replaced.push({ title, id: existingId, category: input.category });
         continue;
@@ -152,15 +211,26 @@ async function runImport(
 
       if (error) { result.failed.push({ title, why: error.message }); continue; }
 
+      /* Checked, like the replace path above. A new recipe whose ingredients failed
+         to insert is a TITLE with nothing under it, and it was being reported as
+         imported — so the report said 21 added and the book held 21 empty shells. */
       if (input.ingredients.length) {
-        await db.from('ingredients').insert(
+        const { error } = await db.from('ingredients').insert(
           input.ingredients.map((i, position) => ({ ...i, recipe_id: data.id, position })),
         );
+        if (error) {
+          result.failed.push({ title, why: `ingredients: ${error.message}` });
+          continue;
+        }
       }
       if (input.steps.length) {
-        await db.from('steps').insert(
+        const { error } = await db.from('steps').insert(
           input.steps.map((s, position) => ({ ...s, recipe_id: data.id, position })),
         );
+        if (error) {
+          result.failed.push({ title, why: `steps: ${error.message}` });
+          continue;
+        }
       }
 
       byTitle.set(title, data.id as string);

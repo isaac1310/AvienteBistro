@@ -101,3 +101,20 @@
   letter-spacing: 2px;
   color: #9a8c7c;
 }
+
+
+/* A chip. Small enough that the NAME does the identifying and the drawing only says
+   which kind of thing this is — so no ground, no frame, and a heavier stroke to
+   survive being 26px across. Added for the category strip; the 72px `row` size is
+   what made the chips 74px tall, which read as a row of cards rather than chips. */
+.chip {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  background: none;
+  border: 0;
+  color: currentColor;
+}
+.chip::before, .chip::after { display: none; }
+.chip .art { width: 100%; height: 100%; }
+.kid.chip { color: #c2417e; }

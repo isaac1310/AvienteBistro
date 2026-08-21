@@ -1,4 +1,6 @@
 import MenuCard from '@/components/MenuCard';
+import PrintExit from '@/components/PrintExit';
+import { serverT } from '@/lib/lang';
 import { fetchSharedMenu, getMenu, occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
 import './print.css';
@@ -19,6 +21,7 @@ export default async function PrintMenu({
 }) {
   const { id } = await params;
   const { k } = await searchParams;
+  const t = await serverT();
 
   const shared = k ? await fetchSharedMenu(id, k) : null;
   /* Without a session `anon` is refused at the privilege level, which getMenu
@@ -71,6 +74,10 @@ export default async function PrintMenu({
 
   return (
     <main className="printPage">
+      {/* A way back, as on the recipe sheet. A GUEST arriving with ?k= has no menu
+          page to return to, so the exit is only for the family — otherwise it would
+          send a guest to a page that refuses them. */}
+      {!k && <PrintExit href={`/menus/${id}`} label={t('print.backToMenu')} />}
       <MenuCard
         date={menu.date}
         title={menu.title ?? occasion?.title ?? null}

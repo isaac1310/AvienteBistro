@@ -17,7 +17,11 @@
 .page .art { width: 240px; height: 207px; }
 
 /* Inside a control — an uploading photo, a PDF being built. */
+/* display:grid explicitly, because this element is a SPAN when inline — see the note
+   in Loading.tsx about <div> inside <button> and <p>. An inline span would collapse
+   the drawing's box. */
 .inline {
+  display: grid;
   min-height: 0;
   gap: var(--sp-2);
   padding: 0;
@@ -90,6 +94,35 @@
   0%   { opacity: 0;    transform: translateY(6px)   scaleY(0.9); }
   30%  { opacity: 0.85; }
   100% { opacity: 0;    transform: translateY(-22px) scaleY(1.15); }
+}
+
+/* ── the finished beat ─────────────────────────────────────────────────────────
+   The steam stops and a tick draws over the loaf. Only the STEAM is hidden, not the
+   bread: the point is that the bread is done, so it stays on screen. */
+.artDone .fume { display: none; }
+
+.tick {
+  stroke: var(--primary);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  /* Drawn on, rather than appearing. 300 is comfortably longer than the path, so the
+     dash fully covers it before the animation runs. */
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: draw 380ms ease-out forwards;
+}
+.inline .tick { stroke: currentColor; }
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Motion off: the tick is simply there. It carries the meaning, so it must not be the
+   thing that gets removed. */
+@media (prefers-reduced-motion: reduce) {
+  .tick { animation: none; stroke-dashoffset: 0; }
 }
 
 /* ── the wordmark ──────────────────────────────────────────────────────────── */

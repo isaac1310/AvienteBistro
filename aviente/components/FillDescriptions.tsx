@@ -2,20 +2,27 @@
 
 import { useState } from 'react';
 import { applySampleDescriptions } from '@/lib/mutations';
+import BusyButton from './BusyButton';
+import { useT } from './LangProvider';
 import styles from './FillDescriptions.module.css';
 
 /* One-tap replacement for a SQL file that could not be pasted safely.
  * Reports exactly what it did rather than claiming success. */
 export default function FillDescriptions() {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   return (
     <div className={styles.wrap}>
-      <button
-        type="button"
+      {/* `done` because this stays on the page and reports a count — the tick is
+          what says the count is final rather than still arriving. */}
+      <BusyButton
+        busy={busy}
+        done={!!result}
         className={styles.button}
-        disabled={busy}
+        busyLabel={t('fill.filling')}
+        doneLabel={t('fill.filled')}
         onClick={async () => {
           setBusy(true); setResult(null);
           try {
@@ -34,8 +41,8 @@ export default function FillDescriptions() {
           } finally { setBusy(false); }
         }}
       >
-        {busy ? 'Filling…' : '✎ Fill in missing menu descriptions'}
-      </button>
+        {t('fill.action')}
+      </BusyButton>
       {result && <p className={styles.result}>{result}</p>}
     </div>
   );

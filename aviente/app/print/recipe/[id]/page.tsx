@@ -1,6 +1,6 @@
-import { notFound } from 'next/navigation';
 import { getRecipe } from '@/lib/queries';
 import { scaleAmount } from '@/lib/scale';
+import PrintExit from '@/components/PrintExit';
 import { serverT } from '@/lib/lang';
 import styles from './printrecipe.module.css';
 
@@ -15,7 +15,13 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
   const t = await serverT();
   const { id } = await params;
   const recipe = await getRecipe(id).catch(() => null);
-  if (!recipe) notFound();
+  /* Not notFound(): this route is PUBLIC (see proxy.ts), so the commonest way to get
+     here with nothing is an anonymous visitor whose read RLS refused — someone
+     following a link to a recipe that is not theirs. They were left on the loader
+     with no explanation. Same shape as the menu sheet, which has always said it. */
+  if (!recipe) {
+    return <main className="printPage"><p>{t('print.notAvailable')}</p></main>;
+  }
 
   const timing = [
     recipe.prep_minutes && `PREP ${recipe.prep_minutes} min`,
@@ -25,6 +31,11 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
 
   return (
     <main className={styles.sheet}>
+      {/* A way back. Only the kids sheet had one, so opening this from the installed
+          PWA — which has no browser Back — replaced the app with a dead end. Hidden
+          by @media print, so it costs the paper nothing. */}
+      <PrintExit href={`/recipes/${recipe.category}/${recipe.id}`}
+        label={t('print.backToRecipe')} />
       <header className={styles.head}>
         <p className={styles.eyebrow}>Aviente · The Family Recipe Book</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>

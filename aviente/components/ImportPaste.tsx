@@ -12,6 +12,7 @@ import Link from 'next/link';
 import Motif from './Motif';
 import styles from './ImportPaste.module.css';
 import Arrow from './Arrow';
+import BusyButton from './BusyButton';
 
 /** Where an imported recipe now lives. The category is in the path, which is why the
  *  import result had to start returning it. */
@@ -25,17 +26,19 @@ const rowHref = (r: ImportedRow) => `/recipes/${r.category}/${r.id}`;
  * written. Nothing is saved until IMPORT is pressed.
  */
 
-const PROMPT = `קרא את המתכון בתמונה והחזר JSON בלבד, בלי טקסט נוסף, במבנה הזה:
+const PROMPT = `קרא את המתכון — מתמונה, מקובץ, או מהטקסט שאני מדביק כאן — והחזר JSON בלבד, בלי טקסט נוסף, במבנה הזה:
 
 {"schemaVersion":1,"title":"שם המתכון","titleEn":"Latin name or null",
  "category":"mains|soups|salads|entrees|sides|breads|desserts|kids|other",
  "servings":6,"yieldText":null,"prepMinutes":20,"cookMinutes":40,
  "descriptionHe":"תיאור קצר לתפריט","story":null,
  "servingSuggestions":"איך להגיש",
- "ingredients":[{"name":"קמח","amount":500,"unit":"g","note":null}],
+ "ingredients":[{"name":"קמח","amount":500,"unit":"g","note":null,"group":null},
+                {"name":"טחינה","amount":3,"unit":"tbsp","note":null,"group":"לרוטב"}],
  "steps":[{"heading":null,"body":"..."}]}
 
 unit חייב להיות אחד מ: g, kg, ml, l, cup, tbsp, tsp, pcs, pinch, to taste.
+group הוא החלק שהמרכיב שייך אליו — "לרוטב", "למילוי", "לקציצות". אם המתכון מחולק לחלקים, סמן כל מרכיב בחלק שלו; אם לא, השאר null בכולם. מרכיבים של אותו חלק חייבים להופיע רצוף.
 לטווח כמויות השתמש ב-amount ו-amountMax. אם אין כמות, השמט את amount.
 אפשר להחזיר מערך של כמה מתכונים.`;
 
@@ -146,18 +149,20 @@ export default function ImportPaste({
 
         <div className={styles.actions}>
           <button className="btn" onClick={() => { setResult(null); setText(''); }}>
-            Import more
+            {t('import.more')}
           </button>
-          <button className="btn btn--ghost" disabled={busy}
+          {/* Undo showed NOTHING while it ran — not a label change, not a spinner,
+              just a disabled button while it deleted twenty recipes. */}
+          <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('import.undoing')}
             onClick={async () => {
               setBusy(true);
               await undoImport(result.imported.map((r) => r.id));
               setResult(null); setText(''); setBusy(false); router.refresh();
             }}>
             {result.replaced.length > 0
-              ? `Undo — removes the ${result.imported.length} new ones`
-              : 'Undo this import'}
-          </button>
+              ? t('import.undoNew', { n: result.imported.length })
+              : t('import.undoAll')}
+          </BusyButton>
         </div>
       </div>
     );
@@ -293,9 +298,11 @@ export default function ImportPaste({
             })}
           </ul>
 
-          <button className="btn" onClick={onImport} disabled={busy}>
-            {busy ? 'Importing…' : `Import ${parsed.recipes.length} ${parsed.recipes.length === 1 ? 'recipe' : 'recipes'}`}
-          </button>
+          <BusyButton busy={busy} onClick={onImport} busyLabel={t('import.importing')}>
+            {parsed.recipes.length === 1
+              ? t('import.importOne')
+              : t('import.importN', { n: parsed.recipes.length })}
+          </BusyButton>
         </section>
       )}
     </div>

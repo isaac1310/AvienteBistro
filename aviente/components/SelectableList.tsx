@@ -30,6 +30,11 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
      — and React's recovery is to throw away the server HTML and re-render, which
      flickers the whole list. */
   useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       Deliberate: sessionStorage does not exist on the server, so seeding
+       useState from it makes the two disagree and React discards the server HTML. The rule flags the cascading render; here it is one
+       extra paint on mount, which is the price of not mismatching the
+       server HTML. Restructure this and the reason above goes with it. */
     setChosen(readBasket());
     return onBasketChange(() => setChosen(readBasket()));
   }, []);

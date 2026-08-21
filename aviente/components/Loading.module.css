@@ -35,6 +35,43 @@
   height: var(--loader-inline-h, 30px);
 }
 
+/* Heavier lines at small sizes, and the steam heaviest of all.
+   The drawing is stroked for 240px: at 30px those strokes render under a pixel and
+   the steam — the part that says "working" rather than "here is some bread" — vanished
+   entirely. Stroke width is in USER units, so a cropped viewBox scales it up too;
+   these values are on top of that. */
+.inline .crust { stroke-width: 4; }
+.inline .score { stroke-width: 3.5; opacity: 0.5; }
+.inline .fume {
+  stroke-width: 5;
+  opacity: 0.95;
+}
+
+/* The steam NEVER fully disappears at this size, and that is the actual fix for
+   "hardly visible, has no fumes".
+   The page loader's curls fade 0 → 0.85 → 0 on a 2.8s cycle, staggered — beautiful at
+   240px, where there is always another curl mid-rise. At 34px, with three curls of a
+   few pixels each, the gaps between the fades are moments when the drawing genuinely
+   HAS no steam: a screenshot proved it, and so did Itzik looking at it. So the inline
+   steam breathes between a third and full rather than in and out of nothing, and it
+   still rises. */
+@media (prefers-reduced-motion: no-preference) {
+  .inline .fume path {
+    opacity: 0.55;
+    animation: fumeInline 2.2s ease-in-out infinite;
+  }
+}
+/* Motion off: drawn, plainly. */
+.inline .fume path { opacity: 0.7; }
+
+@keyframes fumeInline {
+  0%, 100% { opacity: 0.35; transform: translateY(3px); }
+  50%      { opacity: 1;    transform: translateY(-4px); }
+}
+/* No ground line when cropped — it is outside the crop, but say so rather than
+   relying on that. */
+.inline .ground { display: none; }
+
 /* Inside a control the drawing takes the CONTROL's colour, all three tones.
    Verified wrong first: on the burgundy Export button the crust is --ink, so a dark
    loaf sat on a dark ground and only the pale scores showed. A loader that is

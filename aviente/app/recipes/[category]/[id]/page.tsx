@@ -135,6 +135,21 @@ export default async function RecipePage({ params }: Params) {
           </p>
         )}
 
+        {/* What you can DO with this recipe, at the top.
+            These were at the very bottom, under the notes and the revision list — so
+            "add this to Friday" meant scrolling past every ingredient and step of a
+            recipe you had just opened, and on a long one that is a lot of scrolling to
+            reach the thing you came for. Above the timing strip, because the actions
+            belong to the recipe's identity rather than to its instructions. */}
+        <div className={styles.actions}>
+          <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
+          {/* Two actions, because these were one and it was mislabelled: the button
+              said "Export PDF" and opened the print PAGE, downloading nothing. */}
+          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
+          <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
+            className="btn btn--ghost" />
+        </div>
+
         {timing.length > 0 && (
           <p className={styles.timing}>{timing.join(' · ')}</p>
         )}
@@ -179,15 +194,9 @@ export default async function RecipePage({ params }: Params) {
           </section>
         )}
 
-        <div className={styles.actions}>
-          <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
-          {/* Two actions, because these were one and it was mislabelled: the button
-              said "Export PDF" and opened the print PAGE, downloading nothing. */}
-          <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
-          <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
-            className="btn btn--ghost" />
-        </div>
-
+        {/* The actions moved to the TOP — see the block under the eyebrow. What is
+            left down here is the record of the recipe rather than anything you can do
+            to it: earlier versions, and who touched it last. */}
         <div className={styles.history}>
           <RecipeHistory recipeId={id} />
         </div>

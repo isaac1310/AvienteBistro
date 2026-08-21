@@ -134,11 +134,13 @@
   color: var(--ink-soft);
 }
 
+/* At the top now, not the bottom — so the spacing is tighter above and it sits with
+   the title block rather than hanging off the end of the page. */
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-3);
-  margin-top: var(--sp-7);
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
 }
 .actions > * { flex: 1 1 auto; text-align: center; text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center; }

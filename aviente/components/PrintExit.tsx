@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Arrow from './Arrow';
+import { useT } from './LangProvider';
 import styles from './PrintExit.module.css';
 
 /**
@@ -15,13 +16,14 @@ import styles from './PrintExit.module.css';
  * Hidden by `@media print`, so it costs the paper nothing.
  */
 export default function PrintExit({ href, label }: { href: string; label: string }) {
+  const t = useT();
   return (
     <div className={styles.bar}>
       <Link href={href} className={styles.back}>
         <Arrow /> {label}
       </Link>
       <button type="button" className={styles.print} onClick={() => window.print()}>
-        Print
+        {t('print.print')}
       </button>
     </div>
   );

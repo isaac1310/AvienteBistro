@@ -123,7 +123,7 @@ function reconcileTables(recipes) {
   }
 
   const drop = new Set();      // `${title}#${tableIndex}`
-  for (const [sig, claims] of holders) {
+  for (const claims of holders.values()) {
     if (claims.length < 2) continue;
 
     /* The same table twice under one heading is a straight repeat: keep the first. */

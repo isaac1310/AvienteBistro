@@ -132,10 +132,14 @@ export default function PhotoField({
       setPreview(data?.signedUrl ?? null);
       setSaved(true);
 
-      // Replacing a photo must delete the old object, or orphans accumulate
-      // forever in a bucket nobody ever looks at.
-      if (value) await db.storage.from('recipe-photos').remove([value]);
-
+      /* The old object is NOT deleted here any more, and that is the fix rather than
+         an omission. Deleting it now removes a file the RECIPE ROW still points at:
+         the row does not learn the new path until Save, so cancelling the edit,
+         closing the tab, or a failed save left the recipe pointing at an object that
+         no longer existed — the dangling state one recipe was actually found in.
+         saveRecipe now removes the replaced object after the row is written, and
+         only when the path really changed. An abandoned upload leaves an orphan
+         instead, which the photo backup's manifest already names. */
       onChange(path);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'upload failed');

@@ -178,6 +178,21 @@ const DICT = {
      deleting became one tap from every card rather than a trip into the edit form. */
   'import.editTitle':  { he: 'שם המתכון',      en: 'Recipe name' },
   'import.goToRecipe': { he: 'למתכון',       en: 'Go to the recipe' },
+  /* Ten seconds, said out loud. The confirm promised the recipe "can be restored
+     afterwards", which is true of the DATABASE and not of anything on screen: the
+     undo toast lasts ten seconds and after that there is no restore UI at all. A
+     promise the app cannot keep is worse than a blunt warning. A trash list would
+     make the original sentence true; until then, this. */
+  /* Print-sheet chrome. The Print button was hardcoded English on a Hebrew-first
+     app, and only the kids sheet had a way out at all — the recipe and menu sheets
+     were dead ends in the installed PWA, which has no browser Back. */
+  'print.print':        { he: 'הדפסה',          en: 'Print' },
+  'print.backToRecipe': { he: 'חזרה למתכון',    en: 'Back to the recipe' },
+  'print.backToMenu':   { he: 'חזרה לתפריט',    en: 'Back to the menu' },
+  'form.deleteConfirm': {
+    he: 'למחוק את «{title}»? אפשר לבטל במשך עשר שניות בלבד.',
+    en: 'Delete “{title}”? You have ten seconds to undo it.',
+  },
   'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
   'card.edit':         { he: 'עריכת {title}',   en: 'Edit {title}' },

@@ -63,10 +63,17 @@ export default async function SettingsPage() {
                   <a className="btn btn--ghost" href="/api/backup/photos" download>
                     {t('settings.downloadPhotos')}
                   </a>
-                  {/* The other half of a backup. Download lived here alone, so restoring
-                      meant knowing that the importer doubles as the restore path —
-                      which nobody should have to know. Same screen, both directions. */}
-                  <Link className="btn btn--ghost" href="/import">⤒ Restore from a backup</Link>
+                  {/* The other half of a backup, and it pointed at the WRONG DOOR.
+                      /import is add-to-the-book and defaults to SKIPPING duplicates,
+                      so "restore from a backup" quietly imported nothing when the
+                      recipes already existed — which is every real restore. The
+                      replace-the-book page is /settings/restore; it forces Replace and
+                      refuses anyone but the admin, server-side. The label was also
+                      hardcoded English on a Hebrew-first screen while the key sat
+                      unused. */}
+                  <Link className="btn btn--ghost" href="/settings/restore">
+                    {t('settings.restore')}
+                  </Link>
                 </p>
               </div>
             </section>

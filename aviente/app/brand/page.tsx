@@ -138,7 +138,8 @@ export default async function BrandSheet() {
             <ul className={styles.heroes}>
               {CATEGORIES.map((c) => (
                 <li key={c.key} className={styles.hero}>
-                  <CategoryPlate category={c.key as CategoryKey} size="hero" caption={c.en} />
+                  <CategoryPlate category={c.key as CategoryKey} size="hero" caption={c.en}
+                    plateNumber />
                   <span className={styles.heroName}>{c.en}</span>
                 </li>
               ))}

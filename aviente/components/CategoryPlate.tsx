@@ -39,12 +39,14 @@ const PLATES: Record<CategoryKey, string> = {
 };
 
 export default function CategoryPlate({
-  category, size = 'thumb', caption,
+  category, size = 'thumb', caption, plateNumber = false,
 }: {
   category: CategoryKey;
   size?: 'thumb' | 'row' | 'hero';
   /** The category name under the drawing. Hero only — a 92px column has no room. */
   caption?: string;
+  /** The "PL. IV — PLATS" line. For the /brand series sheet only. */
+  plateNumber?: boolean;
 }) {
   const plate = BLUEPRINTS[category] ?? BLUEPRINTS.other;
   const kid = category === 'kids';
@@ -79,7 +81,15 @@ export default function CategoryPlate({
       {size === 'hero' && caption && (
         <span className={styles.caption}>
           <span className={styles.captionName}>{caption}</span>
-          <span className={styles.captionPlate}>{PLATES[category]} · NO PHOTO YET</span>
+          {/* The plate NUMBER is for the /brand sheet, where the ten drawings are
+              looked at as a printed series and "PL. IV — PLATS" is the conceit. On a
+              recipe it is noise: a reader who opened a recipe does not need the
+              catalogue number of its illustration, and "NO PHOTO YET" states the
+              obvious under a drawing that is visibly not a photograph. Kept for the
+              sheet, dropped everywhere else. */}
+          {plateNumber && (
+            <span className={styles.captionPlate}>{PLATES[category]}</span>
+          )}
         </span>
       )}
     </span>

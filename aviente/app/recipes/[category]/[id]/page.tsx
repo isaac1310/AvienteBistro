@@ -16,7 +16,10 @@ type Params = { params: Promise<{ category: string; id: string }> };
 
 export async function generateMetadata({ params }: Params) {
   const { id } = await params;
-  const [recipe, t, lang] = await Promise.all([getRecipe(id), serverT(), currentLang()]);
+  /* The title is the recipe's own, in its own language, so no translator is needed.
+     This awaited serverT() and currentLang() and used neither — two extra calls per
+     page render, caught by lint rather than by anyone reading it. */
+  const recipe = await getRecipe(id);
   return { title: recipe ? `Aviente — ${recipe.title}` : 'Aviente' };
 }
 
@@ -86,9 +89,11 @@ export default async function RecipePage({ params }: Params) {
            This slot still had the old emoji-on-a-tinted-block placeholder: the new
            plates reached the list cards and stopped there, so the one screen with
            room for the drawing was the one screen not showing it.
-           The caption ends "NO PHOTO YET" and the whole plate is a link to the edit
-           form, which turns the commonest state in this book into the one action it
-           is asking for. */
+           The whole plate is a link to the edit form, which turns the commonest
+           state in this book into the one action it is asking for. It carries the
+           category name and nothing else: the "PL. IV — PLATS · NO PHOTO YET" line
+           belonged to the /brand series sheet, and here it was a catalogue number
+           nobody asked for above a sentence stating the obvious. */
         <Link href={`/recipes/${category}/${id}/edit`} className={styles.heroPlate}>
           <CategoryPlate category={recipe.category as CategoryKey} size="hero"
             caption={categoryName(cat, lang)} />

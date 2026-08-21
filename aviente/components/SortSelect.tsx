@@ -51,6 +51,11 @@ export default function SortSelect({ value }: { value: SortKey }) {
   const [holding, setHolding] = useState(false);
   const since = useRef(0);
   useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       Deliberate: `holding` TRAILS `pending`, so it can only be derived by
+       watching pending change — that is what the 500ms floor above is. The rule flags the cascading render; here it is one
+       extra paint on mount, which is the price of not mismatching the
+       server HTML. Restructure this and the reason above goes with it. */
     if (pending) { since.current = performance.now(); setHolding(true); return; }
     if (!holding) return;
     const left = 500 - (performance.now() - since.current);

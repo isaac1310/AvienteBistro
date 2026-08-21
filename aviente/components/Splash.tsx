@@ -44,6 +44,9 @@ export default function Splash({ children }: { children: React.ReactNode }) {
        affordance for INSPECTING the splash was defeated by the optimisation that
        stops it being a nuisance. */
     if (new URLSearchParams(location.search).get('splash') === 'hold') return;
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       Deliberate: sessionStorage is browser-only, so the once-per-tab flag can only
+       be read after mount. Seeding state from it would mismatch the server HTML. */
     if (sessionStorage.getItem(SEEN)) setPhase('gone');
   }, []);
 

@@ -7,7 +7,6 @@ import { ANIMALS, MEALS, addWeeks, dishLabel, weekLabel, type KidsMeal, type Mea
 import { addMeal, clearMeal, clearWeek, fillWeek, moveMeal, removeMeal, setChef } from '@/lib/kidsMutations';
 import KidsArt from './KidsArt';
 import { useLang, useT } from './LangProvider';
-import Motif from './Motif';
 import styles from './KidsPlanner.module.css';
 
 /* §3.8 — pick a week, pick dishes into a tray, then place them either day by day

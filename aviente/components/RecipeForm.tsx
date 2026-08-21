@@ -174,7 +174,7 @@ export default function RecipeForm({
 
   async function onDelete() {
     if (!recipe) return;
-    if (!confirm(`Delete "${recipe.title}"? It can be restored afterwards.`)) return;
+    if (!confirm(t('form.deleteConfirm', { title: recipe.title }))) return;
     setBusy(true);
     try {
       await softDeleteRecipe(recipe.id);

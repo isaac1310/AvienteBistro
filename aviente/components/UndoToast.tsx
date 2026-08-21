@@ -24,6 +24,11 @@ export default function UndoToast() {
 
   useEffect(() => {
     if (!id) return;
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       Deliberate: the countdown restarts when a NEW ?undo= arrives, and that
+       id lives in the URL rather than in state. The rule flags the cascading render; here it is one
+       extra paint on mount, which is the price of not mismatching the
+       server HTML. Restructure this and the reason above goes with it. */
     setLeft(10); setDone(false);
     const t = setInterval(() => setLeft((n) => (n <= 1 ? 0 : n - 1)), 1000);
     return () => clearInterval(t);

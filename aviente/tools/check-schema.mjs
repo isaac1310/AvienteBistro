@@ -18,9 +18,36 @@
  * A missing column is 42703 regardless of RLS, so anon can measure it — the same
  * trick lib/schema.ts uses, without needing to see any rows.
  *
- * OFFLINE IS NOT A FAILURE. prepr must still run on a train: no network → warn and
- * pass. Only a real answer saying the database is behind fails the build.
+ * OFFLINE IS NOT A FAILURE — for DEVELOPMENT. prepr must still run on a train: no
+ * network → warn and pass. Only a real answer saying the database is behind fails the
+ * build.
+ *
+ * That default has a cost worth naming, because a reviewer hit it: `npm run prepr`
+ * reported success on a machine that could not reach Supabase, so a release looked
+ * green with the schema NOT verified — and both outages this project has had were an
+ * unapplied migration. Two modes now, and the release one fails closed:
+ *
+ *   npm run prepr     dev — offline warns and passes
+ *   npm run release   pre-PR — offline is a FAILURE (CHECK_SCHEMA_STRICT=1)
+ *
+ * A skip that can be mistaken for a pass is the same class of bug as a selftest check
+ * that skips itself.
  */
+const STRICT = process.env.CHECK_SCHEMA_STRICT === '1';
+
+/** Cannot verify. A warning in dev; in strict mode, a failed build. */
+function unverified(reason) {
+  if (STRICT) {
+    console.error(
+      `check-schema: ${reason} — and CHECK_SCHEMA_STRICT=1, so this is a FAILURE.\n` +
+      '  A release must not be cut against an unverified database. Get on a network,\n' +
+      '  or run npm run prepr if you are deliberately building offline.',
+    );
+    process.exit(1);
+  }
+  console.warn(`check-schema: ${reason} — SKIPPED, not verified.`);
+  process.exit(0);
+}
 import { readFileSync } from 'node:fs';
 
 const version = readFileSync(new URL('../lib/version.ts', import.meta.url), 'utf8');
@@ -38,10 +65,7 @@ try {
 
 const url = env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!url || !key) {
-  console.warn('check-schema: no Supabase credentials available — SKIPPED, not verified.');
-  process.exit(0);
-}
+if (!url || !key) unverified('no Supabase credentials available');
 
 /* One probe per migration that changed a queryable shape. Newest first: the first
    probe that answers "present" proves everything at or below its version.
@@ -95,8 +119,7 @@ try {
     if (!missing(body)) { have = v; break; }
   }
 } catch (e) {
-  console.warn(`check-schema: network unreachable (${e?.cause?.code ?? e.message}) — SKIPPED, not verified.`);
-  process.exit(0);
+  unverified(`network unreachable (${e?.cause?.code ?? e.message})`);
 }
 
 /* A build that needs a version NO PROBE covers is a build whose migration shipped

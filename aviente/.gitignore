@@ -39,5 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-photos/
-kids-starter.json
+
+# ── family content, kept out of a PUBLIC repo ────────────────────────────────
+# Anchored with a leading slash, and that slash is the whole point: bare `photos/`
+# matches ANY directory named photos at ANY depth — including
+# app/api/backup/photos/, which is CODE. The photo-backup route was written,
+# verified on localhost, reported as shipped, and never committed: Settings linked
+# to a button that 404s in production. Verified with `git check-ignore -v`.
+/photos/
+/kids-starter.json

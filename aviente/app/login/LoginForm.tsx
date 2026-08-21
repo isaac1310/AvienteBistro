@@ -43,6 +43,11 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
   const [localOnly, setLocalOnly] = useState(false);
 
   useEffect(() => {
+    /* eslint-disable-next-line react-hooks/set-state-in-effect --
+       Deliberate: window.location can only be read AFTER mount, or the E2E
+       field would be absent from the server HTML and then appear. The rule flags the cascading render; here it is one
+       extra paint on mount, which is the price of not mismatching the
+       server HTML. Restructure this and the reason above goes with it. */
     setLocalOnly(e2eAvailable
       && ['localhost', '127.0.0.1'].includes(window.location.hostname));
   }, [e2eAvailable]);

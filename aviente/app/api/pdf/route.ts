@@ -56,10 +56,21 @@ export async function GET(request: NextRequest) {
   const path = request.nextUrl.searchParams.get('path');
   const name = request.nextUrl.searchParams.get('name') ?? 'aviente';
 
-  // Only our own print routes, and only relative ones: rendering an arbitrary URL
-  // server-side would be a request-forgery hole.
-  if (!path || !path.startsWith('/print/')) {
-    return NextResponse.json({ error: 'path must be one of /print/*' }, { status: 400 });
+  /* Only our own print routes, and only relative ones: rendering an arbitrary URL
+     server-side would be a request-forgery hole.
+     `startsWith('/print/')` was NOT enough, and the hole was real: `page.goto()`
+     resolves the string, so `/print/../settings` starts with /print/ and renders
+     /settings — with the caller's cookie attached a few lines below, which is what
+     made it worth more than a curiosity. An allowlist of the three real print routes
+     is the fix; the dot-segment check is belt as well as braces, because %2e and
+     friends decode before resolution. */
+  const TRAVERSAL = /(^|\/)\.\.?(\/|$)|%2e/i;
+  const PRINT_ROUTE = /^\/print\/(recipe|menu|kids)\/[A-Za-z0-9._~-]+\/?$/;
+  if (!path || TRAVERSAL.test(path) || !PRINT_ROUTE.test(path)) {
+    return NextResponse.json(
+      { error: 'path must be /print/recipe|menu|kids/<id>' },
+      { status: 400 },
+    );
   }
 
   let browser;

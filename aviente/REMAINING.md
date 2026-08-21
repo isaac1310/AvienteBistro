@@ -44,7 +44,10 @@ plan — it is read as evidence.
 - **`softDeleteMenu` has no caller.** The mutation exists; no UI reaches it. Either
   add delete + undo to `MenuActions`, or remove the mutation.
 - **Search is `ilike`, not `pg_trgm`.** `lib/queries.ts` does a substring match on
-  `search_text`. §3.2 specifies trigram similarity, and `pg_trgm` is not enabled.
+  `search_text`. §3.2 specifies trigram similarity. **The extension IS enabled** —
+  `0001_init.sql:9` creates it, and this file claimed for three releases that it was
+  not, which is the sort of stale line a reviewer reads back as a finding. Only the
+  QUERY is still substring.
   Substring is adequate for 41 recipes; revisit at a few hundred.
 - **The kids' fridge sheet has now been seen with content** — two dishes in one cell
   with a divider, a free-text dish, chefs by alias — but never on PAPER. The grid is a

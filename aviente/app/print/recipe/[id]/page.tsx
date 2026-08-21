@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getRecipe } from '@/lib/queries';
 import { scaleAmount } from '@/lib/scale';
+import PrintExit from '@/components/PrintExit';
 import { serverT } from '@/lib/lang';
 import styles from './printrecipe.module.css';
 
@@ -25,6 +26,11 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
 
   return (
     <main className={styles.sheet}>
+      {/* A way back. Only the kids sheet had one, so opening this from the installed
+          PWA — which has no browser Back — replaced the app with a dead end. Hidden
+          by @media print, so it costs the paper nothing. */}
+      <PrintExit href={`/recipes/${recipe.category}/${recipe.id}`}
+        label={t('print.backToRecipe')} />
       <header className={styles.head}>
         <p className={styles.eyebrow}>Aviente · The Family Recipe Book</p>
         <h1 className={styles.title} lang="he">{recipe.title}</h1>

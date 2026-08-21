@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "seed:build": "node tools/seed-from-source.mjs --commit",
     "prepr": "node tools/check-schema.mjs && npm run typecheck && npm run build",
+    "release": "CHECK_SCHEMA_STRICT=1 node tools/check-schema.mjs && npm run lint && npm run typecheck && npm run build && npm run db-check",
     "test:clean": "node tools/clean-test-fixtures.mjs",
     "dev:test": "node tools/dev-sandbox.mjs",
     "blueprints": "node tools/build-blueprints.mjs",

@@ -25,11 +25,13 @@ export default function MenuActions({
   );
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* The date being copied to, or null when nobody is duplicating. */
+  const [copyDate, setCopyDate] = useState<string | null>(null);
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError(null);
     try { await fn(); router.refresh(); }
-    catch (e) { setError(e instanceof Error ? e.message : 'That did not work.'); }
+    catch (e) { setError(e instanceof Error ? e.message : t('menu.actionFailed')); }
     finally { setBusy(false); }
   };
 
@@ -47,9 +49,15 @@ export default function MenuActions({
     });
   }
 
-  async function onDuplicate() {
-    const when = prompt(t('menu.copyDate'), new Date().toISOString().slice(0, 10));
+  /* A DATE PICKER, not window.prompt.
+     The prompt asked for a date as free text — the one input type a phone has a
+     proper control for — and it is suppressed outright in embedded browsers, so
+     Duplicate did nothing there. It also could not be driven by the regression
+     agent. Now the field appears in the page, typed as `date`, so the platform
+     validates it and the keyboard is the right one. */
+  async function onDuplicate(when: string) {
     if (!when) return;
+    setCopyDate(null);
     await run(async () => {
       const newId = await duplicateMenu(id, when);
       router.push(`/menus/${newId}`);
@@ -65,7 +73,7 @@ export default function MenuActions({
         </BusyButton>
 
         <BusyButton busy={busy} className="btn btn--ghost" busyLabel={t('menu.working')}
-          onClick={onDuplicate}>
+          onClick={() => setCopyDate(new Date().toISOString().slice(0, 10))}>
           {t('menu.duplicate')}
         </BusyButton>
 
@@ -104,6 +112,31 @@ export default function MenuActions({
           </BusyButton>
         )}
       </div>
+
+      {copyDate !== null && (
+        <div className={styles.copyRow}>
+          <label className={styles.copyLabel}>
+            <span>{t('menu.copyDate')}</span>
+            <input
+              className={styles.copyField} type="date" value={copyDate}
+              onChange={(e) => setCopyDate(e.target.value)}
+              /* Enter is what a date field invites; without this the only way
+                 through was a mouse. */
+              onKeyDown={(e) => { if (e.key === 'Enter') onDuplicate(copyDate); }}
+            />
+          </label>
+          <div className={styles.copyBtns}>
+            <BusyButton busy={busy} busyLabel={t('menu.working')}
+              onClick={() => onDuplicate(copyDate)}>
+              {t('menu.duplicate')}
+            </BusyButton>
+            <button type="button" className="btn btn--ghost" disabled={busy}
+              onClick={() => setCopyDate(null)}>
+              {t('common.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && <p className={styles.error} role="alert">{error}</p>}
     </div>

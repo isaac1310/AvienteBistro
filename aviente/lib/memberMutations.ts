@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { supabaseServer, currentMember } from './supabase/server';
 
 /* The People page's writes. Server Actions on the ordinary authenticated client —
@@ -32,6 +31,27 @@ async function requireAdmin() {
   return member;
 }
 
+/**
+ * The list, read back after every change.
+ *
+ * The page passes the first copy as a prop; this exists so the client can ask for a
+ * fresh one the moment it changes something. `revalidatePath` + `router.refresh()`
+ * alone left the screen showing the old list — the row was written, the view was
+ * stale, and add / save / revoke / delete all looked like they had done nothing.
+ * Reading the truth back is not a cache workaround to be removed later: for a list
+ * of six people it is cheaper than reasoning about who invalidated what.
+ */
+export async function listMembers(): Promise<MemberRow[]> {
+  await requireAdmin();
+  const db = await supabaseServer();
+  const { data, error } = await db
+    .from('family_members')
+    .select('id, name, display_name, email, user_id, role')
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(friendly(error.message));
+  return (data ?? []) as MemberRow[];
+}
+
 /** Lowercased, or null. The doorman compares lowercase; write what it reads. */
 const cleanEmail = (email: string | null | undefined): string | null => {
   const e = email?.trim().toLowerCase() ?? '';
@@ -59,7 +79,6 @@ export async function addMember(input: {
     role: input.role === 'admin' ? 'admin' : 'member',
   });
   if (error) throw new Error(friendly(error.message));
-  revalidatePath('/settings/people');
 }
 
 /** Rename, change the alias, change the email, or change the role. */
@@ -81,7 +100,6 @@ export async function updateMember(id: string, input: {
   const db = await supabaseServer();
   const { error } = await db.from('family_members').update(patch).eq('id', id);
   if (error) throw new Error(friendly(error.message));
-  revalidatePath('/settings/people');
 }
 
 /**
@@ -104,7 +122,6 @@ export async function revokeAccess(id: string): Promise<void> {
     .update({ user_id: null, email: null })
     .eq('id', id);
   if (error) throw new Error(friendly(error.message));
-  revalidatePath('/settings/people');
 }
 
 /**
@@ -142,7 +159,6 @@ export async function deleteMember(id: string): Promise<void> {
 
   const { error } = await db.from('family_members').delete().eq('id', id);
   if (error) throw new Error(friendly(error.message));
-  revalidatePath('/settings/people');
 }
 
 /** Postgres speaks in constraint names; the admin gets told what actually happened. */

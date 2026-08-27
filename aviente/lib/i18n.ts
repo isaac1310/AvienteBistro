@@ -70,6 +70,11 @@ const DICT = {
   'book.here':         { he: '{n} כאן · אפשר להמשיך בקטגוריה אחרת',
                          en: '{n} here · keep going in another category' },
   'book.cancel':       { he: 'ביטול',       en: 'Cancel' },
+  'book.add':          { he: '＋ הוספת מתכון', en: '＋ Add a recipe' },
+  /* The card meta in select mode — "Savta's · serves 6". Two entries rather than one
+     sentence, because either half can be missing. */
+  'book.whose':        { he: 'של {name}',    en: '{name}’s' },
+  'book.serves':       { he: '{n} מנות',     en: 'serves {n}' },
 
   // ── a recipe ────────────────────────────────────────────────────────────
   'recipe.ingredients':   { he: 'מרכיבים',   en: 'Ingredients' },
@@ -96,6 +101,33 @@ const DICT = {
                             en: 'Amounts scaled for {n}. The written steps still quote the original.' },
   'recipe.history':       { he: '⟲ גרסאות קודמות', en: '⟲ Earlier versions' },
 
+  // ── earlier versions ────────────────────────────────────────────────────
+  // The whole sheet used to be hardcoded English, including the confirm — an
+  // English question on a Hebrew-first screen, about the one action that
+  // overwrites a recipe.
+  'history.hint':          { he: 'גרסה נשמרת בכל פעם שמישהו שומר. שחזור שומר גם את הגרסה הנוכחית, כך שאף פעם לא הולך משהו לאיבוד מלהסתכל.',
+                              en: 'A version is kept every time anyone saves. Restoring keeps the current one too, so nothing is ever lost by looking.' },
+  'history.beforeLastSave': { he: 'לפני השמירה האחרונה', en: 'before the last save' },
+  'history.savedOverBy':   { he: 'נדרס על ידי {name}', en: 'saved over by {name}' },
+  'history.empty':         { he: 'אין עוד גרסאות — זה נשמר רק פעם אחת.',
+                              en: 'No earlier versions yet — this has only been saved once.' },
+  'history.putBackRecipe': { he: 'להחזיר את המתכון לגרסה הזאת? הגרסה הנוכחית נשמרת גם.',
+                              en: 'Put this recipe back to this version? The current one is kept too.' },
+  'history.putBackMenu':   { he: 'להחזיר את התפריט לגרסה הזאת? הגרסה הנוכחית נשמרת גם.',
+                              en: 'Put this menu back to this version? The current one is kept too.' },
+  'history.putBack':       { he: 'להחזיר',   en: 'Put it back' },
+  'history.loadFailed':    { he: 'לא ניתן לטעון גרסאות קודמות.', en: 'Could not load earlier versions.' },
+  'history.restoreFailed': { he: 'לא ניתן לשחזר.', en: 'Could not restore.' },
+
+  // Relative times. Singular and plural are separate entries, not an English
+  // `n === 1 ? 'hour' : 'hours'` — Hebrew does not inflect the same way.
+  'time.justNow':  { he: 'ממש עכשיו',    en: 'just now' },
+  'time.minsAgo':  { he: 'לפני {n} דק׳', en: '{n} min ago' },
+  'time.hourAgo':  { he: 'לפני שעה',     en: '1 hour ago' },
+  'time.hoursAgo': { he: 'לפני {n} שעות', en: '{n} hours ago' },
+  'time.dayAgo':   { he: 'לפני יום',     en: '1 day ago' },
+  'time.daysAgo':  { he: 'לפני {n} ימים', en: '{n} days ago' },
+
   // ── the recipe form ─────────────────────────────────────────────────────
   'form.editing':      { he: 'עריכה',        en: 'Editing' },
   'form.unsaved':      { he: 'לא נשמר',      en: 'unsaved' },
@@ -121,6 +153,7 @@ const DICT = {
   'form.addIngredient':      { he: '＋ הוספת מרכיב', en: '＋ Add ingredient' },
   'form.addIngredientTo':    { he: '＋ הוספת מרכיב ל{part}', en: '＋ Add ingredient to {part}' },
   'form.addStep':            { he: '＋ הוספת שלב', en: '＋ Add step' },
+  'form.deleteRecipe':       { he: 'מחיקת המתכון', en: 'Delete this recipe' },
   'form.part':               { he: 'חלק',     en: 'Part' },
   'form.partName':           { he: 'שם החלק במתכון', en: 'Name of this part of the recipe' },
   'form.partPlaceholder':    { he: 'לדוגמה: לרוטב', en: 'e.g. לרוטב' },
@@ -148,6 +181,13 @@ const DICT = {
   'form.cardDescription':    { he: 'תיאור לכרטיס התפריט', en: 'Menu card description' },
   'form.toServe':            { he: 'להגשה — שורה לכל הצעה', en: 'To serve — one per line' },
   'form.story':              { he: 'הערות ומקור', en: 'Notes and story' },
+  'form.stepBody':           { he: 'מה עושים', en: 'what to do' },
+  /* The two things a save refuses over. They were thrown as English Error messages
+     and shown verbatim, so the only sentence in the form that stops you was the one
+     sentence not in the reader's language. */
+  'form.needsName':          { he: 'למתכון צריך שם.', en: 'A recipe needs a name.' },
+  'form.needsServings':      { he: 'צריך לכתוב כמה מנות, או מה יוצא מזה (למשל «ליטר אחד»).',
+                               en: 'Give either a number of servings or what it makes (e.g. “1 litre”).' },
 
   // ── the menu builder ────────────────────────────────────────────────────
   // The CARD itself stays French/Hebrew by decision; these are the controls around it.
@@ -191,6 +231,7 @@ const DICT = {
      gets nothing; they just got nothing SILENTLY, sitting on a loader forever, where
      the menu sheet has always said so plainly. */
   'print.notAvailable': { he: 'המתכון הזה לא זמין.', en: 'This recipe is not available.' },
+  'print.menuNotAvailable': { he: 'התפריט הזה לא זמין.', en: 'Menu not available.' },
   'print.print':        { he: 'הדפסה',          en: 'Print' },
   'print.backToRecipe': { he: 'חזרה למתכון',    en: 'Back to the recipe' },
   'print.backToMenu':   { he: 'חזרה לתפריט',    en: 'Back to the menu' },
@@ -223,9 +264,14 @@ const DICT = {
   'photo.whichRecipe': { he: 'של איזה מתכון התמונה הזאת?', en: 'Which recipe is this a photo of?' },
   'photo.onlyEmpty':   { he: 'מוצגים רק מתכונים בלי תמונה — תמונה שייכת למנה אחת, כך שדבר לא נדרס.',
                           en: 'Only recipes without a photo are listed — a photograph belongs to one dish, so nothing is overwritten.' },
+  'photo.allHave':     { he: 'לכל שאר המתכונים יש כבר תמונה.',
+                          en: 'Every other recipe already has a photo.' },
+  'photo.loadFailed':  { he: 'לא הצלחנו לטעון את המתכונים.', en: 'Could not load recipes.' },
+  'photo.moveFailed':  { he: 'לא הצלחנו להעביר את התמונה.', en: 'Could not move the photo.' },
   'menu.kept':         { he: '★ נשמר',          en: '★ Kept' },
   'menu.keepThis':     { he: '☆ לשמור את זה',    en: '☆ Keep this one' },
   'menu.duplicate':    { he: 'שכפול',            en: 'Duplicate' },
+  'menu.actionFailed': { he: 'זה לא עבד.',        en: 'That did not work.' },
   'menu.working':      { he: 'רגע…',             en: 'Working…' },
   'menu.copied':       { he: 'הועתק',            en: 'Copied' },
   'menu.copy':         { he: 'העתקה',            en: 'Copy' },
@@ -338,6 +384,10 @@ const DICT = {
   'kids.print':        { he: 'הדפסה למקרר',  en: 'Print for the fridge' },
   'kids.takeOut':      { he: 'להוציא את {day} מהשבוע? {n} ארוחות ינוקו.',
                           en: 'Take {day} out of the week? Its {n} meals will be cleared.' },
+  /* One key, two places: the slot picker and the tray sheet say the same thing, and
+     they were two copies of the same English sentence. */
+  'kids.noneYet':      { he: 'אין עדיין מתכונים לילדים. אפשר להוסיף אחד ולסמן לו את הקטגוריה «שולחן הילדים».',
+                          en: 'No kids’ recipes yet. Add one and set its category to Kids’ Table.' },
 
   // ── settings ────────────────────────────────────────────────────────────
   'settings.eyebrow':      { he: 'הגדרות',     en: 'Settings' },
@@ -356,6 +406,14 @@ const DICT = {
                               en: 'The free Supabase tier takes no automated backups, and these recipes exist nowhere else. The file below holds every recipe — ingredients, groups, steps, notes and attribution — and the importer reads it back. Menus and the kids’ weeks are not included; those would have to be rebuilt.' },
   'settings.download':     { he: '⤓ הורדת גיבוי', en: '⤓ Download a backup' },
   'settings.restore':      { he: '⤒ שחזור מגיבוי', en: '⤒ Restore from a backup' },
+  /* Each control writes at once and rolls the screen back when the write fails, so
+     the failure has to say that it rolled back — otherwise the colour flicking
+     backwards looks like a second bug. */
+  'settings.colourFailed':   { he: 'לא הצלחנו לשמור את הצבע. הוא חזר למה שהיה.',
+                                en: 'Could not save the colour. It is back to what it was.' },
+  'settings.languageFailed': { he: 'לא הצלחנו לשמור את השפה. היא חזרה למה שהיתה.',
+                                en: 'Could not save the language. It is back to what it was.' },
+  'settings.nameFailed':     { he: 'לא הצלחנו לשמור את השם.', en: 'Could not save that name.' },
   'settings.blueprints':   { he: 'שרטוטי הצלחות', en: 'The no-photo plate blueprints' },
   'settings.people':       { he: 'ניהול בני המשפחה', en: 'Manage the family' },
   'settings.peopleBody':   { he: 'מי נמצא בספר: הוספת בני משפחה, כתובות אימייל לכניסה, ואנשים שמופיעים רק בקרדיט. מי שנוסף עם אימייל נכנס בעצמו — קישור קסם ראשון וזהו.',
@@ -389,6 +447,7 @@ const DICT = {
   'people.delete':     { he: 'מחיקה',       en: 'Delete' },
   'people.deleteConfirm': { he: 'למחוק את {name} לגמרי? אם יש מתכונים על שמם — המחיקה תסורב. לביטול גישה בלבד יש כפתור נפרד.',
                              en: 'Delete {name} entirely? If any recipes carry their name, the delete will be refused. To only take away their login, use Remove access.' },
+  'people.deleteYes':  { he: 'כן, למחוק',  en: 'Yes, delete' },
 
   // ── the schema banner ───────────────────────────────────────────────────
   // Written for the person who CANNOT fix it: Moran has no Supabase access, so the
@@ -404,16 +463,50 @@ const DICT = {
   'common.back':      { he: 'חזרה',   en: 'Back' },
   'common.browse':    { he: 'לעיין בספר במקום', en: 'Browse instead' },
   'search.title':     { he: 'חיפוש',   en: 'Search' },
+  'search.prompt':    { he: 'להקליד משהו כדי לחפש', en: 'type something to search' },
+  'search.results.one':  { he: 'תוצאה אחת',  en: '1 result' },
+  'search.results.many': { he: '{n} תוצאות', en: '{n} results' },
+  'search.noMatchBody': { he: 'החיפוש עובר על שמות מנות ועל מרכיבים, בעברית או באנגלית — לא על ההוראות עצמן. כדאי לנסות מרכיב אחד, כמו תבלין או קמח.',
+                           en: 'Search covers dish names and ingredients, in Hebrew or English — not the written steps. Try a single ingredient, like תבלין or flour.' },
   'import.eyebrow':   { he: 'ייבוא',   en: 'Import' },
   'import.copyPrompt': { he: 'העתקת ההנחיה', en: 'Copy the prompt' },
   'import.copied':     { he: '✓ הועתק',      en: '✓ Copied' },
   'import.chooseFile': { he: 'בחירת קובץ JSON', en: 'Choose a .json file' },
   'import.done':      { he: 'יובאו',   en: 'Imported' },
   'import.onDuplicate': { he: 'אם המתכון כבר בספר', en: 'If a recipe is already in the book' },
+  /* The three steps of the paste screen, and the choice inside step three. Each
+     duplicate option carries its own consequence, because "Replace it" alone does
+     not say that the previous version is kept. */
+  'import.step1':     { he: '1 · לתת את זה ל־ChatGPT או ל־Claude', en: '1 · Give this to ChatGPT or Claude' },
+  'import.step2':     { he: '2 · להדביק את התשובה, או לפתוח קובץ', en: '2 · Paste the answer, or open a file' },
+  'import.step3':     { he: '3 · לבדוק, ואז לייבא', en: '3 · Check, then import' },
+  'import.dupeSkip':        { he: 'לדלג', en: 'Skip it' },
+  'import.dupeSkipWhy':     { he: 'להשאיר את מה שיש בספר כמו שהוא', en: 'leave what is there untouched' },
+  'import.dupeReplace':     { he: 'להחליף', en: 'Replace it' },
+  'import.dupeReplaceWhy':  { he: 'לדרוס — הגרסה הקודמת נשמרת תחת ⟲',
+                               en: 'overwrite it — the old version is kept under ⟲' },
+  'import.dupeAdd':         { he: 'להוסיף בכל זאת', en: 'Add anyway' },
+  'import.dupeAddWhy':      { he: 'יהיו שניים בספר', en: 'end up with two of them' },
+  'import.whose':     { he: 'של מי המתכונים האלה?', en: 'Whose recipes are these?' },
   'restore.eyebrow':  { he: 'שחזור',   en: 'Restore' },
   'restore.chooseFile': { he: 'בחירת קובץ גיבוי', en: 'Choose a backup file' },
   'restore.title':    { he: 'שחזור הספר מגיבוי', en: 'Restore the cookbook from a backup' },
   'restore.notYours': { he: 'הדלת הזאת של המנהל', en: 'This door is the admin’s' },
+  'restore.notYoursBody': { he: 'שחזור מגיבוי מחליף את כל הספר בבת אחת. להוספה או לתיקון של מתכון אין בזה צורך — כל זה נמצא תחת «הוספת מתכון».',
+                             en: 'Restoring a backup replaces the whole cookbook at once. Adding or fixing a recipe doesn’t need it — that all lives under “Add a recipe”.' },
+  'restore.intro':    { he: 'הפעולה הזאת מחליפה את הספר בתוכן של קובץ גיבוי — כל מתכון בקובץ דורס את זה שנושא את אותו שם. זו הדלת לחזרה מאסון, לא להוספת מתכונים; להוספה יש «הוספת מתכון».',
+                         en: 'This replaces the cookbook with the contents of a backup file — every recipe in the file overwrites its namesake in the book. It is the door for coming back from a disaster, not for adding recipes; that lives under “Add a recipe”.' },
+  'restore.notBackup': { he: 'הקובץ הזה הוא לא גיבוי שהאפליקציה כתבה — הוא לא נקרא בכלל.',
+                          en: 'That file is not a backup this app wrote — it does not parse.' },
+  'restore.failed':   { he: 'השחזור לא עבר.', en: 'The restore failed.' },
+  'restore.done':     { he: 'שוחזר.',  en: 'Restored.' },
+  'restore.tally':    { he: '{replaced} נדרסו · {added} נוספו',
+                         en: '{replaced} replaced · {added} added' },
+  'restore.tallyFailed': { he: '{n} נכשלו', en: '{n} failed' },
+  'restore.keptVersions': { he: 'לכל מתכון שנדרס נשמרה הגרסה הקודמת — ⟲ במתכון מחזיר אותה, אחד־אחד.',
+                             en: 'Every replaced recipe kept its previous version — ⟲ on the recipe brings it back one at a time.' },
+  'restore.exportedBy': { he: 'הגיבוי נעשה על ידי {name}', en: 'Exported by {name}' },
+  'restore.exporterUnknown': { he: 'לא ידוע מי עשה את הגיבוי', en: 'Exporter unknown' },
   'menu.editDishes':  { he: 'עריכת המנות', en: 'Edit dishes' },
   'menu.shareLink':   { he: 'קישור לשיתוף', en: 'Share link' },
   'menu.stopSharing': { he: 'להפסיק לשתף',  en: 'Stop sharing' },
@@ -423,6 +516,8 @@ const DICT = {
   'settings.prefs':   { he: 'העדפות',  en: 'Preferences' },
   'login.email':      { he: 'האימייל שלך', en: 'Your email' },
   'guest.gone':       { he: 'התפריט הזה אינו זמין', en: 'This menu is not available' },
+  'guest.goneBody':   { he: 'אפשר שהשיתוף בוטל, ואפשר שהקישור חלקי — צריך את הכתובת כולה, כולל החלק שאחרי סימן השאלה.',
+                         en: 'The link may have been withdrawn, or it may be incomplete — the address needs the whole thing, including the part after the question mark.' },
   'guest.savePdf':    { he: 'שמירה כ־PDF', en: 'Save as PDF' },
   'brand.title':      { he: 'הצלחות ללא תמונה', en: 'The no-photo plates' },
   'common.backToPlanner': { he: 'חזרה לתכנון', en: 'Back to the planner' },
@@ -449,6 +544,12 @@ const DICT = {
   'add.pasteBody':    { he: 'לצלם את המתכון ב־ChatGPT או Claude, לבקש JSON ולהדביק כאן. מזהה כמויות בעברית, טווחים והערות.',
                          en: 'Photograph the recipe in ChatGPT or Claude, ask for JSON, paste the answer here. Handles Hebrew amounts, ranges and notes.' },
   'common.close':     { he: 'סגירה',  en: 'Close' },
+  'common.cancel':    { he: 'ביטול',  en: 'Cancel' },
+  /* Shared by every in-page confirm panel that DESTROYS something, so the answer
+     button never reads the same as the question's own verb. */
+  'common.confirmDelete': { he: 'כן, למחוק', en: 'Yes, delete' },
+  'common.confirmRemove': { he: 'כן, להסיר', en: 'Yes, remove' },
+  'common.discard':   { he: 'כן, לצאת',  en: 'Yes, discard' },
   'common.search':    { he: 'חיפוש…', en: 'Search…' },
   'common.loading':   { he: 'טוען',   en: 'Loading' },
   'common.noMatch':   { he: 'אין התאמה', en: 'Nothing matches that.' },

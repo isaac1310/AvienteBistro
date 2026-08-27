@@ -8,7 +8,6 @@ import { listRevisions, restoreRecipeRevision } from '@/lib/mutations';
 export default function RecipeHistory({ recipeId }: { recipeId: string }) {
   return (
     <History
-      label="this recipe"
       load={() => listRevisions(recipeId)}
       restore={restoreRecipeRevision}
     />

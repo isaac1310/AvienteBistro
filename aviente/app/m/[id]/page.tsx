@@ -31,10 +31,7 @@ export default async function SharedMenuPage({
       <main className={styles.page}>
         <div className={styles.gone}>
           <p className={styles.goneTitle}>{t('guest.gone')}</p>
-          <p className={styles.goneBody}>
-            The link may have been withdrawn, or it may be incomplete — the address
-            needs the whole thing, including the part after the question mark.
-          </p>
+          <p className={styles.goneBody}>{t('guest.goneBody')}</p>
         </div>
       </main>
     );

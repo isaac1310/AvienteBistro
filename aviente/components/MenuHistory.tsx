@@ -6,7 +6,7 @@ import { listMenuRevisions, restoreMenuRevision } from '@/lib/menuMutations';
 export default function MenuHistory({ menuId }: { menuId: string }) {
   return (
     <History
-      label="this menu"
+      kind="menu"
       load={() => listMenuRevisions(menuId)}
       restore={restoreMenuRevision}
     />

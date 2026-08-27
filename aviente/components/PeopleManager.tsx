@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
-import { addMember, updateMember, revokeAccess, deleteMember, type MemberRow } from '@/lib/memberMutations';
+import {
+  addMember, updateMember, revokeAccess, deleteMember, listMembers, type MemberRow,
+} from '@/lib/memberMutations';
 import styles from './PeopleManager.module.css';
 
 /* The list, then the form. Each person is a row you can open to edit — no separate
@@ -19,12 +20,21 @@ const EMPTY: Draft = { name: '', display_name: '', email: '', role: 'member' };
 
 export default function PeopleManager({ members, selfId }: { members: MemberRow[]; selfId: string }) {
   const t = useT();
-  const router = useRouter();
+  /* The server's copy is the first render; every change replaces it with what the
+     server says afterwards. Held in state rather than read from the prop because
+     revalidatePath + router.refresh() did not re-render this list — the row was
+     written and the screen kept showing the old one, so a delete looked like a
+     no-op. See listMembers() in lib/memberMutations.ts. */
+  const [rows, setRows] = useState<MemberRow[]>(members);
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Which row is asking "really?". An in-page step, not window.confirm: a native
+     dialog is suppressed outright in embedded browsers — it returned false and the
+     delete silently did nothing — and cannot be driven by the regression agent. */
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   /* One status word per person, derived — the row IS the state. */
   const status = (m: MemberRow) =>
@@ -34,8 +44,16 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
     setBusy(true); setError(null);
     try {
       await fn();
-      setOpenId(null); setAdding(false); setDraft(EMPTY);
-      router.refresh();
+      setRows(await listMembers());
+      setOpenId(null); setAdding(false); setConfirmId(null); setDraft(EMPTY);
+      /* NO router.refresh() here, and that is the whole fix.
+         It re-rendered this component from Next's cached RSC payload — which is
+         the stale one — immediately after the fresh list had been set, so the
+         screen went back to showing the person who had just been deleted. The
+         delete had worked every time; only the view lied. Pages that name a
+         person elsewhere (the recipe form's attribution select) are Server
+         Components fetched on navigation, and the actions call revalidatePath,
+         so they are correct on next visit without this. */
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -76,7 +94,7 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
   return (
     <div className={styles.wrap}>
       <ul className={styles.list}>
-        {members.map((m) => (
+        {rows.map((m) => (
           <li key={m.id} className={styles.row}>
             <button type="button" className={styles.head}
               onClick={() => {
@@ -118,20 +136,32 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
                       {t('people.revoke')}
                     </BusyButton>
                   )}
-                  {/* Delete asks first, then lets the server refuse anyone with
+                  {/* Two taps, in the page. The server still refuses anyone with
                       recipes, revisions or kids' meals to their name — that refusal
-                      message is the real guard; this confirm only slows the tap. */}
-                  {m.id !== selfId && (
-                    <BusyButton className={styles.danger} busy={busy} type="button"
-                      onClick={() => {
-                        if (window.confirm(t('people.deleteConfirm', { name: m.name }))) {
-                          run(() => deleteMember(m.id));
-                        }
-                      }}>
+                      is the real guard; this step only slows the tap down. */}
+                  {m.id !== selfId && confirmId !== m.id && (
+                    <button type="button" className={styles.danger}
+                      onClick={() => { setError(null); setConfirmId(m.id); }}>
                       {t('people.delete')}
-                    </BusyButton>
+                    </button>
                   )}
                 </div>
+
+                {confirmId === m.id && (
+                  <div className={styles.confirm} role="alert">
+                    <p className={styles.hint}>{t('people.deleteConfirm', { name: m.name })}</p>
+                    <div className={styles.btnRow}>
+                      <BusyButton className={styles.danger} busy={busy} type="button"
+                        onClick={() => run(() => deleteMember(m.id))}>
+                        {t('people.deleteYes')}
+                      </BusyButton>
+                      <button type="button" className="btn btn--ghost"
+                        onClick={() => setConfirmId(null)}>
+                        {t('people.cancel')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </li>

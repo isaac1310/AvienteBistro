@@ -4,6 +4,7 @@ import Nav from '@/components/Nav';
 import RecipeCard from '@/components/RecipeCard';
 import { searchRecipes } from '@/lib/queries';
 import { serverT } from '@/lib/lang';
+import { count } from '@/lib/i18n';
 import styles from '../[category]/category.module.css';
 import Arrow from '@/components/Arrow';
 
@@ -29,8 +30,9 @@ export default async function SearchPage({
             <p className="eyebrow">{t('search.title')}</p>
             <h1 className={styles.h1} lang="he">{query || '—'}</h1>
             <p className={styles.count}>
-              {!query ? 'type something to search'
-                : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
+              {!query
+                ? t('search.prompt')
+                : count(t, results.length, 'search.results.one', 'search.results.many')}
             </p>
           </div>
         </header>
@@ -42,10 +44,7 @@ export default async function SearchPage({
                 <Motif name="search" size={54} strokeWidth={1.6} />
               </p>
               <p className={styles.emptyTitle}>{t('common.noMatch')}</p>
-              <p className={styles.emptyBody}>
-                Search covers dish names and ingredients, in Hebrew or English —
-                not the written steps. Try a single ingredient, like תבלין or flour.
-              </p>
+              <p className={styles.emptyBody}>{t('search.noMatchBody')}</p>
               <Link href="/recipes" className="btn btn--ghost">{t('common.browse')}</Link>
             </div>
           ) : (

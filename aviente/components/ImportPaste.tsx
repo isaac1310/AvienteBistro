@@ -174,10 +174,8 @@ export default function ImportPaste({
       <h1 className={styles.h1}>{t('add.paste')}</h1>
 
       <section className={styles.step}>
-        <h2 className={styles.h2}>1 · Give this to ChatGPT or Claude</h2>
-        <p className={styles.hint}>
-          Photograph the recipe, attach it, and paste this underneath.
-        </p>
+        <h2 className={styles.h2}>{t('import.step1')}</h2>
+        <p className={styles.hint}>{t('import.howto')}</p>
         <textarea className={styles.prompt} readOnly rows={6} value={PROMPT} />
         <button type="button" className={styles.copy}
           onClick={async () => { await navigator.clipboard.writeText(PROMPT); setCopied(true); }}>
@@ -186,7 +184,7 @@ export default function ImportPaste({
       </section>
 
       <section className={styles.step}>
-        <h2 className={styles.h2}>2 · Paste the answer, or open a file</h2>
+        <h2 className={styles.h2}>{t('import.step2')}</h2>
 
         {/* A file picker, because asking someone to run `cat … | pbcopy` to move a
             file three inches is absurd. It also means a backup from /api/backup
@@ -221,16 +219,16 @@ export default function ImportPaste({
 
       {parsed && !parsed.error && parsed.recipes.length > 0 && (
         <section className={styles.step}>
-          <h2 className={styles.h2}>3 · Check, then import</h2>
+          <h2 className={styles.h2}>{t('import.step3')}</h2>
 
           {/* What to do about a recipe already in the book. Skip is the default
               because it is the only one that cannot lose anything. */}
           <fieldset className={styles.dupes}>
             <legend className={styles.label}>{t('import.onDuplicate')}</legend>
             {([
-              ['skip', 'Skip it', 'leave what is there untouched'],
-              ['replace', 'Replace it', 'overwrite it — the old version is kept under ⟲'],
-              ['add', 'Add anyway', 'end up with two of them'],
+              ['skip', 'import.dupeSkip', 'import.dupeSkipWhy'],
+              ['replace', 'import.dupeReplace', 'import.dupeReplaceWhy'],
+              ['add', 'import.dupeAdd', 'import.dupeAddWhy'],
             ] as const).map(([value, name, why]) => (
               <label key={value} className={styles.dupe}>
                 <input
@@ -238,13 +236,13 @@ export default function ImportPaste({
                   checked={onDuplicate === value}
                   onChange={() => setOnDuplicate(value)}
                 />
-                <span><strong>{name}</strong> — {why}</span>
+                <span><strong>{t(name)}</strong> — {t(why)}</span>
               </label>
             ))}
           </fieldset>
 
           <label className={styles.field}>
-            <span className={styles.label}>Whose recipes are these?</span>
+            <span className={styles.label}>{t('import.whose')}</span>
             <select className={styles.select} value={source}
               onChange={(e) => setSource(e.target.value)}>
               <option value="">—</option>

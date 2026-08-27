@@ -6,6 +6,7 @@ import { saveMenu } from '@/lib/menuMutations';
 import { COURSES, DEFAULT_COURSE_ORDER, categoryLabel, courseLabelEn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import BusyButton from './BusyButton';
+import Confirm from './Confirm';
 import { useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
 
@@ -65,6 +66,13 @@ export default function MenuBuilder({
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* The question currently on screen, or null. Both of these were window.confirm,
+     which embedded browsers suppress — it answers "no" without asking — and which
+     the regression agent cannot drive. `hideCourse` carries its course and count
+     because the panel names both. */
+  const [asking, setAsking] = useState<
+    { kind: 'leave' } | { kind: 'hideCourse'; course: CourseKey; held: number } | null
+  >(null);
 
   /* The suggestion follows the lunch/dinner toggle with no round trip, because both
      answers were resolved on the server.
@@ -98,12 +106,16 @@ export default function MenuBuilder({
       || r.course !== initial.items[i]?.course
       || r.note !== (initial.items[i]?.note ?? ''));
 
-  function onCancel() {
-    if (dirty && !confirm(t('menu.leave'))) return;
-    /* Back to the menu being edited, or to the list for a new one. history.back()
-       is wrong here: arriving from a recipe page's "add to a menu" link would send
-       you back into that recipe. */
+  /* Back to the menu being edited, or to the list for a new one. history.back()
+     is wrong here: arriving from a recipe page's "add to a menu" link would send
+     you back into that recipe. */
+  function leave() {
     router.push(initial.id ? `/menus/${initial.id}` : '/menus');
+  }
+
+  function onCancel() {
+    if (dirty) { setAsking({ kind: 'leave' }); return; }
+    leave();
   }
 
   const filtered = useMemo(() => {
@@ -151,10 +163,7 @@ export default function MenuBuilder({
        silently dropping somebody's dish off a printed card is the worst thing this
        app could do. */
     const held = rows.filter((r) => r.course === key).length;
-    const ask = held === 1
-      ? t('menu.courseHasDishes.one')
-      : t('menu.courseHasDishes', { n: held });
-    if (held && !confirm(ask)) return;
+    if (held) { setAsking({ kind: 'hideCourse', course: key, held }); return; }
     setOrder(order.filter((k) => k !== key));
   }
 
@@ -212,6 +221,33 @@ export default function MenuBuilder({
       </header>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
+
+      {asking?.kind === 'leave' && (
+        <Confirm
+          message={t('menu.leave')}
+          confirmLabel={t('common.discard')}
+          danger={false}
+          onConfirm={leave}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+
+      {/* Hiding is not deleting — the dishes keep printing, appended at the end —
+          and the panel says the count out loud, because silently dropping somebody's
+          dish off a printed card is the worst thing this app could do. */}
+      {asking?.kind === 'hideCourse' && (
+        <Confirm
+          message={asking.held === 1
+            ? t('menu.courseHasDishes.one')
+            : t('menu.courseHasDishes', { n: asking.held })}
+          confirmLabel={t('common.confirmRemove')}
+          onConfirm={() => {
+            setOrder(order.filter((k) => k !== asking.course));
+            setAsking(null);
+          }}
+          onCancel={() => setAsking(null)}
+        />
+      )}
 
       {/* Live preview of the card's head. The title field used to be typed blind:
           nothing on this screen showed what the card would be called, and a blank

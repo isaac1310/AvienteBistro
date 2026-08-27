@@ -17,12 +17,13 @@ export default function SelfTest() {
     let cancelled = false;
     (async () => {
       // Dynamic imports so neither module is pulled into the normal client bundle.
-      const [parse, scale, occasion, kids, next] = await Promise.all([
+      const [parse, scale, occasion, kids, next, parts] = await Promise.all([
         import('@/lib/recipeParse.mjs'),
         import('@/lib/scale'),
         import('@/lib/occasion'),
         import('@/lib/constants'),
         import('@/lib/safeNext'),
+        import('@/lib/parts'),
       ]);
       if (cancelled) return;
       (window as unknown as { Aviente: unknown }).Aviente = {
@@ -46,6 +47,18 @@ export default function SelfTest() {
            compare the two ends of the round trip rather than only testing the parser
            against itself — which is how the version collision went unnoticed. */
         DOCUMENT_VERSION: parse.SCHEMA_VERSION,
+        /* The ingredient-parts rules. Two bugs shipped from them — a crash on a
+           recipe with no ingredients, and an "add part" button that added a section
+           you could not see — and neither was reachable while this logic sat inside
+           RecipeForm. Exposed so the suite asserts the real implementation. */
+        groupRuns: parts.groupRuns,
+        renameRun: parts.renameRun,
+        undraftRun: parts.undraftRun,
+        addToRun: parts.addToRun,
+        moveIngredient: parts.moveIngredient,
+        moveIngredientToRun: parts.moveIngredientToRun,
+        partsBlankRow: parts.blankRow,
+        runKeyOf: parts.runKeyOf,
         splitTitle: parse.splitTitle,
         mapCategory: parse.mapCategory,
         parseAmount: parse.parseAmount,

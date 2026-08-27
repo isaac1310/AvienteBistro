@@ -339,6 +339,118 @@
     });
   }
 
+  /* ---------- ingredient parts ----------
+   *
+   * Every check here is a bug that shipped. The form derives sections from
+   * CONTIGUOUS runs of equal group_label, which is what let the feature land without
+   * a migration — and is also the rule that keeps getting broken. Pure functions, no
+   * DOM, no writes: this exercises lib/parts.ts, the same module the form imports.
+   */
+  function parts() {
+    group('parts');
+    const A = window.Aviente;
+    if (!A?.groupRuns) {
+      check('parts exposed', () => skip('window.Aviente.groupRuns missing'));
+      return;
+    }
+
+    const row = (key, name, group, draft) => {
+      const r = A.partsBlankRow(key, group || '', Boolean(draft));
+      return name ? { ...r, name } : r;
+    };
+    const labels = (rows) => rows.filter((r) => r.name).map((r) => r.group);
+
+    /* The crash: a recipe with `ingredients: []` produced zero runs, and the JSX
+       reads run.rows[0].key. The edit form threw on exactly the recipe you open in
+       order to ADD ingredients. */
+    check('an empty ingredient list still yields one run to render into', () => {
+      const runs = A.groupRuns([]);
+      if (runs.length !== 1) return `expected 1 run, got ${runs.length}`;
+      return eq(runs[0].rows.length, 0, 'rows in the fallback run');
+    });
+
+    check('contiguous equal labels are one section, and a change starts another', () => {
+      const runs = A.groupRuns([
+        row('a', 'onion', ''), row('b', 'tahini', 'sauce'), row('c', 'lemon', 'sauce'),
+      ]);
+      if (runs.length !== 2) return `expected 2 sections, got ${runs.length}`;
+      if (runs[0].group !== null) return `first section should be unnamed, got ${JSON.stringify(runs[0].group)}`;
+      return eq(runs[1].rows.length, 2, 'rows in the sauce section');
+    });
+
+    /* "Add part" appended a row with group '', blank coerces to null, so it merged
+       into the trailing unnamed run: ONE section on screen where two were asked for.
+       The button looked like it did nothing. */
+    check('"add part" starts a NEW section even before it has a name', () => {
+      const rows = [row('a', 'onion', ''), row('new', '', '', true)];
+      return eq(A.groupRuns(rows).length, 2, 'sections after add-part');
+    });
+
+    /* The same bug's second half, and the worse one: naming that merged run renamed
+       every row in it, so the ingredient typed BEFORE pressing "add part" was
+       silently swallowed into the new part. */
+    check('naming a fresh part leaves earlier ingredients alone', () => {
+      const rows = [row('a', 'onion', ''), row('new', '', '', true)];
+      const run = A.groupRuns(rows).find((r) => A.runKeyOf(r) === 'new');
+      if (!run) return 'the drafted part did not form its own run';
+      const after = A.renameRun(rows, run, 'sauce');
+      return eq(JSON.stringify(labels(after)), JSON.stringify(['']), 'labels of named rows');
+    });
+
+    /* Deleting the last character of a name must not collapse the section out from
+       under the caret — the draft break is released on blur, not on change. */
+    check('typing a name empty again keeps the section open', () => {
+      const rows = [row('a', 'onion', ''), row('new', '', '', true)];
+      let run = A.groupRuns(rows).find((r) => A.runKeyOf(r) === 'new');
+      const typed = A.renameRun(rows, run, 'X');
+      run = A.groupRuns(typed).find((r) => A.runKeyOf(r) === 'new');
+      const cleared = A.renameRun(typed, run, '');
+      return eq(A.groupRuns(cleared).length, 2, 'sections while still typing');
+    });
+
+    /* Released on blur, so the editor cannot keep showing two boxes for what the
+       recipe page renders as one heading. */
+    check('leaving the heading releases the draft break', () => {
+      const rows = [row('a', 'onion', 'sauce'), row('new', 'tahini', 'sauce', true)];
+      if (A.groupRuns(rows).length !== 2) return 'draft break was not in effect to begin with';
+      const run = A.groupRuns(rows).find((r) => A.runKeyOf(r) === 'new');
+      return eq(A.groupRuns(A.undraftRun(rows, run)).length, 1,
+        'sections after blur with the same name');
+    });
+
+    /* A moved row adopts the label of the row it lands beside — otherwise it kept its
+       old label and wedged a foreign row into the destination, splitting its heading
+       in two. */
+    check('a moved ingredient joins the part it lands in', () => {
+      const rows = [row('a', 'onion', ''), row('b', 'tahini', 'sauce'), row('c', 'lemon', 'sauce')];
+      const moved = A.moveIngredient(rows, 0, 1);
+      const landed = moved.find((r) => r.key === 'a');
+      return eq(landed.group, 'sauce', 'label adopted by the moved row');
+    });
+
+    check('dropping onto a heading sends the row to the end of that part', () => {
+      const rows = [row('a', 'onion', ''), row('b', 'tahini', 'sauce'), row('c', 'lemon', 'sauce')];
+      const moved = A.moveIngredientToRun(rows, 'a', 'sauce');
+      return eq(moved[moved.length - 1].key, 'a', 'last row after the drop');
+    });
+
+    check('an ingredient added to a part inherits its name', () => {
+      const rows = [row('a', 'onion', ''), row('b', 'tahini', 'sauce')];
+      const run = A.groupRuns(rows).find((r) => r.group === 'sauce');
+      const added = A.addToRun(rows, run, 'fresh');
+      return eq(added.find((r) => r.key === 'fresh').group, 'sauce', 'inherited label');
+    });
+
+    /* `draft` is editor state. If it ever reaches the payload the column does not
+       exist and the save fails — assert the marker is confined to the parts module. */
+    check('the draft marker never appears on a saved label', () => {
+      const rows = [row('new', 'tahini', 'sauce', true)];
+      const run = A.groupRuns(rows)[0];
+      const after = A.undraftRun(rows, run);
+      return eq(after[0].draft, false, 'draft after release');
+    });
+  }
+
   function scaling() {
     group('scaling');
     const A = window.Aviente;
@@ -549,6 +661,7 @@
     layout();
     splash();
     parser();
+    parts();
     scaling();
     occasions();
     kidsWeek();

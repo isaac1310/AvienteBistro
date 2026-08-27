@@ -1,0 +1,112 @@
+.wrap { display: grid; gap: var(--sp-4); }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.row {
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  background: var(--card);
+}
+
+/* The whole header is the toggle — a 44px-tall target, not a chevron. */
+.head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.who { font-weight: 600; }
+.alias { font-weight: 400; color: var(--ink-soft); }
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.1em 0.5em;
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  color: var(--muted-ink);
+}
+
+.editor {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-top: 1px solid var(--card-border);
+}
+
+.addCard { padding: var(--sp-4); display: grid; gap: var(--sp-3); }
+.h2 { margin: 0; font-size: var(--t-h3); }
+
+.addOffer {
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: 1px dashed var(--card-border);
+  border-radius: 2px;
+  font: inherit;
+  color: var(--ink-soft);
+  cursor: pointer;
+  justify-self: start;
+}
+
+.label {
+  display: grid;
+  gap: var(--sp-1);
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+}
+
+.input {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  background: var(--page);
+  font: inherit;
+  color: var(--ink);
+}
+
+.hint { margin: 0; font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }
+
+/* The delete button dresses like a ghost button but speaks in the danger colour —
+   quiet until read, unmistakable once read. */
+.danger {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-3);
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+  font: inherit;
+  color: var(--danger, #8f2f2f);
+  cursor: pointer;
+}
+.error { margin: 0; font-size: var(--t-small); color: var(--danger, #8f2f2f); }
+.btnRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; }

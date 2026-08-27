@@ -49,6 +49,22 @@ export default async function SettingsPage() {
               pastes recipes exactly as before. Hiding the section is the door;
               /api/backup checks the role server-side, because a URL that still
               answers is not hidden. */}
+          {/* Who is in the family. Same admin curtain as backup: the page refuses
+              non-admins server-side; hiding the card here is courtesy, not the gate. */}
+          {member?.role === 'admin' && (
+            <section className={styles.block} aria-labelledby="people-h">
+              <h2 className={styles.h2} id="people-h">{t('people.eyebrow')}</h2>
+              <div className={`card ${styles.panel}`}>
+                <p className={styles.body}>{t('settings.peopleBody')}</p>
+                <p className={styles.btnRow}>
+                  <Link className="btn btn--ghost" href="/settings/people">
+                    {t('settings.people')}
+                  </Link>
+                </p>
+              </div>
+            </section>
+          )}
+
           {member?.role === 'admin' && (
             <section className={styles.block} aria-labelledby="backup-h">
               <h2 className={styles.h2} id="backup-h">{t('settings.backup')}</h2>

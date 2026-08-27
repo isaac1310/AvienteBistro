@@ -15,9 +15,13 @@ import styles from './login.module.css';
  * cancelled — the email carries a link only — so the screen states the constraint
  * instead of offering a way round it.
  *
- * Public signup is off in the dashboard, so signInWithOtp cannot create an account:
- * an unknown address is simply refused. That toggle is the access gate, not this
- * form.
+ * Since migration 0019 the access gate is the before-user-created hook, not the
+ * signup toggle: signup is ON, and every new account must carry an email that is on
+ * the People list. So shouldCreateUser is true — a person the admin has added signs
+ * THEMSELVES in with their first magic link, no dashboard invite — and a stranger's
+ * signup is refused by the hook with a message this form shows verbatim. SETUP
+ * ORDER MATTERS: until the hook is attached in the dashboard, signup must stay off,
+ * or this flag holds the door open (docs/ADDING-A-PERSON.md, step 0).
  */
 export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
   const t = useT();
@@ -59,7 +63,7 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
     const { error } = await db.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        shouldCreateUser: false,   // belt and braces alongside the dashboard toggle
+        shouldCreateUser: true,    // the hook is the gate now — see the header comment
         emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
@@ -143,6 +147,10 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
 /** Supabase's messages are accurate and unhelpful. Say what to do instead. */
 function readable(message: string): string {
   const m = message.toLowerCase();
+  /* The doorman's own words pass through untouched — the hook message was written
+     for this screen ("Ask Itzik to add you"), and rewriting it here would give the
+     two gates two different voices. */
+  if (m.includes('family list')) return message;
   if (m.includes('signups not allowed') || m.includes('not found') || m.includes('invalid login'))
     return 'That email is not on the family list. Only two accounts exist — check for a typo.';
   if (m.includes('token has expired') || m.includes('invalid'))

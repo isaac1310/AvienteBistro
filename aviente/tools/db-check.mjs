@@ -64,6 +64,30 @@ for (const table of LOCKED) {
   else bad('occasion_rules readable by anon', `guests cannot draw candles (${status})`);
 }
 
+/* ── 1b · the doorman is on duty ─────────────────────────────────────────────
+   Since 0019 signup is ON and the before-user-created hook is the access gate. The
+   only way to test a gate is to knock: ask for an OTP for an email that is on no
+   list. Expect refusal — the hook's 403, or "signups not allowed" before the 0019
+   setup is done (older gate, still closed). A 200 means THE DOOR IS OPEN: signups
+   were enabled without the hook attached, a stranger can walk in, and this run just
+   created a junk account (door-check-…@example.invalid) that proves it — delete it
+   in Authentication → Users after closing the door. Creating that account is the
+   cost of the only honest test; every other probe here would pass while the door
+   stood open. */
+console.log('\nsignup doorman');
+{
+  const email = `door-check-${Date.now()}@example.invalid`;
+  const r = await fetch(`${URL_}/auth/v1/otp`, {
+    method: 'POST',
+    headers: { apikey: ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, create_user: true }),
+  });
+  const body = await r.text();
+  if (r.ok) bad('unknown email is refused', `THE DOOR IS OPEN — signup returned ${r.status}; hook not attached? Junk account ${email} was created and must be deleted.`);
+  else if (body.includes('family list')) ok('unknown email refused by the hook, with its own message');
+  else ok(`unknown email refused (${r.status} — pre-0019 gate or rate limit; body: ${body.slice(0, 80)})`);
+}
+
 /* ── 2 · the constraints exist ───────────────────────────────────────────────
    Checked by asking Postgres to break them. A CHECK that was never exercised is a
    comment. anon cannot insert, so these run only with --write and a service key. */

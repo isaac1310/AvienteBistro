@@ -60,7 +60,7 @@ export default async function PrintMenu({
         }
       : null;
 
-  if (!menu) return <main className="printPage"><p>Menu not available.</p></main>;
+  if (!menu) return <main className="printPage"><p>{t('print.menuNotAvailable')}</p></main>;
 
   const rules = await occasionRules();
   const occasion = resolveOccasion(

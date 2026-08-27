@@ -64,7 +64,7 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
             else setSelectingHere(true);
           }}
         >
-          {selecting ? 'Cancel' : '✓ Select for a menu'}
+          {selecting ? t('book.cancel') : t('book.select')}
         </button>
       </div>
 
@@ -85,8 +85,8 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
                 <span className={styles.body}>
                   <span className={styles.title} lang="he">{r.title}</span>
                   <span className={styles.meta}>
-                    {r.source_name ? `${r.source_name}'s` : ''}
-                    {r.servings ? ` · serves ${r.servings}` : ''}
+                    {r.source_name ? t('book.whose', { name: r.source_name }) : ''}
+                    {r.servings ? ` · ${t('book.serves', { n: r.servings })}` : ''}
                   </span>
                 </span>
               </label>
@@ -102,12 +102,12 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
       {selecting && chosen.length > 0 && (
         <div className={styles.sticky}>
           <span className={styles.count}>
-            {chosen.length} selected
+            {t('book.selected', { n: chosen.length })}
             {/* The count includes dishes ticked in other categories, which is
                 surprising unless the bar says where they are. */}
             {chosenHere < chosen.length && (
               <span className={styles.across}>
-                {chosenHere} here · keep going in another category
+                {t('book.here', { n: chosenHere })}
               </span>
             )}
           </span>

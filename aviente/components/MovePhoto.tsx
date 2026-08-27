@@ -32,7 +32,7 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
       setOptions(await recipesWithoutPhoto(recipeId));
       setOpen(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load recipes.');
+      setError(e instanceof Error ? e.message : t('photo.loadFailed'));
     } finally {
       setBusy(false);
     }
@@ -45,7 +45,7 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
       setOpen(false);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not move the photo.');
+      setError(e instanceof Error ? e.message : t('photo.moveFailed'));
     } finally {
       setBusy(false);
     }
@@ -95,8 +95,8 @@ export default function MovePhoto({ recipeId }: { recipeId: string }) {
             {shown.length === 0 && (
               <li className={styles.empty}>
                 {options.length === 0
-                  ? 'Every other recipe already has a photo.'
-                  : 'Nothing matches that.'}
+                  ? t('photo.allHave')
+                  : t('common.noMatch')}
               </li>
             )}
           </ul>

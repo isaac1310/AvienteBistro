@@ -24,3 +24,31 @@
   color: #8c2b2b; cursor: pointer; }
 
 .error { margin: 0; font-size: var(--t-small); color: #8c2b2b; }
+
+/* The duplicate-to-date row. Replaced window.prompt, which asked for a date as
+   free text and was suppressed entirely in embedded browsers. */
+.copyRow {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  background: var(--card);
+}
+.copyLabel {
+  display: grid;
+  gap: var(--sp-1);
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+}
+.copyField {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  background: var(--page);
+  font: inherit;
+  color: var(--ink);
+}
+.copyBtns { display: flex; gap: var(--sp-2); flex-wrap: wrap; }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import MovePhoto from './MovePhoto';
 import PhotoField from './PhotoField';
 import BusyButton from './BusyButton';
+import Confirm from './Confirm';
 import { useT } from './LangProvider';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
 import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
@@ -114,6 +115,11 @@ export default function RecipeForm({
   /* True while PhotoField is uploading. Saving mid-upload is how a photo gets lost. */
   const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Which question is on screen, or null. Was window.confirm, which is suppressed
+     in embedded browsers — it answers "no" without asking — and cannot be driven by
+     the regression agent, so the two most destructive controls here were the only
+     untestable ones. */
+  const [asking, setAsking] = useState<'discard' | 'delete' | null>(null);
 
   /* The dirty guard. Without it, a mistyped back-swipe on a phone silently
      discards an evening of typing. */
@@ -152,9 +158,9 @@ export default function RecipeForm({
           .filter((s) => s.body.trim())
           .map((s) => ({ heading: s.heading.trim() || null, body: s.body.trim() })),
       };
-      if (!input.title.trim()) throw new Error('A recipe needs a name.');
+      if (!input.title.trim()) throw new Error(t('form.needsName'));
       if (!input.servings && !input.yield_text) {
-        throw new Error('Give either a number of servings or what it makes (e.g. "1 litre").');
+        throw new Error(t('form.needsServings'));
       }
       const id = await saveRecipe(input);
       setDirty(false);
@@ -175,7 +181,6 @@ export default function RecipeForm({
 
   async function onDelete() {
     if (!recipe) return;
-    if (!confirm(t('form.deleteConfirm', { title: recipe.title }))) return;
     setBusy(true);
     try {
       await softDeleteRecipe(recipe.id);
@@ -197,7 +202,7 @@ export default function RecipeForm({
         </span>
         <div className={styles.barActions}>
           <button type="button" className="btn btn--ghost" disabled={busy}
-            onClick={() => (dirty && !confirm(t('form.discard')) ? null : router.back())}>
+            onClick={() => (dirty ? setAsking('discard') : router.back())}>
             {t('form.cancel')}
           </button>
           {/* photoBusy keeps Save disabled AND now shows the loader — the P0 from
@@ -213,6 +218,17 @@ export default function RecipeForm({
       </header>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
+
+      {/* Under the bar that raised it, so the question sits with its button. */}
+      {asking === 'discard' && (
+        <Confirm
+          message={t('form.discard')}
+          confirmLabel={t('common.discard')}
+          danger={false}
+          onConfirm={() => router.back()}
+          onCancel={() => setAsking(null)}
+        />
+      )}
 
       {/* previewUrl is the signed URL the server minted for this render — the form
           cannot display a bucket path. It is only right while `photo` is unchanged;
@@ -538,7 +554,7 @@ export default function RecipeForm({
               <div className={styles.rowFields}>
                 <input className={styles.input} placeholder={t('form.stepHead')} value={s.heading} lang="he"
                   onChange={(e) => touch(setSteps)(steps.map((x) => x.key === s.key ? { ...x, heading: e.target.value } : x))} />
-                <textarea className={styles.area} rows={3} placeholder="what to do" value={s.body} lang="he"
+                <textarea className={styles.area} rows={3} placeholder={t('form.stepBody')} value={s.body} lang="he"
                   onChange={(e) => touch(setSteps)(steps.map((x) => x.key === s.key ? { ...x, body: e.target.value } : x))} />
               </div>
               <button type="button" aria-label={t('form.removeStep')} className={styles.del}
@@ -569,7 +585,7 @@ export default function RecipeForm({
       </section>
 
       <label className={styles.field}>
-        <span className={styles.label}>Story / notes</span>
+        <span className={styles.label}>{t('form.story')}</span>
         <textarea className={styles.area} rows={3} value={story} lang="he"
           onChange={(e) => touch(setStory)(e.target.value)} />
       </label>
@@ -580,10 +596,21 @@ export default function RecipeForm({
           onChange={(e) => touch(setServeWith)(e.target.value)} />
       </label>
 
-      {recipe && (
-        <button type="button" className={styles.delete} onClick={onDelete} disabled={busy}>
-          Delete this recipe
+      {recipe && asking !== 'delete' && (
+        <button type="button" className={styles.delete}
+          onClick={() => setAsking('delete')} disabled={busy}>
+          {t('form.deleteRecipe')}
         </button>
+      )}
+
+      {recipe && asking === 'delete' && (
+        <Confirm
+          message={t('form.deleteConfirm', { title: recipe.title })}
+          confirmLabel={t('common.confirmDelete')}
+          busy={busy}
+          onConfirm={onDelete}
+          onCancel={() => setAsking(null)}
+        />
       )}
     </div>
   );

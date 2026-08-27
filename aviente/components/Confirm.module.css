@@ -1,0 +1,35 @@
+.panel {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  background: var(--card);
+}
+
+/* Tinted, not shouted. The words carry the warning; the colour only says which
+   kind of question this is. */
+.danger {
+  border-color: color-mix(in srgb, var(--danger, #8f2f2f) 40%, var(--card-border));
+  background: color-mix(in srgb, var(--danger, #8f2f2f) 6%, transparent);
+}
+
+.message {
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.row { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+
+.confirmDanger {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-3);
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+  font: inherit;
+  color: var(--danger, #8f2f2f);
+  cursor: pointer;
+}

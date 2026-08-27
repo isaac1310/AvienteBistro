@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ANIMALS, MEALS, addWeeks, dishLabel, weekLabel, type KidsMeal, type MealKey } from '@/lib/constants';
 import { addMeal, clearMeal, clearWeek, fillWeek, moveMeal, removeMeal, setChef } from '@/lib/kidsMutations';
+import Confirm from './Confirm';
 import KidsArt from './KidsArt';
 import Loading from './Loading';
 import { useLang, useT } from './LangProvider';
@@ -50,6 +51,13 @@ export default function KidsPlanner({
   const [trayOpen, setTrayOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* The question on screen, or null. Taking out a populated day and clearing a week
+     both destroy meals with NO undo anywhere in the planner, so these two panels are
+     the whole guard — and window.confirm could not be one, being suppressed in
+     embedded browsers and undriveable by the regression agent. */
+  const [asking, setAsking] = useState<
+    { kind: 'takeOut'; weekday: number; planned: number } | { kind: 'clearWeek' } | null
+  >(null);
 
   /* try/finally with no catch meant every thrown error became an unhandled
      rejection: the mutations could throw all they liked and the planner would show
@@ -78,14 +86,16 @@ export default function KidsPlanner({
   function toggleDay(weekday: number, planned: number) {
     const on = days.includes(weekday);
     if (!on) { setDays([...days, weekday]); return; }
-    const animal = ANIMALS.find((a) => a.weekday === weekday);
-    if (planned > 0
-      && !confirm(t('kids.takeOut', { day: animal?.day ?? '', n: planned }))) return;
+    if (planned > 0) { setAsking({ kind: 'takeOut', weekday, planned }); return; }
     setDays(days.filter((d) => d !== weekday));
-    if (planned > 0) {
-      run(() => Promise.all(MEALS.map((m) => clearMeal(weekStart, weekday, m.key)))
-        .then(() => undefined));
-    }
+  }
+
+  /** Actually take the day out, once the question has been answered. */
+  function takeOutDay(weekday: number) {
+    setDays(days.filter((d) => d !== weekday));
+    setAsking(null);
+    run(() => Promise.all(MEALS.map((m) => clearMeal(weekStart, weekday, m.key)))
+      .then(() => undefined));
   }
 
   /* A LIST, not a find. A slot holds several dishes since migration 17, and every
@@ -281,10 +291,37 @@ export default function KidsPlanner({
       <div className={styles.footer}>
         <a className={styles.fridge} href={`/print/kids/${weekStart}`}>{t('kids.print')}</a>
         <button className={styles.clear} disabled={busy}
-          onClick={() => { if (confirm(t('kids.clearWeekConfirm'))) run(() => clearWeek(weekStart)); }}>
+          onClick={() => setAsking({ kind: 'clearWeek' })}>
           {t('kids.clearWeek')}
         </button>
       </div>
+
+      {/* Both questions land here, at the foot of the planner. Neither of these has
+          an undo, so the panel is the only thing between a tap and a wiped week —
+          which is exactly why it must not be a native dialog an embedded browser
+          answers "no" to, or the agent cannot drive. */}
+      {asking?.kind === 'takeOut' && (
+        <Confirm
+          message={t('kids.takeOut', {
+            day: ANIMALS.find((a) => a.weekday === asking.weekday)?.day ?? '',
+            n: asking.planned,
+          })}
+          confirmLabel={t('common.confirmRemove')}
+          busy={busy}
+          onConfirm={() => takeOutDay(asking.weekday)}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+
+      {asking?.kind === 'clearWeek' && (
+        <Confirm
+          message={t('kids.clearWeekConfirm')}
+          confirmLabel={t('common.confirmDelete')}
+          busy={busy}
+          onConfirm={() => { setAsking(null); run(() => clearWeek(weekStart)); }}
+          onCancel={() => setAsking(null)}
+        />
+      )}
 
       {/* Slot picker — used both for an empty slot and for ↻ swap. */}
       {picking && (
@@ -352,7 +389,7 @@ export default function KidsPlanner({
               ))}
             {recipes.length === 0 && (
               <li className={styles.noKids}>
-                No kids&rsquo; recipes yet. Add one and set its category to Kids&rsquo; Table.
+                {t('kids.noneYet')}
               </li>
             )}
           </ul>
@@ -428,7 +465,7 @@ export default function KidsPlanner({
             })}
             {recipes.length === 0 && (
               <li className={styles.noKids}>
-                No kids&rsquo; recipes yet. Add one and set its category to Kids&rsquo; Table.
+                {t('kids.noneYet')}
               </li>
             )}
           </ul>

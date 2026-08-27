@@ -40,7 +40,7 @@ export default function Settings({
     } catch {
       setColour(previous);
       document.documentElement.setAttribute('data-theme', previous);
-      setError('Could not save the colour. It is back to what it was.');
+      setError(t('settings.colourFailed'));
     } finally { setBusy(false); }
   }
 
@@ -54,7 +54,7 @@ export default function Settings({
       router.refresh();
     } catch {
       setLang(previous);
-      setError('Could not save the language. It is back to what it was.');
+      setError(t('settings.languageFailed'));
     } finally { setBusy(false); }
   }
 
@@ -68,7 +68,7 @@ export default function Settings({
       router.refresh();
     } catch (e) {
       setName(savedName);
-      setError(e instanceof Error ? e.message : 'Could not save that name.');
+      setError(e instanceof Error ? e.message : t('settings.nameFailed'));
     } finally { setBusy(false); }
   }
 

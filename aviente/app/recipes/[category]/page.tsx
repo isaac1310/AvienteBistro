@@ -98,7 +98,7 @@ export default async function CategoryPage({ params, searchParams }: Params) {
               <p className={styles.emptyBody}>
                 {t('book.emptyBody', { category: categoryName(cat, lang) })}
               </p>
-              <Link href="/add" className="btn">＋ Add a recipe</Link>
+              <Link href="/add" className="btn">{t('book.add')}</Link>
             </div>
           ) : (
             <SelectableList recipes={recipes} />

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { restoreBackup, undoImport, type ImportResult } from '@/lib/importMutations';
 import { normalizeDocument } from '@/lib/recipeParse.mjs';
 import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
+import { count } from '@/lib/i18n';
 import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import Motif from './Motif';
@@ -48,7 +49,7 @@ export default function RestoreBackup() {
         errors: out.errors,
       });
     } catch {
-      setError('That file is not a backup this app wrote — it does not parse.');
+      setError(t('restore.notBackup'));
     }
   }
 
@@ -64,7 +65,7 @@ export default function RestoreBackup() {
       ));
       setParsed(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The restore failed.');
+      setError(e instanceof Error ? e.message : t('restore.failed'));
     } finally {
       setBusy(false);
     }
@@ -74,18 +75,15 @@ export default function RestoreBackup() {
     return (
       <div className={styles.wrap}>
         <div className={`card ${styles.panel}`}>
-          <p className={styles.head}>Restored.</p>
+          <p className={styles.head}>{t('restore.done')}</p>
           <p className={styles.body}>
-            {result.replaced.length} replaced · {result.imported.length} added
-            {result.failed.length > 0 && ` · ${result.failed.length} failed`}
+            {t('restore.tally', { replaced: result.replaced.length, added: result.imported.length })}
+            {result.failed.length > 0 && ` · ${t('restore.tallyFailed', { n: result.failed.length })}`}
           </p>
           {result.failed.map((f) => (
             <p key={f.title} className={styles.fail}>✕ {f.title} — {f.why}</p>
           ))}
-          <p className={styles.hint}>
-            Every replaced recipe kept its previous version — ⟲ on the recipe brings
-            it back one at a time.
-          </p>
+          <p className={styles.hint}>{t('restore.keptVersions')}</p>
           {result.imported.length > 0 && !undone && (
             <BusyButton busy={busy} className="btn btn--ghost"
               busyLabel={t('import.undoing')}
@@ -104,12 +102,7 @@ export default function RestoreBackup() {
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.body}>
-        This replaces the cookbook with the contents of a backup file — every recipe
-        in the file overwrites its namesake in the book. It is the door for coming
-        back from a disaster, not for adding recipes; that lives under
-        &ldquo;Add a recipe&rdquo;.
-      </p>
+      <p className={styles.body}>{t('restore.intro')}</p>
 
       <button type="button" className="btn btn--ghost" onClick={() => file.current?.click()}>
         <><Motif name="folder" size={18} /> {t('restore.chooseFile')}</>{fileName ? ` · ${fileName}` : ''}
@@ -130,10 +123,12 @@ export default function RestoreBackup() {
       {parsed && parsed.errors.length === 0 && (
         <div className={`card ${styles.panel}`}>
           <p className={styles.head}>
-            {parsed.recipes.length} {parsed.recipes.length === 1 ? 'recipe' : 'recipes'}
+            {count(t, parsed.recipes.length, 'book.count.one', 'book.count.many')}
           </p>
           <p className={styles.body}>
-            {parsed.exportedBy ? `Exported by ${parsed.exportedBy}` : 'Exporter unknown'}
+            {parsed.exportedBy
+              ? t('restore.exportedBy', { name: parsed.exportedBy })
+              : t('restore.exporterUnknown')}
             {parsed.exportedAt && ` · ${parsed.exportedAt.slice(0, 10)}`}
           </p>
           {/* The button says the number. A restore is an overwrite wearing a

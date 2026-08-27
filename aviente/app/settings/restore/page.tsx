@@ -24,11 +24,7 @@ export default async function RestorePage() {
             <BackLink href="/settings" label={t('settings.eyebrow')} />
             <p className="eyebrow">{t('restore.eyebrow')}</p>
             <h1 className={styles.h1}>{t('restore.notYours')}</h1>
-            <p className={styles.body}>
-              Restoring a backup replaces the whole cookbook at once. Adding or
-              fixing a recipe doesn&rsquo;t need it — that all lives under
-              &ldquo;Add a recipe&rdquo;.
-            </p>
+            <p className={styles.body}>{t('restore.notYoursBody')}</p>
           </main>
         </div>
       </>

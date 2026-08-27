@@ -1,63 +1,52 @@
 # Adding a person to Aviente
 
-Written before it was needed, because the next time it is done it will be under time
+Written before it is needed, because the next time it is done it will be under time
 pressure — someone standing in the kitchen wanting to see a recipe.
 
-## It is two steps, not one
+## Since v11.2.0: it is one step, in the app
 
-**Adding a Supabase auth user gets somebody past the login screen and nothing more.**
+**Settings → People → Add a person.** Name, alias, email, role. Done.
 
-Every policy in this database is gated on `is_family()` (migration 0001), which is:
+Then send them the app's address. They type their email on the login screen, get the
+magic link, and are in — account created, linked to their row, greeted by name. No
+dashboard, no SQL, no invitation email to send.
 
-```sql
-select exists (select 1 from family_members where user_id = auth.uid())
-```
+Under the hood (migration `0019_people_selfservice.sql`), because knowing the
+mechanism is what makes the failure modes obvious:
 
-So access is conferred by a ROW IN `family_members`, not by having an account. A new
-person with an auth user and no row signs in successfully and then sees an app with no
-recipes, no menus and no greeting — indistinguishable, from their side, from the app
-being broken. `currentMember()` returns null for them exactly as it does for a
-stranger, and that is deliberate: an account is not membership.
+- Public signup is **ON**, but every new account passes a doorman first: the
+  `before_user_created` auth hook, a database function that refuses any email that
+  has no `family_members` row. The People page edits that list. A stranger typing
+  their email gets "This email is not on the family list."
+- A trigger links the account to the person row by email — in both directions, so
+  it does not matter whether the row or the account exists first.
+- Access is still conferred by the ROW, not the account (`is_family()`, migration
+  0001). An orphaned auth account with no row sees an empty app.
 
-### 1 · The auth user
+## One-time setup — the order matters
 
-Supabase dashboard → **Authentication → Users → Add user → Send invitation**, with
-their email. Public signup is OFF in the dashboard, on purpose: `signInWithOtp` cannot
-create an account, so the login screen can never be a back door.
+The hook must be attached before signup is enabled, or the door stands open between
+the two clicks:
 
-### 2 · The family member row
+1. Apply `0019_people_selfservice.sql` (SQL editor). Take a backup first.
+2. Dashboard → **Authentication → Hooks → Before User Created** → Postgres function
+   → `public.before_user_created` → enable.
+3. Only now: **Authentication → Sign In / Up → Allow new users to sign up → ON.**
 
-```sql
-insert into family_members (name, display_name, user_id, role, language, theme)
-values (
-  'Name',                  -- how they are recorded
-  'Alias',                 -- how the app greets them: "Mama", "Papa"
-  '<the auth user id>',     -- from the Users table; THIS is what grants access
-  'member',                -- or 'admin' — see below
-  'he',                    -- 'he' or 'en'
-  'garden'                 -- or 'burgundy'
-);
-```
-
-Then have them open the app and sign in. Nothing else is needed; no cache clearing, no
-deploy.
+To verify: try to sign in with an email that is not on the People list. The login
+screen must answer "not on the family list", not "check your email".
 
 ## What `role` decides
 
-`admin` sees the backup section in Settings — the JSON export, the photo zip, and the
-restore door. `member` does not, and the routes check the role server-side as well, so
-hiding the section is a door rather than a curtain.
-
-Two people can hold `admin`. Nothing in the app requires exactly one.
+`admin` sees the People page and the backup section in Settings; `member` does not.
+The pages check the role server-side as well, so hiding the cards is a courtesy, not
+the gate. Two people can hold `admin`; nothing requires exactly one.
 
 ## Credit-only people
 
-Savta, Saba, אורח (Guest) and בייביסיטר (Babysitter) are `family_members` rows with
-`user_id` **null**. They can be named as the cook of a dish or the source of a recipe,
-and they can never sign in — because `is_family()` matches on `user_id`, and a null
-matches nobody. That is the whole mechanism; there is no separate flag.
-
-Add one with the same insert, leaving `user_id` out.
+Savta, Saba, אורח and בייביסיטר are rows with no email and no account. They can be
+named as the cook of a dish and can never sign in. Add one on the People page by
+leaving the email empty. That is the whole mechanism; there is no separate flag.
 
 ## Before inviting anyone outside the two of you
 
@@ -67,11 +56,19 @@ retraction — only making the repo private stops what is already there being fe
 
 ## Removing someone
 
-Delete their `family_members` row. That revokes access immediately and everywhere,
-because every policy re-evaluates `is_family()` on every query. Their auth user can
-stay or go; without the row it grants nothing.
+**Settings → People → open the person → Remove access.** This clears their account
+link AND their email — both must go, or their next magic link would let them
+straight back in. Their name stays on every recipe they are credited on, which is
+why there is no delete button: `recipes.source_member_id` is `on delete set null`,
+so deleting a row silently erases attribution. A person can lose their login, never
+their existence.
 
-Do NOT delete the row if they are credited on recipes you want to keep credited:
-`recipes.source_member_id` is `on delete set null`, so the attribution quietly
-disappears. Set `user_id` to null instead — that turns them into a credit-only person
-and keeps every "Savta's recipe" line intact.
+Their auth account keeps existing in Supabase and grants nothing (no row, no
+membership). Tidy it in the dashboard if you care, or leave it.
+
+## The old way still works
+
+The dashboard invite (**Authentication → Users → Add user → Send invitation**) still
+functions — the hook allows any email on the People list, invites included, and the
+trigger links the account the same way. It is the fallback if the app is ever the
+thing that is broken.

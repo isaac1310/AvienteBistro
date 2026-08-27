@@ -19,7 +19,16 @@ export async function GET(request: NextRequest) {
      forms. */
   const target = safeNext(next);
 
-  if (!code) {
+  /* Two arrival shapes, checked in order:
+     - `?code=` — the PKCE flow every magic link this app requests uses.
+     - `?token_hash=&type=` — what a link minted OUTSIDE the app's own request can
+       carry: a dashboard invite, a dashboard magic link, a changed email template.
+       Before this branch existed those landed on `missing-code` and read as a
+       broken invite. Checked second, so the everyday path stays exactly what it was. */
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type');
+
+  if (!code && !tokenHash) {
     return NextResponse.redirect(`${origin}/login?error=missing-code`);
   }
 
@@ -37,7 +46,12 @@ export async function GET(request: NextRequest) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = code
+    ? await supabase.auth.exchangeCodeForSession(code)
+    : await supabase.auth.verifyOtp({
+      token_hash: tokenHash!,
+      type: (type ?? 'magiclink') as 'magiclink' | 'invite' | 'email',
+    });
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=link-expired`);
   }

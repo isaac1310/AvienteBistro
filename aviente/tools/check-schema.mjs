@@ -93,6 +93,7 @@ const PROBES = [
      and it is invisible here — same blind spot as 16, covered by db-check, which
      reads schema_migrations with the service key. It maps to 17's probe: reaching 17
      is all this gate can prove. */
+  [19, 'family_members?select=id,email&limit=1'],
   [18, 'kids_meals?select=id,free_text&limit=1'],
   [17, 'kids_meals?select=id,free_text&limit=1'],
   [16, 'menus?select=id,course_order&limit=1'],

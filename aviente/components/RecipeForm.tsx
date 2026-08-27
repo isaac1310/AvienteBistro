@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MovePhoto from './MovePhoto';
 import PhotoField from './PhotoField';
@@ -8,6 +8,13 @@ import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
 import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
+/* The parts rules live in lib/ so the selftest can exercise them directly — two
+   bugs have shipped from them, and neither was reachable from a read-only suite
+   while they sat inside this component. */
+import {
+  type Row, groupRuns, renameRun, undraftRun, blankRow as newRow, addToRun,
+  move, moveIngredient, moveIngredientToRun, runKeyOf,
+} from '@/lib/parts';
 import styles from './RecipeForm.module.css';
 
 /* §3.4 — everything inline, EXPLICIT SAVE. No autosave: on a kitchen connection
@@ -17,50 +24,6 @@ import styles from './RecipeForm.module.css';
 
 const UNITS: (Unit | '')[] = ['', 'g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'pcs', 'pinch', 'to taste'];
 
-/**
- * Contiguous runs of ingredients that share a part name.
- *
- * The database stores group_label per ingredient, and the recipe page already
- * renders a heading whenever the label CHANGES — so a part is, in both places, a
- * consecutive run. This turns that flat list into the runs the editor shows, and is
- * the reason the change needed no migration.
- *
- * `null` means the unnamed run: the ingredients that belong to no part.
- */
-function groupRuns(rows: Row[]): { group: string | null; rows: Row[] }[] {
-  const runs: { group: string | null; rows: Row[] }[] = [];
-  for (const r of rows) {
-    const g = r.group.trim() === '' ? null : r.group;
-    const last = runs[runs.length - 1];
-    if (last && last.group === g) last.rows.push(r);
-    else runs.push({ group: g, rows: [r] });
-  }
-  /* An empty recipe still needs one run to render into, or the form shows no
-     ingredient fields at all. */
-  return runs.length ? runs : [{ group: null, rows: [] }];
-}
-
-/** Rename every row in a run. Blank clears the heading. */
-function renameRun(rows: Row[], run: { rows: Row[] }, name: string): Row[] {
-  const keys = new Set(run.rows.map((r) => r.key));
-  return rows.map((r) => (keys.has(r.key) ? { ...r, group: name } : r));
-}
-
-/** Append a blank ingredient to the END of a run, inheriting its part name. */
-function addToRun(rows: Row[], run: { group: string | null; rows: Row[] }): Row[] {
-  const blank: Row = {
-    key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '',
-    group: run.group ?? '',
-  };
-  const lastKey = run.rows[run.rows.length - 1]?.key;
-  if (!lastKey) return [...rows, blank];
-  const at = rows.findIndex((r) => r.key === lastKey);
-  /* Inserted after the run's last row rather than at the end of the list, so parts
-     stay contiguous — which is the only thing that makes them parts. */
-  return [...rows.slice(0, at + 1), blank, ...rows.slice(at + 1)];
-}
-
-type Row = { key: string; name: string; amount: string; amountMax: string; unit: string; note: string; group: string };
 type StepRow = { key: string; heading: string; body: string };
 
 const uid = () => crypto.randomUUID();
@@ -103,9 +66,6 @@ export default function RecipeForm({
      when you want to ADD some, which is exactly when this form has to work. The bug
      predates the parts rewrite (git log -S on that expression). `.length` is the
      check, not nullishness. */
-  const blankRow = (): Row =>
-    ({ key: uid(), name: '', amount: '', amountMax: '', unit: '', note: '', group: '' });
-
   const [rows, setRows] = useState<Row[]>(
     recipe?.ingredients.length
       ? recipe.ingredients.map((i) => ({
@@ -114,7 +74,7 @@ export default function RecipeForm({
         amountMax: i.amount_max == null ? '' : String(i.amount_max),
         unit: i.unit ?? '', note: i.note ?? '', group: i.group_label ?? '',
       }))
-      : [blankRow()],
+      : [newRow(uid())],
   );
 
   /**
@@ -128,6 +88,17 @@ export default function RecipeForm({
    * nothing about the saved shape changes.
    */
   const [drafting, setDrafting] = useState<Set<string>>(new Set());
+
+  /**
+   * The run key whose heading input should take focus on its next appearance.
+   *
+   * A ref, not state: focusing is a one-shot consequence of "a part was just
+   * created", and the moment it is honoured it must stop being true. Held in
+   * `drafting` instead, it was true for as long as the heading was being typed, so
+   * the heading grabbed focus back on every keystroke anywhere in the form —
+   * type one character into an ingredient, land in the part name.
+   */
+  const pendingFocus = useRef<string | null>(null);
 
   /** The row currently lifted by a drag, or null. */
   const [dragKey, setDragKey] = useState<string | null>(null);
@@ -154,56 +125,6 @@ export default function RecipeForm({
   }, [dirty]);
 
   const touch = <T,>(setter: (v: T) => void) => (v: T) => { setDirty(true); setter(v); };
-
-  /* Reordering with buttons, not just drag: §3.4 requires a keyboard path, and
-     drag-only reordering is unusable for anyone not using a mouse. */
-  function move<T>(list: T[], from: number, to: number): T[] {
-    if (to < 0 || to >= list.length) return list;
-    const copy = [...list];
-    const [item] = copy.splice(from, 1);
-    copy.splice(to, 0, item);
-    return copy;
-  }
-
-  /**
-   * Move an ingredient, and let it JOIN the part it lands in.
-   *
-   * Plain `move` splices positions and never touches `group`, and sections are
-   * DERIVED from contiguous equal labels — so a row crossing a boundary kept its old
-   * label, which did two wrong things at once: it did not join the destination, and
-   * it split the destination's heading in two with a foreign row wedged between.
-   *
-   * The rule: a moved row adopts the label of whichever row it now sits beside.
-   * Preferring the row it displaced (`to`) makes dragging INTO a section mean what it
-   * looks like. Both the ↑↓ buttons and the drag handle come through here, so the two
-   * mechanisms cannot drift apart — one invariant, two ways to reach it.
-   */
-  function moveIngredient(list: Row[], from: number, to: number): Row[] {
-    if (to < 0 || to >= list.length || from === to) return list;
-    const reordered = move(list, from, to);
-    /* The neighbour that decides the part. Moving DOWN, the row now sits after the
-       one it passed, so that one's label is the section it entered; moving UP, the
-       row below it. Falling back to the other side covers the ends of the list. */
-    const behind = reordered[to - 1]?.group;
-    const ahead = reordered[to + 1]?.group;
-    const adopt = (to > from ? behind : ahead) ?? behind ?? ahead;
-    if (adopt === undefined) return reordered;
-    return reordered.map((r, i) => (i === to ? { ...r, group: adopt } : r));
-  }
-
-  /** Send a row to the END of a named run — what dropping onto a heading means. */
-  function moveIngredientToRun(list: Row[], key: string, group: string | null): Row[] {
-    const from = list.findIndex((r) => r.key === key);
-    if (from < 0) return list;
-    const target = list.map((r, i) => ({ r, i }))
-      .filter(({ r }) => (r.group.trim() === '' ? null : r.group) === group && r.key !== key);
-    if (!target.length) return list;
-    const lastOfRun = target[target.length - 1].i;
-    const to = from < lastOfRun ? lastOfRun : lastOfRun + 1;
-    const reordered = move(list, from, to);
-    const landed = reordered.findIndex((r) => r.key === key);
-    return reordered.map((r, i) => (i === landed ? { ...r, group: group ?? '' } : r));
-  }
 
   async function onSave() {
     setBusy(true); setError(null);
@@ -398,7 +319,7 @@ export default function RecipeForm({
 
         {groupRuns(rows).map((run) => (
           <div
-            key={run.rows[0]?.key ?? 'unnamed'}
+            key={runKeyOf(run)}
             className={`${styles.part} ${dropOn === `run:${run.group}` ? styles.partDrop : ''}`}
             /* Dropping onto the HEADING sends the row to the end of that part — the
                one gesture ↑↓ cannot express, because stepping a row into a part means
@@ -416,7 +337,7 @@ export default function RecipeForm({
               setDragKey(null); setDropOn(null);
             }}
           >
-            {run.group === null && !drafting.has(run.rows[0]?.key ?? 'unnamed') ? (
+            {run.group === null && !drafting.has(runKeyOf(run)) ? (
               /* The unnamed run at the top: most recipes are only this. Offer the
                  name rather than demanding it. */
               /* This used to write the literal 'לקציצות' into every row of the run —
@@ -427,7 +348,11 @@ export default function RecipeForm({
                  the runs whose heading is being typed. Nothing is written to a row
                  until a character is. */
               <button type="button" className={styles.nameSection}
-                onClick={() => setDrafting(new Set(drafting).add(run.rows[0]?.key ?? 'unnamed'))}>
+                onClick={() => {
+                  const runKey = runKeyOf(run);
+                  pendingFocus.current = runKey;
+                  setDrafting(new Set(drafting).add(runKey));
+                }}>
                 {t('form.nameThisPart')}
               </button>
             ) : (
@@ -438,12 +363,20 @@ export default function RecipeForm({
                     className={styles.input} value={run.group ?? ''} lang="he"
                     placeholder={t('form.partPlaceholder')}
                     aria-label={t('form.partName')}
-                    /* Focused on arrival, so naming a part is one action. The
-                       callback ref runs on mount, which is exactly when a freshly
-                       drafted heading appears. */
+                    /* Focused on arrival, so naming a part is one action — ONCE.
+                       This used to focus whenever the run was in `drafting`, which
+                       stole focus on every keystroke anywhere in the form: an inline
+                       ref is a new function each render, so React re-attaches it on
+                       every render, every render re-ran the condition, and `drafting`
+                       stays set for as long as the heading is being typed. Typing one
+                       character into an ingredient jumped the caret up to the part
+                       heading. The request to focus is a ONE-SHOT EVENT — a part was
+                       just created — not a property of the drafting state, so it is
+                       held in a ref and consumed here. */
                     ref={(el) => {
-                      if (el && drafting.has(run.rows[0]?.key ?? 'unnamed')
-                        && document.activeElement !== el) {
+                      const runKey = runKeyOf(run);
+                      if (el && pendingFocus.current === runKey) {
+                        pendingFocus.current = null;
                         el.focus();
                       }
                     }}
@@ -451,13 +384,21 @@ export default function RecipeForm({
                        change. */
                     onChange={(e) => touch(setRows)(renameRun(rows, run, e.target.value))}
                     /* Left empty, it was never a part. Drop back to the offer rather
-                       than leaving a nameless heading on screen. */
+                       than leaving a nameless heading on screen.
+                       Either way the part has stopped being CREATED, so the draft
+                       break is released here and not one keystroke earlier: released
+                       on change, deleting back to an empty name would collapse the
+                       section out from under the caret; kept forever, two parts typed
+                       with the same name would stay two boxes in the editor while the
+                       recipe page rendered them as one heading. */
                     onBlur={(e) => {
+                      const runKey = runKeyOf(run);
                       if (e.target.value.trim() === '') {
                         const next = new Set(drafting);
-                        next.delete(run.rows[0]?.key ?? 'unnamed');
+                        next.delete(runKey);
                         setDrafting(next);
                       }
+                      if (run.rows.some((r) => r.draft)) touch(setRows)(undraftRun(rows, run));
                     }}
                   />
                 </label>
@@ -465,9 +406,11 @@ export default function RecipeForm({
                   aria-label={t('form.removeHeadingLabel')}
                   onClick={() => {
                     const next = new Set(drafting);
-                    next.delete(run.rows[0]?.key ?? 'unnamed');
+                    next.delete(runKeyOf(run));
                     setDrafting(next);
-                    touch(setRows)(renameRun(rows, run, ''));
+                    /* Clears the label AND the draft break, so the rows merge back
+                       into the run above instead of leaving an unnamed box behind. */
+                    touch(setRows)(undraftRun(renameRun(rows, run, ''), run));
                   }}>
                   {t('form.removeHeading')}
                 </button>
@@ -552,7 +495,7 @@ export default function RecipeForm({
             {/* Adds INTO this part, inheriting its name, so a section can be filled
                 without touching a heading field at all. */}
             <button type="button" className={styles.add}
-              onClick={() => touch(setRows)(addToRun(rows, run))}>
+              onClick={() => touch(setRows)(addToRun(rows, run, uid()))}>
               {run.group ? t('form.addIngredientTo', { part: run.group }) : t('form.addIngredient')}
             </button>
           </div>
@@ -570,7 +513,10 @@ export default function RecipeForm({
             const key = uid();
             touch(setRows)([...rows, {
               key, name: '', amount: '', amountMax: '', unit: '', note: '', group: '',
+              /* Starts its own section immediately, even though it has no label yet. */
+              draft: true,
             }]);
+            pendingFocus.current = key;
             setDrafting(new Set(drafting).add(key));
           }}>
           {t('form.addPart')}

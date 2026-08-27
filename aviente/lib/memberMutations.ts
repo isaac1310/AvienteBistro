@@ -107,6 +107,44 @@ export async function revokeAccess(id: string): Promise<void> {
   revalidatePath('/settings/people');
 }
 
+/**
+ * Delete a person — only one nothing points at.
+ *
+ * Every FK to family_members is `on delete set null` (recipes.source_member_id,
+ * recipes.updated_by, recipe_revisions.edited_by, menu_revisions.edited_by,
+ * kids_meals.chef_member_id), so Postgres would let this succeed on anyone and
+ * silently blank every "Savta's recipe" line and audit trail on the way. The check
+ * lives here instead: a referenced person is refused with the reason, and the
+ * answer for them is Remove access, which keeps the name. Delete exists for one
+ * case — a person added by mistake, before anything was ever attributed to them.
+ */
+export async function deleteMember(id: string): Promise<void> {
+  const admin = await requireAdmin();
+  if (id === admin.id) throw new Error('You cannot delete yourself.');
+  const db = await supabaseServer();
+
+  /* Counted one by one rather than joined: each name is part of the message. */
+  const refs: [string, string, string][] = [
+    ['recipes', 'source_member_id', 'recipes credited to them'],
+    ['recipes', 'updated_by', 'recipes they last edited'],
+    ['recipe_revisions', 'edited_by', 'recipe revisions they made'],
+    ['menu_revisions', 'edited_by', 'menu revisions they made'],
+    ['kids_meals', 'chef_member_id', 'kids’ meals they cooked'],
+  ];
+  for (const [table, column, what] of refs) {
+    const { count, error } = await db
+      .from(table).select('*', { count: 'exact', head: true }).eq(column, id);
+    if (error) throw new Error(friendly(error.message));
+    if (count) throw new Error(
+      `Cannot delete — there are ${count} ${what}, and deleting would silently erase that. Use “Remove access” instead; it keeps the name.`,
+    );
+  }
+
+  const { error } = await db.from('family_members').delete().eq('id', id);
+  if (error) throw new Error(friendly(error.message));
+  revalidatePath('/settings/people');
+}
+
 /** Postgres speaks in constraint names; the admin gets told what actually happened. */
 function friendly(message: string): string {
   if (message.includes('family_members_email_key'))

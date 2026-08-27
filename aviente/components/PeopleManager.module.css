@@ -95,5 +95,18 @@
 }
 
 .hint { margin: 0; font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }
+
+/* The delete button dresses like a ghost button but speaks in the danger colour —
+   quiet until read, unmistakable once read. */
+.danger {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-3);
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+  font: inherit;
+  color: var(--danger, #8f2f2f);
+  cursor: pointer;
+}
 .error { margin: 0; font-size: var(--t-small); color: var(--danger, #8f2f2f); }
 .btnRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; }

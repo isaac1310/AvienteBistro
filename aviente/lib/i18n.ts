@@ -386,6 +386,9 @@ const DICT = {
                           en: 'With an email — send them the app’s address, they type the email and let themselves in. Without one — a name for credit only, like Savta.' },
   'people.add':        { he: 'הוספה',       en: 'Add' },
   'people.cancel':     { he: 'ביטול',       en: 'Cancel' },
+  'people.delete':     { he: 'מחיקה',       en: 'Delete' },
+  'people.deleteConfirm': { he: 'למחוק את {name} לגמרי? אם יש מתכונים על שמם — המחיקה תסורב. לביטול גישה בלבד יש כפתור נפרד.',
+                             en: 'Delete {name} entirely? If any recipes carry their name, the delete will be refused. To only take away their login, use Remove access.' },
 
   // ── the schema banner ───────────────────────────────────────────────────
   // Written for the person who CANNOT fix it: Moran has no Supabase access, so the

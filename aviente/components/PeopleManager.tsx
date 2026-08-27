@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
-import { addMember, updateMember, revokeAccess, type MemberRow } from '@/lib/memberMutations';
+import { addMember, updateMember, revokeAccess, deleteMember, type MemberRow } from '@/lib/memberMutations';
 import styles from './PeopleManager.module.css';
 
 /* The list, then the form. Each person is a row you can open to edit — no separate
@@ -116,6 +116,19 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
                     <BusyButton className="btn btn--ghost" busy={busy} type="button"
                       onClick={() => run(() => revokeAccess(m.id))}>
                       {t('people.revoke')}
+                    </BusyButton>
+                  )}
+                  {/* Delete asks first, then lets the server refuse anyone with
+                      recipes, revisions or kids' meals to their name — that refusal
+                      message is the real guard; this confirm only slows the tap. */}
+                  {m.id !== selfId && (
+                    <BusyButton className={styles.danger} busy={busy} type="button"
+                      onClick={() => {
+                        if (window.confirm(t('people.deleteConfirm', { name: m.name }))) {
+                          run(() => deleteMember(m.id));
+                        }
+                      }}>
+                      {t('people.delete')}
                     </BusyButton>
                   )}
                 </div>

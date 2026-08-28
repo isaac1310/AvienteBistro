@@ -15,7 +15,9 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Five, since the kids' planner joined the bar — it was reachable only from the
+     home screen, so planning the week from a recipe meant going home first. */
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .link {

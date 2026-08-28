@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import BusyButton from './BusyButton';
 import { useT } from './LangProvider';
+import Confirm from './Confirm';
 import {
   addMember, updateMember, revokeAccess, deleteMember, listMembers, type MemberRow,
 } from '@/lib/memberMutations';
@@ -112,6 +113,13 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
               <span className={styles.status}>
                 {m.role === 'admin' && <span className={styles.badge}>{t('people.admin')}</span>}
                 {status(m)}
+                {/* Nothing on the row looked clickable — no chevron, no hover cue —
+                    though each one opens an editor. Rotates when open, so the row
+                    also says which state it is in. */}
+                <span aria-hidden="true"
+                  className={`${styles.chev} ${openId === m.id ? styles.chevOpen : ''}`}>
+                  ⌄
+                </span>
               </span>
             </button>
 
@@ -139,28 +147,44 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
                   {/* Two taps, in the page. The server still refuses anyone with
                       recipes, revisions or kids' meals to their name — that refusal
                       is the real guard; this step only slows the tap down. */}
-                  {m.id !== selfId && confirmId !== m.id && (
+                  {/* Stays rendered AND enabled while its panel is open. Confirm gives
+                      focus back to whatever opened it, and neither an unmounted trigger
+                      nor a disabled one can take focus — both left a keyboard user in
+                      the navigation. Re-opening the panel that is already open costs
+                      nothing: it sets the same state. */}
+                  {m.id !== selfId && (
                     <button type="button" className={styles.danger}
+                      disabled={busy}
                       onClick={() => { setError(null); setConfirmId(m.id); }}>
                       {t('people.delete')}
                     </button>
                   )}
                 </div>
 
+                {/* The shared panel, not a second copy of it. This screen grew its
+                    own inline confirm first and Confirm.tsx arrived after, so the
+                    focus and Escape handling added there would have had to be written
+                    twice — which is the drift a shared component exists to stop. */}
                 {confirmId === m.id && (
-                  <div className={styles.confirm} role="alert">
-                    <p className={styles.hint}>{t('people.deleteConfirm', { name: m.name })}</p>
-                    <div className={styles.btnRow}>
-                      <BusyButton className={styles.danger} busy={busy} type="button"
-                        onClick={() => run(() => deleteMember(m.id))}>
-                        {t('people.deleteYes')}
-                      </BusyButton>
-                      <button type="button" className="btn btn--ghost"
-                        onClick={() => setConfirmId(null)}>
-                        {t('people.cancel')}
+                  <>
+                    <Confirm
+                      message={t('people.deleteConfirm', { name: m.name })}
+                      confirmLabel={t('common.confirmDelete')}
+                      busy={busy}
+                      onConfirm={() => run(() => deleteMember(m.id))}
+                      onCancel={() => setConfirmId(null)}
+                    />
+                    {/* The gentler answer, offered where the question is asked. The
+                        copy used to recommend "Remove access" while that control was
+                        out of sight above the panel, so the advice could not be
+                        followed from where it was given. */}
+                    {(m.user_id || m.email) && (
+                      <button type="button" className={styles.orRevoke} disabled={busy}
+                        onClick={() => run(() => revokeAccess(m.id))}>
+                        {t('people.orRevoke')}
                       </button>
-                    </div>
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

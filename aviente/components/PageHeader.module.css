@@ -19,12 +19,17 @@
   align-content: center;
 }
 
-/* The homepage: this band IS the cover, so it gets the depth. */
-.cover { min-height: 46vh; padding: var(--sp-8) 0; }
+/* The homepage: this band IS the cover, so it gets the depth.
+   Capped in px as well as vh, because vh costs most on the smallest screen: 46vh of a
+   915px phone was pushing the greeting, the search field and all four cards below the
+   fold, while looking right on a desktop. min() keeps the desktop proportion and stops
+   the band growing past a header's worth of pixels. */
+.cover { min-height: min(46vh, 300px); padding: var(--sp-8) 0; }
 
 /* Every other page: a header, not a cover. Enough field to read as the same
-   treatment, shallow enough that the content below starts above the fold. */
-.page { min-height: 22vh; padding: var(--sp-6) 0; }
+   treatment, shallow enough that the content below starts above the fold — hence the
+   px cap here too, for the same reason as .cover. */
+.page { min-height: min(22vh, 160px); padding: var(--sp-6) 0; }
 
 .header::before {
   content: '';
@@ -89,8 +94,10 @@
   /* Shorter on a phone, but still a field rather than a strip: 46vh of a 915px
      screen is most of the first view, and the four cards have to be reachable
      without scrolling. */
-  .cover { min-height: 34vh; padding: var(--sp-6) 0; }
-  .page { min-height: 16vh; padding: var(--sp-5) 0; }
+  /* Capped as well, or the phone override would undo the min() above: 34vh of a tall
+     phone is still ~310px of masthead. */
+  .cover { min-height: min(34vh, 240px); padding: var(--sp-6) 0; }
+  .page { min-height: min(16vh, 120px); padding: var(--sp-5) 0; }
   /* Smaller tile on a phone. At 168px the implements were so large relative to a
      412px viewport that each one arrived cropped, and the field read as fragments
      rather than a pattern. */

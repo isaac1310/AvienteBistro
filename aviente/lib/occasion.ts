@@ -162,3 +162,24 @@ export function cardDate(date: Date): string {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   return `${DAYS_FR[date.getDay()]} · ${dd}.${mm}.${date.getFullYear()}`;
 }
+
+/** Hebrew weekday names, Sunday first to match getDay(). */
+const DAYS_HE = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+/**
+ * The same date, for a LIST rather than a card.
+ *
+ * `cardDate` is French because the printed card is, and that is a brand decision
+ * about an object people have already been sent. On the menus index it was a
+ * decoding step between the reader and "which menu is this?" — VENDREDI, DIMANCHE —
+ * so the index uses the reader's own weekday names and the card keeps its French.
+ * Same split as the course names in the builder.
+ */
+export function listDate(date: Date, lang: 'he' | 'en'): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const day = lang === 'he'
+    ? DAYS_HE[date.getDay()]
+    : date.toLocaleDateString('en-GB', { weekday: 'long' });
+  return `${day} · ${dd}.${mm}.${date.getFullYear()}`;
+}

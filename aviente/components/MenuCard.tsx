@@ -91,10 +91,10 @@ export default function MenuCard({
         <div className={styles.titleRow}>
           {/* Two CSS-drawn candles flank the title on Shabbat and festivals. */}
           {ornament === 'candles' && <Candle />}
-          <h1 className={styles.title}>{title ?? 'Menu'}</h1>
+          <h1 className={styles.title} dir="auto">{title ?? 'Menu'}</h1>
           {ornament === 'candles' && <Candle />}
         </div>
-        {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+        {subtitle && <p className={styles.subtitle} dir="auto">{subtitle}</p>}
 
         {courses.map((course) => (
           <section key={course.key} className={styles.course}>
@@ -124,14 +124,21 @@ export default function MenuCard({
 
               return (
                 <div key={di} className={styles.dish}>
-                  <p className={styles.dishName} lang={language === 'he' ? 'he' : undefined}>
+                  {/* dir="auto" on all three: these are the family's own words, on the
+                      object that gets printed and shared. A dish called "180° chicken"
+                      or a description ending in a number resolved against the card's
+                      base direction and came out with its punctuation misplaced. */}
+                  <p className={styles.dishName} dir="auto"
+                    lang={language === 'he' ? 'he' : undefined}>
                     {name}
                   </p>
                   {description && (
-                    <p className={styles.dishDesc} lang={descLang}>{description}</p>
+                    <p className={styles.dishDesc} lang={descLang} dir="auto">{description}</p>
                   )}
                   {dish.credit_name && (
-                    <p className={styles.credit}>— de la cuisine de {dish.credit_name} —</p>
+                    <p className={styles.credit} dir="auto">
+                      — de la cuisine de {dish.credit_name} —
+                    </p>
                   )}
                 </div>
               );
@@ -146,7 +153,7 @@ export default function MenuCard({
                 className={styles.courseMotif} />
               Notes du Chef
             </h2>
-            <p className={styles.notes} lang="he">{chefNotes}</p>
+            <p className={styles.notes} lang="he" dir="auto">{chefNotes}</p>
           </section>
         )}
       </div>

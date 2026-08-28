@@ -34,6 +34,7 @@ const DICT = {
   'nav.recipes':     { he: 'מתכונים',    en: 'Recipes' },
   'nav.menus':       { he: 'תפריטים',    en: 'Menus' },
   'nav.add':         { he: 'הוספה',      en: 'Add' },
+  'nav.kids':        { he: 'ילדים',      en: 'Kids' },
   'nav.main':        { he: 'ניווט ראשי', en: 'Main' },
 
   // ── the homepage ────────────────────────────────────────────────────────
@@ -100,6 +101,13 @@ const DICT = {
   'recipe.scaled':        { he: 'הכמויות הותאמו ל־{n}. ההוראות עצמן עדיין מצטטות את המקור.',
                             en: 'Amounts scaled for {n}. The written steps still quote the original.' },
   'recipe.history':       { he: '⟲ גרסאות קודמות', en: '⟲ Earlier versions' },
+  /* Cook mode. Ticking an ingredient off is what keeps your place in a list of
+     fourteen while your hands are busy. */
+  'recipe.used':          { he: 'סימון ש{name} נוסף', en: 'Mark {name} as used' },
+  'recipe.usedCol':       { he: 'נוסף',      en: 'Used' },
+  'recipe.clearUsed':     { he: 'ניקוי הסימונים ({n})', en: 'Clear {n} ticked' },
+  'recipe.keepAwake':     { he: 'להשאיר את המסך דלוק', en: 'Keep the screen awake' },
+  'recipe.keepAwakeOn':   { he: 'המסך יישאר דלוק',    en: 'Screen staying awake' },
 
   // ── earlier versions ────────────────────────────────────────────────────
   // The whole sheet used to be hardcoded English, including the confirm — an
@@ -127,15 +135,23 @@ const DICT = {
   'time.hoursAgo': { he: 'לפני {n} שעות', en: '{n} hours ago' },
   'time.dayAgo':   { he: 'לפני יום',     en: '1 day ago' },
   'time.daysAgo':  { he: 'לפני {n} ימים', en: '{n} days ago' },
+  'time.monthAgo': { he: 'לפני חודש',    en: '1 month ago' },
+  'time.monthsAgo': { he: 'לפני {n} חודשים', en: '{n} months ago' },
 
   // ── the recipe form ─────────────────────────────────────────────────────
   'form.editing':      { he: 'עריכה',        en: 'Editing' },
+  /* A new recipe is not being EDITED. Coming from "write it myself", the sticky bar
+     announced you were editing something that did not exist yet. */
+  'form.newRecipe':    { he: 'מתכון חדש',    en: 'New recipe' },
   'form.unsaved':      { he: 'לא נשמר',      en: 'unsaved' },
   'form.save':         { he: 'שמירה',        en: 'Save' },
   'form.saving':       { he: 'שומר…',        en: 'Saving…' },
   'form.cancel':       { he: 'ביטול',        en: 'Cancel' },
   'form.name':         { he: 'שם',           en: 'Name' },
   'form.nameLatin':    { he: 'שם באותיות לטיניות', en: 'Name in Latin letters' },
+  /* An EXAMPLE, marked as one. It used to be the bare word "Khaluz", which reads as
+     a value somebody already typed rather than as a hint. */
+  'form.nameLatinHint': { he: 'לדוגמה: Khaluz', en: 'e.g. Khaluz' },
   'form.category':     { he: 'קטגוריה',      en: 'Category' },
   'form.serves':       { he: 'מספר מנות',    en: 'Serves' },
   'form.orMakes':      { he: '…או מניב',     en: '…or makes' },
@@ -272,6 +288,13 @@ const DICT = {
   'menu.keepThis':     { he: '☆ לשמור את זה',    en: '☆ Keep this one' },
   'menu.duplicate':    { he: 'שכפול',            en: 'Duplicate' },
   'menu.actionFailed': { he: 'זה לא עבד.',        en: 'That did not work.' },
+  /* One rule for destructive actions. These three were a bare ✕ or a single tap with
+     no guard at all, while deleting a person got a written panel and a recipe card
+     got an undo toast — three treatments for the same kind of act. */
+  'menu.removeDishConfirm': { he: 'להסיר את «{dish}» מהתפריט?', en: 'Remove “{dish}” from the menu?' },
+  'menu.unshareConfirm':    { he: 'להפסיק לשתף? כל קישור שנשלח עד עכשיו יפסיק לעבוד — גם למי שכבר קיבל אותו.',
+                               en: 'Stop sharing? Every link handed out so far stops working — including for people who already have it.' },
+  'menu.unshareYes':        { he: 'כן, להפסיק',    en: 'Yes, stop sharing' },
   'menu.working':      { he: 'רגע…',             en: 'Working…' },
   'menu.copied':       { he: 'הועתק',            en: 'Copied' },
   'menu.copy':         { he: 'העתקה',            en: 'Copy' },
@@ -379,6 +402,13 @@ const DICT = {
   /* The fallback when a mutation throws something that is not an Error. Named rather
      than a bare "something went wrong": the planner had NO error surface at all, so
      any wording here is an improvement, but a vague one wastes the fix. */
+  /* SHORT visible labels beside the glyphs. The aria-labels were already correct, so
+     assistive tech was fine — but a sighted reader had to guess the difference between
+     "move to another day" and "swap this meal" from two similar arrows. */
+  'kids.moveShort':  { he: 'העברה',  en: 'Move' },
+  'kids.swapShort':  { he: 'החלפה',  en: 'Swap' },
+  'kids.removeShort': { he: 'הסרה',  en: 'Remove' },
+  'kids.removeDishConfirm': { he: 'להסיר את «{dish}»?', en: 'Remove “{dish}”?' },
   'kids.actionFailed': { he: 'הפעולה לא הושלמה. אפשר לנסות שוב.',
                           en: 'That did not go through. Try again.' },
   'kids.print':        { he: 'הדפסה למקרר',  en: 'Print for the fridge' },
@@ -405,6 +435,13 @@ const DICT = {
   'settings.backupBody':   { he: 'השכבה החינמית של Supabase לא מגבה אוטומטית, והמתכונים האלה לא קיימים בשום מקום אחר. הקובץ שלמטה מכיל כל מתכון — מרכיבים, חלקים, שלבים, הערות וייחוס — והייבוא קורא אותו בחזרה. תפריטים ושבועות הילדים אינם נכללים; אותם יהיה צריך לבנות מחדש.',
                               en: 'The free Supabase tier takes no automated backups, and these recipes exist nowhere else. The file below holds every recipe — ingredients, groups, steps, notes and attribution — and the importer reads it back. Menus and the kids’ weeks are not included; those would have to be rebuilt.' },
   'settings.download':     { he: '⤓ הורדת גיבוי', en: '⤓ Download a backup' },
+  /* The panel warned that nothing is backed up automatically and then showed no
+     state at all, so the question it raised was the one it could not answer. */
+  'settings.lastBackup':   { he: 'הגיבוי האחרון: {date}', en: 'Last backup: {date}' },
+  'settings.lastBackupNever': { he: 'עוד לא נלקח גיבוי מהאפליקציה.',
+                                en: 'No backup has been taken from the app yet.' },
+  'settings.lastBackupStale': { he: 'הגיבוי האחרון: {date} — עברו {days} ימים.',
+                                en: 'Last backup: {date} — {days} days ago.' },
   'settings.restore':      { he: '⤒ שחזור מגיבוי', en: '⤒ Restore from a backup' },
   /* Each control writes at once and rolls the screen back when the write fails, so
      the failure has to say that it rolled back — otherwise the colour flicking
@@ -433,9 +470,11 @@ const DICT = {
   'people.role':       { he: 'תפקיד',       en: 'Role' },
   'people.member':     { he: 'בן משפחה',    en: 'Member' },
   'people.admin':      { he: 'מנהל',        en: 'Admin' },
-  'people.signedUp':   { he: 'נכנס/ת',      en: 'Signed in' },
-  'people.invited':    { he: 'טרם נכנס/ה',  en: 'Not signed in yet' },
-  'people.creditOnly': { he: 'קרדיט בלבד',  en: 'Credit only' },
+  /* These described the DATA MODEL, not what a person can do. "Credit only" reads
+     as an accounting term; it means "appears as a recipe's author but cannot log in". */
+  'people.signedUp':   { he: 'יכול/ה להיכנס', en: 'Can sign in' },
+  'people.invited':    { he: 'הוזמן/ה — טרם נכנס/ה', en: 'Invited — not signed in yet' },
+  'people.creditOnly': { he: 'שם בלבד, בלי כניסה', en: 'Name only, no login' },
   'people.save':       { he: 'שמירה',       en: 'Save' },
   'people.revoke':     { he: 'ביטול גישה',  en: 'Remove access' },
   'people.addOffer':   { he: '＋ הוספת אדם', en: '＋ Add a person' },
@@ -445,9 +484,12 @@ const DICT = {
   'people.add':        { he: 'הוספה',       en: 'Add' },
   'people.cancel':     { he: 'ביטול',       en: 'Cancel' },
   'people.delete':     { he: 'מחיקה',       en: 'Delete' },
-  'people.deleteConfirm': { he: 'למחוק את {name} לגמרי? אם יש מתכונים על שמם — המחיקה תסורב. לביטול גישה בלבד יש כפתור נפרד.',
-                             en: 'Delete {name} entirely? If any recipes carry their name, the delete will be refused. To only take away their login, use Remove access.' },
-  'people.deleteYes':  { he: 'כן, למחוק',  en: 'Yes, delete' },
+  'people.deleteConfirm': { he: 'למחוק את {name} לגמרי? אם יש מתכונים על שמם — המחיקה תסורב.',
+                             en: 'Delete {name} entirely? If any recipes carry their name, the delete will be refused.' },
+  /* Offered INSIDE the panel. The old copy pointed at "Remove access" as the gentler
+     alternative, and that control was not visible from where the advice was given. */
+  'people.orRevoke':   { he: 'או רק לבטל את הגישה ולהשאיר את השם',
+                          en: 'Or just take away their login and keep the name' },
 
   // ── the schema banner ───────────────────────────────────────────────────
   // Written for the person who CANNOT fix it: Moran has no Supabase access, so the

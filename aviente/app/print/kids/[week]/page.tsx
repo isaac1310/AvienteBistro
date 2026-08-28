@@ -86,7 +86,7 @@ export default async function FridgePrint({
                           <li key={dish.id}>
                             {/* Free text prints like any other dish — it is not a
                                 lesser kind of dish, and dishLabel answers for both. */}
-                            <span className={styles.dish} lang="he">{dishLabel(dish)}</span>
+                            <span className={styles.dish} lang="he" dir="auto">{dishLabel(dish)}</span>
                             {dish.chef && (
                               <span className={styles.chef}>
                                 <Motif name="chef_hat" size={14} strokeWidth={2.6} />{' '}

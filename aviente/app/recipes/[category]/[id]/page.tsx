@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import Nav from '@/components/Nav';
 import CategoryPlate from '@/components/CategoryPlate';
 import ExportPdfButton from '@/components/ExportPdfButton';
 import Arrow from '@/components/Arrow';
 import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
+import KeepAwake from '@/components/KeepAwake';
 import RecipeHistory from '@/components/RecipeHistory';
 import type { CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
@@ -38,17 +40,24 @@ function shortDate(iso: string): string {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${p(d.getFullYear() % 100)}`;
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.round(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins} min ago`;
+/**
+ * "8 days ago", in the reader's language.
+ *
+ * Returned hardcoded English on a Hebrew-first page — at the foot of every recipe —
+ * while `time.daysAgo` and its siblings already sat in the dictionary, added for the
+ * revisions sheet and then not used here. `t` is passed in because this is a server
+ * component's helper and reads the clock, so it cannot be a hook.
+ */
+function timeAgo(iso: string, t: Awaited<ReturnType<typeof serverT>>): string {
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return t('time.justNow');
+  if (mins < 60) return t('time.minsAgo', { n: mins });
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  if (hours < 24) return hours === 1 ? t('time.hourAgo') : t('time.hoursAgo', { n: hours });
   const days = Math.round(hours / 24);
-  if (days < 31) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  if (days < 31) return days === 1 ? t('time.dayAgo') : t('time.daysAgo', { n: days });
   const months = Math.round(days / 30);
-  return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+  return months === 1 ? t('time.monthAgo') : t('time.monthsAgo', { n: months });
 }
 
 /* Recipe view (§3.3). */
@@ -77,6 +86,13 @@ export default async function RecipePage({ params }: Params) {
   const hebrew = /[\u0590-\u05FF]/.test(recipe.title);
 
   return (
+    <>
+      {/* The navigation was absent from this page entirely: a full-bleed hero, the
+          sidebar gone, and the only way out a small arrow floating over a photograph
+          whose contrast depends on whatever is behind it. The hero still runs
+          full-bleed — Nav is a fixed bottom bar on a phone and a sidebar on desktop,
+          so it costs the hero nothing. */}
+      <Nav current="/recipes" />
     <article className={styles.page}>
       {recipe.photo_url ? (
         /* Falls back to the plate if the object is missing — see RecipePhoto. One
@@ -116,7 +132,7 @@ export default async function RecipePage({ params }: Params) {
       <div className={`shell ${styles.body}`} dir={hebrew ? 'rtl' : 'ltr'}
            lang={hebrew ? 'he' : 'en'}>
         <p className="eyebrow">{categoryName(cat, lang)}</p>
-        <h1 className={styles.title} lang="he">{recipe.title}</h1>
+        <h1 className={styles.title} lang="he" dir="auto">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {/* Whose recipe it is, and how long it has been ours — one block, because
             they answer the same question. Per the design: "Savta Rina's recipe" then
@@ -146,6 +162,9 @@ export default async function RecipePage({ params }: Params) {
           {/* Two actions, because these were one and it was mislabelled: the button
               said "Export PDF" and opened the print PAGE, downloading nothing. */}
           <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
+          {/* Cook mode's other half: the ticks are in the ingredient list, this
+              stops the screen sleeping while you use them. */}
+          <KeepAwake />
           <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
             className="btn btn--ghost" />
         </div>
@@ -155,18 +174,33 @@ export default async function RecipePage({ params }: Params) {
         )}
 
         <Ingredients
+          className={styles.ingredientsCol}
+          recipeId={recipe.id}
           ingredients={recipe.ingredients}
           servings={recipe.servings}
           yieldText={recipe.yield_text}
         />
 
-        <section>
+        {/* Named, not positional. The two-column layout above 900px used to pair
+            `.body > section:nth-of-type(1|2)`, so adding any section above the
+            ingredients would have silently swapped the columns. */}
+        <section className={styles.methodCol}>
           <h2 className={styles.h2}>{t('recipe.method')}</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id} className={styles.step}>
-                {s.heading && <strong className={styles.stepHead} lang="he">{s.heading}</strong>}
-                <span lang="he">{s.body}</span>
+                {/* dir="auto" is the fix for a real, printed bug. `lang="he"` picks the FONT and
+                      says nothing about bidi, so a paragraph that begins or ends with a
+                      digit or a Latin word resolved against the page's base direction:
+                      real examples from אסאדו ביין were "…ושופכים את הרוטב מעל ." with
+                      the full stop stranded at the left, and "עם האסאדו( … מושרה)" with
+                      the parentheses reversed. The same text printed the same way, so
+                      the sheet on the counter was wrong too. Only the text itself knows
+                      which way it runs — which is what "auto" asks. */}
+                {s.heading && (
+                  <strong className={styles.stepHead} lang="he" dir="auto">{s.heading}</strong>
+                )}
+                <span lang="he" dir="auto">{s.body}</span>
               </li>
             ))}
           </ol>
@@ -178,7 +212,7 @@ export default async function RecipePage({ params }: Params) {
             {/* Stored as newline-joined text; each line is its own suggestion. */}
             <ul className={styles.serveList}>
               {recipe.serving_suggestions.split('\n').filter(Boolean).map((line: string, i: number) => (
-                <li key={i} lang="he">{line}</li>
+                <li key={i} lang="he" dir="auto">{line}</li>
               ))}
             </ul>
           </section>
@@ -190,7 +224,7 @@ export default async function RecipePage({ params }: Params) {
         {recipe.story && (
           <section className={styles.notes}>
             <h2 className={styles.h2}>{t('recipe.notes')}</h2>
-            <blockquote className={styles.story} lang="he">{recipe.story}</blockquote>
+            <blockquote className={styles.story} lang="he" dir="auto">{recipe.story}</blockquote>
           </section>
         )}
 
@@ -208,8 +242,8 @@ export default async function RecipePage({ params }: Params) {
         <p className={styles.edited}>
           <span className={styles.editedLine}>
             {recipe.updated_by_name
-              ? t('recipe.editedBy', { name: recipe.updated_by_name, ago: timeAgo(recipe.updated_at) })
-              : t('recipe.edited', { ago: timeAgo(recipe.updated_at) })}
+              ? t('recipe.editedBy', { name: recipe.updated_by_name, ago: timeAgo(recipe.updated_at, t) })
+              : t('recipe.edited', { ago: timeAgo(recipe.updated_at, t) })}
           </span>
           <span className={styles.editedLine}>
             {t('recipe.lastUpdate', { date: shortDate(recipe.updated_at) })}
@@ -217,5 +251,6 @@ export default async function RecipePage({ params }: Params) {
         </p>
       </div>
     </article>
+    </>
   );
 }

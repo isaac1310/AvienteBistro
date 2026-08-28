@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { Ingredient } from '@/lib/constants';
 import { scaleAmount, scaleFactor, servingOptions } from '@/lib/scale';
 import { useT } from './LangProvider';
@@ -11,20 +11,65 @@ import styles from './Ingredients.module.css';
  * Client-side because scaling is instant and local — a round trip to re-render a
  * list of eight rows would be absurd. */
 export default function Ingredients({
-  ingredients, servings, yieldText,
+  ingredients, servings, yieldText, className, recipeId,
 }: {
   ingredients: Ingredient[];
   servings: number | null;
   yieldText: string | null;
+  /** Namespaces the check-off memory. Omit it and ticking works but is not kept. */
+  recipeId?: string;
+  /* The recipe page's grid column. CSS Modules scope class names per file, so the
+     page cannot target this component's own root class — it has to hand one in. */
+  className?: string;
 }) {
   const t = useT();
   const options = servingOptions(servings);
   const [target, setTarget] = useState(servings ?? 0);
+
+  /**
+   * Which ingredients have been used, by ingredient id.
+   *
+   * Cooking is the one thing this screen is for, and following a list of fourteen
+   * ingredients with wet hands means keeping your place in it. Kept per recipe in
+   * localStorage because a phone locks its own screen mid-cook and a list that
+   * forgets everything on reload is worse than no list; wrapped in try/catch because
+   * a private window throws on the accessor itself.
+   */
+  const [done, setDone] = useState<Set<string>>(new Set());
+  const storeKey = `aviente.checked.${recipeId ?? ''}`;
+
+  useEffect(() => {
+    if (!recipeId) return;
+    try {
+      const raw = localStorage.getItem(storeKey);
+      /* eslint-disable-next-line react-hooks/set-state-in-effect --
+         localStorage cannot be read during render (it does not exist on the server,
+         and reading it would make the server and client disagree about which rows are
+         ticked — a hydration mismatch). Reading it in an effect and setting state is
+         the supported shape for restoring per-device state; the rule's concern is the
+         extra render, which here is one paint on mount. */
+      if (raw) setDone(new Set(JSON.parse(raw) as string[]));
+    } catch { /* private window, or storage disabled — the list just starts clean */ }
+  }, [storeKey, recipeId]);
+
+  const toggle = (id: string) => {
+    const next = new Set(done);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setDone(next);
+    if (!recipeId) return;
+    try { localStorage.setItem(storeKey, JSON.stringify([...next])); } catch { /* as above */ }
+  };
+
+  const clearDone = () => {
+    setDone(new Set());
+    if (!recipeId) return;
+    try { localStorage.removeItem(storeKey); } catch { /* as above */ }
+  };
   const factor = scaleFactor(target, servings);
   const scaled = factor !== 1;
 
   return (
-    <section className={styles.wrap}>
+    <section className={className ? `${styles.wrap} ${className}` : styles.wrap}>
       <div className={styles.head}>
         <h2 className={styles.h2}>{t('recipe.ingredients')}</h2>
 
@@ -45,9 +90,17 @@ export default function Ingredients({
             </select>
           </label>
         ) : yieldText ? (
-          <span className={styles.yield} lang="he">{yieldText}</span>
+          <span className={styles.yield} lang="he" dir="auto">{yieldText}</span>
         ) : null}
       </div>
+
+      {/* Only once something is ticked: an always-present "clear" on a list nobody
+          has touched is a control that explains a feature instead of doing a job. */}
+      {done.size > 0 && (
+        <button type="button" className={styles.clearTicks} onClick={clearDone}>
+          {t('recipe.clearUsed', { n: done.size })}
+        </button>
+      )}
 
       {/* A table, not a list of dotted leaders.
           The source book writes ingredients as a three-column table — quantity,
@@ -61,6 +114,7 @@ export default function Ingredients({
         <caption className="visually-hidden">{t('recipe.ingredients')}</caption>
         <thead>
           <tr>
+            <th scope="col" className={styles.thTick}><span className="visually-hidden">{t('recipe.usedCol')}</span></th>
             <th scope="col" className={styles.thAmount}>{t('recipe.amount')}</th>
             <th scope="col" className={styles.thName}>{t('recipe.ingredient')}</th>
           </tr>
@@ -78,26 +132,52 @@ export default function Ingredients({
                   <tr className={styles.groupRow}>
                     {/* Spans both columns: a group name is a heading over the table,
                         not a value in either column. */}
-                    <th scope="colgroup" colSpan={2} className={styles.groupHead} lang="he">
+                    <th scope="colgroup" colSpan={3} className={styles.groupHead} lang="he" dir="auto">
                       {ing.group_label}
                     </th>
                   </tr>
                 )}
-                <tr className={styles.row}>
-                  {/* dir="ltr" on the amount only.
-                      Amounts are Latin: digits, then a unit like "cup" or "tbsp". In
-                      an RTL page the bidi algorithm reorders that run and "0.5 cup"
-                      came out as "cup 0.5". The cell still sits on the leading edge —
-                      dir here governs the text inside it, not where the column goes. */}
-                  <td className={styles.amount} dir="ltr">
-                    {amount ? amount.text : '—'}
+                <tr
+                  className={`${styles.row} ${done.has(ing.id) ? styles.rowDone : ''}`}
+                  /* The ROW is the target, not just the box: a 20px checkbox is not
+                     something to hit with wet hands, and this list is read at arm's
+                     length. aria-hidden is deliberately absent — the checkbox below
+                     carries the state for a screen reader. */
+                  onClick={() => toggle(ing.id)}
+                >
+                  <td className={styles.tickCell}>
+                    <input
+                      type="checkbox" className={styles.tick}
+                      checked={done.has(ing.id)}
+                      onChange={() => toggle(ing.id)}
+                      /* The click already bubbles from the row; without this the two
+                         handlers would fire in sequence and cancel each other out. */
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={t('recipe.used', { name: ing.name })}
+                    />
+                  </td>
+                  {/* Amounts are usually Latin — digits then a unit like "cup" — and
+                      in an RTL page bidi reordered that run into "cup 0.5". This was a
+                      hardcoded dir="ltr", which fixed the Latin case and broke the
+                      Hebrew one; "auto" lets each amount answer for itself. The cell
+                      still sits on the leading edge: dir governs the text inside it,
+                      not where the column goes. */}
+                  <td className={styles.amount} dir="auto">
+                    {/* Nothing, not an em dash. A dash in an amount column is a
+                        visual snag carrying no information — "some" is what an
+                        ingredient with no quantity means, and the blank says it. */}
+                    {amount ? amount.text : ''}
                     {amount?.approximate && (
                       <span className={styles.approx} title="rounded up">≈</span>
                     )}
                   </td>
-                  <td className={styles.name} lang="he">
+                  {/* dir="auto" on both: lang="he" chooses the font and does nothing
+                      for bidi, so an ingredient starting with a number or a Latin word
+                      resolved against the wrong base direction — the same defect that
+                      stranded full stops in the method, and it printed that way too. */}
+                  <td className={styles.name} lang="he" dir="auto">
                     {ing.name}
-                    {ing.note && <em className={styles.note} lang="he">{ing.note}</em>}
+                    {ing.note && <em className={styles.note} lang="he" dir="auto">{ing.note}</em>}
                   </td>
                 </tr>
               </Fragment>

@@ -38,7 +38,7 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
         label={t('print.backToRecipe')} />
       <header className={styles.head}>
         <p className={styles.eyebrow}>Aviente · The Family Recipe Book</p>
-        <h1 className={styles.title} lang="he">{recipe.title}</h1>
+        <h1 className={styles.title} lang="he" dir="auto">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {recipe.source_name && (
           <p className={styles.credit}>— from the kitchen of {recipe.source_name} —</p>
@@ -55,10 +55,10 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
               const newGroup = ing.group_label && ing.group_label !== recipe.ingredients[i - 1]?.group_label;
               return (
                 <li key={ing.id}>
-                  {newGroup && <span className={styles.group} lang="he">{ing.group_label}</span>}
+                  {newGroup && <span className={styles.group} lang="he" dir="auto">{ing.group_label}</span>}
                   <span className={styles.amount}>{amount ? amount.text : ''}</span>
-                  <span lang="he">{ing.name}</span>
-                  {ing.note && <em className={styles.note} lang="he"> · {ing.note}</em>}
+                  <span lang="he" dir="auto">{ing.name}</span>
+                  {ing.note && <em className={styles.note} lang="he" dir="auto"> · {ing.note}</em>}
                 </li>
               );
             })}
@@ -70,14 +70,14 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
               <li key={s.id}>
-                {s.heading && <strong lang="he">{s.heading}. </strong>}
-                <span lang="he">{s.body}</span>
+                {s.heading && <strong lang="he" dir="auto">{s.heading}. </strong>}
+                <span lang="he" dir="auto">{s.body}</span>
               </li>
             ))}
           </ol>
 
           {recipe.story && (
-            <p className={styles.story} lang="he">{recipe.story}</p>
+            <p className={styles.story} lang="he" dir="auto">{recipe.story}</p>
           )}
         </div>
       </section>

@@ -23,7 +23,7 @@ export default async function KidsPage({
 
   return (
     <>
-      <Nav current="/" />
+      <Nav current="/kids" />
       <div className="shell"><BackLink href="/" label={t('nav.home')} /></div>
       <KidsPlanner
         weekStart={weekStart}

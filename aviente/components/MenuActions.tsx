@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
 import BusyButton from './BusyButton';
+import Confirm from './Confirm';
 import ExportPdfButton from './ExportPdfButton';
 import Motif from './Motif';
 import styles from './MenuActions.module.css';
@@ -27,6 +28,9 @@ export default function MenuActions({
   const [error, setError] = useState<string | null>(null);
   /* The date being copied to, or null when nobody is duplicating. */
   const [copyDate, setCopyDate] = useState<string | null>(null);
+  /* Revoking is the least reversible thing on this screen: a new link can be minted,
+     but the one already in somebody's WhatsApp is dead for good. It asked nothing. */
+  const [askUnshare, setAskUnshare] = useState(false);
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError(null);
@@ -101,7 +105,7 @@ export default function MenuActions({
               </button>
             </div>
             <BusyButton busy={busy} className={styles.revoke} busyLabel={t('menu.working')}
-              onClick={() => run(async () => { await unshareMenu(id); setLink(null); setCopied(false); })}>
+              onClick={() => setAskUnshare(true)}>
               <Motif name="link_off" size={18} /> {t('menu.stopSharing')}
             </BusyButton>
           </>
@@ -112,6 +116,19 @@ export default function MenuActions({
           </BusyButton>
         )}
       </div>
+
+      {askUnshare && (
+        <Confirm
+          message={t('menu.unshareConfirm')}
+          confirmLabel={t('menu.unshareYes')}
+          busy={busy}
+          onConfirm={() => {
+            setAskUnshare(false);
+            void run(async () => { await unshareMenu(id); setLink(null); setCopied(false); });
+          }}
+          onCancel={() => setAskUnshare(false)}
+        />
+      )}
 
       {copyDate !== null && (
         <div className={styles.copyRow}>

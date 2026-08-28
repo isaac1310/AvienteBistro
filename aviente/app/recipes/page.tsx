@@ -56,7 +56,10 @@ export default async function RecipesIndex() {
                         in the same list. */}
                     <CategoryPlate category={c.key as CategoryKey} size="row" />
                     <span className={styles.rowName}>{categoryName(c, lang)}</span>
-                    <span className={styles.rowCount}>{n || '—'}</span>
+                    {/* "0", not an em dash. A dash in a count column reads as an
+                        error or a missing value; zero is the actual answer, and it is
+                        the number that tells you this category is worth filling. */}
+                    <span className={styles.rowCount}>{n}</span>
                   </Link>
                 </li>
               );

@@ -3,11 +3,11 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveMenu } from '@/lib/menuMutations';
-import { COURSES, DEFAULT_COURSE_ORDER, categoryLabel, courseLabelEn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
+import { COURSES, DEFAULT_COURSE_ORDER, STARTING_COURSE_ORDER, categoryLabel, courseLabelIn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import BusyButton from './BusyButton';
 import Confirm from './Confirm';
-import { useT } from './LangProvider';
+import { useLang, useT } from './LangProvider';
 import styles from './MenuBuilder.module.css';
 
 /* §3.5 — the menu builder. */
@@ -36,6 +36,9 @@ export default function MenuBuilder({
   occasion: { evening: string | null; day: string | null };
 }) {
   const t = useT();
+  /* The INTERFACE language. `language` below is the CARD's, which stays French for
+     course titles by decision — these labels are the builder's own. */
+  const uiLang = useLang();
   const router = useRouter();
   const byId = useMemo(() => new Map(recipes.map((r) => [r.id, r])), [recipes]);
 
@@ -56,7 +59,14 @@ export default function MenuBuilder({
      runs six; a Tuesday lunch is a main and a salad. The app already knows which is
      being planned, so it stopped being a global decision. */
   const [order, setOrder] = useState<CourseKey[]>(
-    initial.course_order?.length ? initial.course_order : DEFAULT_COURSE_ORDER,
+    /* An EXISTING menu keeps its own order. A NEW one starts with three courses
+       rather than six empty ones — see STARTING_COURSE_ORDER. `initial.id` is what
+       distinguishes them: a new menu has no id yet.
+       Any course that already holds a dish still renders (coursesForMenu appends it),
+       so arriving from "add to a menu" with a dessert cannot hide it. */
+    initial.course_order?.length
+      ? initial.course_order
+      : initial.id ? DEFAULT_COURSE_ORDER : STARTING_COURSE_ORDER,
   );
   const [picking, setPicking] = useState<CourseKey | null>(null);
   /* When set, the picker REPLACES this row instead of appending. Changing a dish
@@ -71,7 +81,10 @@ export default function MenuBuilder({
      the regression agent cannot drive. `hideCourse` carries its course and count
      because the panel names both. */
   const [asking, setAsking] = useState<
-    { kind: 'leave' } | { kind: 'hideCourse'; course: CourseKey; held: number } | null
+    { kind: 'leave' }
+    | { kind: 'hideCourse'; course: CourseKey; held: number }
+    | { kind: 'removeDish'; key: string; title: string }
+    | null
   >(null);
 
   /* The suggestion follows the lunch/dinner toggle with no round trip, because both
@@ -100,7 +113,8 @@ export default function MenuBuilder({
     || language !== initial.language
     || notes !== (initial.chef_notes ?? '')
     || order.join() !== (initial.course_order?.length
-      ? initial.course_order : DEFAULT_COURSE_ORDER).join()
+      ? initial.course_order
+      : initial.id ? DEFAULT_COURSE_ORDER : STARTING_COURSE_ORDER).join()
     || rows.length !== initial.items.length
     || rows.some((r, i) => r.recipe.id !== initial.items[i]?.recipe_id
       || r.course !== initial.items[i]?.course
@@ -232,6 +246,20 @@ export default function MenuBuilder({
         />
       )}
 
+      {/* Removing a dish had no confirm and no undo, while HIDING a course — which
+          does not even delete anything — asked first. Same act, same question now. */}
+      {asking?.kind === 'removeDish' && (
+        <Confirm
+          message={t('menu.removeDishConfirm', { dish: asking.title })}
+          confirmLabel={t('common.confirmRemove')}
+          onConfirm={() => {
+            setRows(rows.filter((r) => r.key !== asking.key));
+            setAsking(null);
+          }}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+
       {/* Hiding is not deleting — the dishes keep printing, appended at the end —
           and the panel says the count out loud, because silently dropping somebody's
           dish off a printed card is the worst thing this app could do. */}
@@ -321,7 +349,7 @@ export default function MenuBuilder({
           <section key={key} className={styles.course}>
             <div className={styles.courseHead}>
               <h2 className={styles.courseName}>
-                {courseLabelEn(key)}
+                {courseLabelIn(key, uiLang)}
                 {extra && <span className={styles.courseFlag}>{t('menu.courseKept')}</span>}
               </h2>
               <div className={styles.courseTools}>
@@ -368,7 +396,9 @@ export default function MenuBuilder({
                   <button type="button" aria-label={t('menu.changeDish')} className={styles.swap}
                     onClick={() => { setSwapping(row.key); setPicking(row.course); }}>↻</button>
                   <button type="button" aria-label={t('menu.removeDish')} className={styles.del}
-                    onClick={() => setRows(rows.filter((r) => r.key !== row.key))}>✕</button>
+                    onClick={() => setAsking({
+                      kind: 'removeDish', key: row.key, title: row.recipe.title,
+                    })}>✕</button>
                 </div>
               );
             })}
@@ -389,7 +419,7 @@ export default function MenuBuilder({
             {hidden.map((key) => (
               <button key={key} type="button" className={styles.courseChip}
                 onClick={() => setOrder([...order, key])}>
-                ＋ {courseLabelEn(key)}
+                ＋ {courseLabelIn(key, uiLang)}
               </button>
             ))}
           </div>

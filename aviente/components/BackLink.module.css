@@ -3,8 +3,12 @@
   align-items: center;
   gap: var(--sp-2);
   /* Padded to a 44px target without looking like a button — the Ultra is a big
-     phone and this is the control people reach for most. */
+     phone and this is the control people reach for most.
+     min-WIDTH too: the release run measured this at 43×44 on /kids, because the
+     label there is the single short word "בית" and nothing was holding the box open.
+     One pixel is invisible and still fails the bar the rest of the app keeps. */
   min-height: 44px;
+  min-width: 44px;
   padding: var(--sp-2) 0;
   font-family: var(--san);
   font-size: var(--t-label);

@@ -216,7 +216,7 @@ catch — a suite that only tests what was never broken is decoration.
 | 2.30 | Card fidelity | at 412px and desktop: frame, fleurons, candles, RTL Hebrew all present |
 | 2.31 | Empty course | omitted entirely, not printed as a bare heading |
 | 2.32 | PDF | `application/pdf`, non-trivial size, **extractable Hebrew text** — the only way to catch a missing embedded font |
-| 2.33 | Gold contrast | computed colour of small gold **text** is `#8a6d2f`, never `#c9a961`. The 2.02:1 failure regressing is invisible to the eye and trivial to assert |
+| 2.33 | Decorative-tone contrast | computed colour of small letterspaced **text** is the INK token (`--muted-ink`, `#716551`, 5.11:1), never the decorative one (`--muted`, `#a79a85`, 2.48:1). Regressing this is invisible to the eye at 11px and trivial to assert. **The old wording named `#8a6d2f` / `#c9a961`, which the v11 palette change removed entirely — a check that could only go red for the wrong reason.** The in-app suite asserts the ratio numerically rather than the hex, which is the durable form |
 | 2.34 | axe-core | no violations on any screen |
 | 2.35 | Targets | every control ≥44px at 412px width |
 | 2.36b | Bidi | steps, ingredient names/notes and dish titles carry `dir="auto"` on screen **and** in `/print/*`; a Hebrew line that starts with a Latin word or digit reads correctly |
@@ -391,3 +391,19 @@ Two checks cannot be done by one agent in one session at all: **1.5 signed-out
 behaviour** (verified by fetching with `credentials: 'omit'` rather than by signing
 out, since signing out would end the session the rest of the run needs) and **2.45
 non-admin** (needs a second signed-in profile).
+
+Learned in the v11.3.0 release run, so nobody spends the time again:
+
+- **2.48 keep-awake cannot be verified from an automation pane.** `'wakeLock' in
+  navigator` is true, and `request('screen')` then rejects with "Wake Lock permission
+  denied". That is neither "works" nor the "API absent" case the check treats as a
+  pass — it needs a real device. Skip it with this reason.
+- **2.5 storage refusal is not a click-through check.** Photographs are served through
+  the app as signed URLs, so no `supabase.co` request is observable from the client;
+  the assertion belongs to `tools/db-check.mjs`, which holds a key and can ask
+  directly.
+- **Labels repeat, so scope by container, not by text.** `מחיקה` appears on every
+  People row, and `ביטול` means two different things on the menu edit screen (abandon
+  the edit, and cancel the confirm panel). Find the panel first
+  (`[role="alertdialog"]`) and query inside it. For dismissing a panel, **Escape is
+  more reliable than any click target**.

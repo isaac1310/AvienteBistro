@@ -90,7 +90,21 @@
   display: grid; gap: var(--sp-1); }
 .mealLabel { font-size: 0.6875rem; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; color: #6b7f76; }
-.dish { font-size: 1.0625rem; font-weight: 600; color: #2a3f36; text-decoration: none; }
+/* The dish NAME is a link to its recipe, and it measured 27px tall — the buttons
+   beside it were lifted to 44 and this was missed, so the biggest, most obvious thing
+   to tap on the row was the one thing under the bar. inline-flex rather than a block:
+   it has to keep sitting on its own line without stretching to the row's full width,
+   or a long Hebrew name and a short one would look like different kinds of thing. */
+.dish {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #2a3f36;
+  text-decoration: none;
+}
+
 /* Wraps rather than squeezes. Three 44px controls plus the chef select do not fit on
    one line at 412px, and the row used to solve that by shrinking the buttons — which is
    how the smallest target on the most tap-dense screen ended up being the destructive

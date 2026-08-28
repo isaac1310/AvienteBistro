@@ -54,9 +54,23 @@ export default function Confirm({
   /* Captured in a ref during the mount effect, not during render: reading
      document.activeElement while rendering is an impure read of live DOM state. */
   const openedBy = useRef<HTMLElement | null>(null);
+  /* The pending focus-restore, so a REMOUNT can cancel it. Without this the panel
+     opened with the caret still on the trigger in some flows, which is what the
+     v11.3.0 release run caught: React runs an effect setup, then its cleanup, then
+     the setup again (StrictMode in development does it deliberately; a parent
+     re-render can do it any time). The cleanup schedules "put the focus back on the
+     trigger" one frame later — and that frame lands AFTER the second setup has
+     focused Cancel, so the restore undoes the thing it is supposed to follow. */
+  const pendingRestore = useRef<number | null>(null);
 
   useEffect(() => {
-    openedBy.current = document.activeElement as HTMLElement | null;
+    if (pendingRestore.current !== null) {
+      cancelAnimationFrame(pendingRestore.current);
+      pendingRestore.current = null;
+    }
+    /* `??=`, so a re-setup does not re-capture — by then the active element is
+       Cancel, and the panel would "restore" focus to itself on close. */
+    openedBy.current ??= document.activeElement as HTMLElement | null;
     cancelRef.current?.focus();
     return () => {
       const el = openedBy.current as (HTMLElement & { disabled?: boolean }) | null;
@@ -68,7 +82,8 @@ export default function Confirm({
          Both guards matter: the trigger is frequently GONE by now (the row it lived
          in was just deleted), and focusing a detached node sends focus to the body —
          the very thing this exists to prevent. */
-      requestAnimationFrame(() => {
+      pendingRestore.current = requestAnimationFrame(() => {
+        pendingRestore.current = null;
         if (el && document.contains(el) && !el.disabled) el.focus();
       });
     };

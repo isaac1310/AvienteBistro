@@ -91,13 +91,26 @@
 .mealLabel { font-size: 0.6875rem; font-weight: 700; letter-spacing: 2px;
   text-transform: uppercase; color: #6b7f76; }
 .dish { font-size: 1.0625rem; font-weight: 600; color: #2a3f36; text-decoration: none; }
-.mealFoot { display: flex; align-items: center; gap: var(--sp-2); }
-.chef { font: inherit; font-size: 0.8125rem; flex: 1; min-height: 36px;
+/* Wraps rather than squeezes. Three 44px controls plus the chef select do not fit on
+   one line at 412px, and the row used to solve that by shrinking the buttons — which is
+   how the smallest target on the most tap-dense screen ended up being the destructive
+   one. */
+.mealFoot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+/* --tap, not 36px: the token is 44 and these were the only controls in the planner
+   below it. */
+.chef { font: inherit; font-size: 0.8125rem; flex: 1 1 8rem; min-width: 0;
+  min-height: var(--tap);
   background: #f6fbf8; border: 1px solid rgba(47,107,82,0.25); border-radius: 10px;
   color: #2a3f36; }
-.swap, .remove { font: inherit; min-width: 36px; min-height: 36px; background: #f6fbf8;
+.swap, .remove { font: inherit; min-width: var(--tap); min-height: var(--tap);
+  background: #f6fbf8;
   border: 1px solid rgba(47,107,82,0.25); border-radius: 10px; cursor: pointer; }
-.remove { color: #8c2b2b; }
+/* The ✕ inherits the row's ink at rest instead of carrying the red. Red at rest made
+   the one destructive control the loudest thing on the row, so the eye landed on
+   "delete" before it landed on the dish. The danger colour arrives on hover/focus,
+   when the press is actually imminent. */
+.remove { color: inherit; }
+.remove:hover, .remove:focus-visible { color: #8c2b2b; border-color: rgba(140,43,43,0.45); }
 .empty { font: inherit; font-size: 0.875rem; min-height: var(--tap);
   background: transparent; border: 2px dashed rgba(47,107,82,0.3);
   border-radius: 10px; color: #6b7f76; cursor: pointer; }
@@ -279,4 +292,20 @@
   color: #2f6b4f;
   --loader-inline-w: 34px;
   --loader-inline-h: 28px;
+}
+
+/* The word under the glyph. The cards are wide enough for it even at 412px, and two
+   similar arrows with no words meant guessing which was "move" and which was "swap". */
+.swap, .remove {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.1;
+}
+.actionWord {
+  font-family: var(--san);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
 }

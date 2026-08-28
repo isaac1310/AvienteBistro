@@ -7,6 +7,7 @@ import Settings from '@/components/Settings';
 import { BUILD_LABEL } from '@/lib/version';
 import { serverT } from '@/lib/lang';
 import { currentMember } from '@/lib/supabase/server';
+import { lastBackupAt } from '@/lib/queries';
 import styles from './settings.module.css';
 
 export const metadata = { title: 'Aviente — Settings' };
@@ -20,7 +21,17 @@ export const metadata = { title: 'Aviente — Settings' };
  * is honest about both: visible at the top level, out of the way until asked for.
  */
 export default async function SettingsPage() {
-  const [member, t] = await Promise.all([currentMember(), serverT()]);
+  const [member, t, backupAt] = await Promise.all([
+    currentMember(), serverT(), lastBackupAt(),
+  ]);
+  /* Sixty days is the stale threshold: long enough not to nag, short enough that a
+     lost project is a few evenings of work rather than a year of it. The count comes
+     from the query, not from here — reading the clock during render is impure. */
+  const backupDays = backupAt.days;
+  const backupDate = backupAt.at
+    ? new Date(backupAt.at).toLocaleDateString(undefined,
+      { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
 
   return (
     <>
@@ -43,12 +54,6 @@ export default async function SettingsPage() {
             displayName={member?.display_name ?? member?.name ?? ''}
           />
 
-          {/* The back room. Backup and restore move the WHOLE cookbook, so they are
-              the admin's — by decision, and only these. Everything else on this page,
-              and all of /import, stays open to every family member; Moran adds and
-              pastes recipes exactly as before. Hiding the section is the door;
-              /api/backup checks the role server-side, because a URL that still
-              answers is not hidden. */}
           {/* Who is in the family. Same admin curtain as backup: the page refuses
               non-admins server-side; hiding the card here is courtesy, not the gate. */}
           {member?.role === 'admin' && (
@@ -65,11 +70,28 @@ export default async function SettingsPage() {
             </section>
           )}
 
+          {/* The back room. Backup and restore move the WHOLE cookbook, so they are
+              the admin's — by decision, and only these. Everything else on this page,
+              and all of /import, stays open to every family member; Moran adds and
+              pastes recipes exactly as before. Hiding the section is the door;
+              /api/backup checks the role server-side, because a URL that still
+              answers is not hidden. */}
           {member?.role === 'admin' && (
             <section className={styles.block} aria-labelledby="backup-h">
               <h2 className={styles.h2} id="backup-h">{t('settings.backup')}</h2>
               <div className={`card ${styles.panel}`}>
                 <p className={styles.body}>{t('settings.backupBody')}</p>
+                {/* The state the panel never had. Amber past sixty days — the copy
+                    above says these recipes exist nowhere else, and a warning with
+                    no status attached is one you learn to scroll past. */}
+                <p className={backupDays !== null && backupDays > 60
+                  ? styles.backupStale : styles.backupWhen}>
+                  {backupDate === null
+                    ? t('settings.lastBackupNever')
+                    : backupDays !== null && backupDays > 60
+                      ? t('settings.lastBackupStale', { date: backupDate, days: backupDays })
+                      : t('settings.lastBackup', { date: backupDate })}
+                </p>
                 <p className={styles.btnRow}>
                   <a className="btn" href="/api/backup" download>{t('settings.download')}</a>
                   {/* The images, separately. Two files rather than one because the

@@ -232,7 +232,7 @@ export default function RecipeForm({
     <div className={styles.form}>
       <header className={styles.bar}>
         <span className={styles.editing}>
-          {t('form.editing')}{dirty ? ` · ${t('form.unsaved')}` : ''}
+          {t(recipe ? 'form.editing' : 'form.newRecipe')}{dirty ? ` · ${t('form.unsaved')}` : ''}
         </span>
         <div className={styles.barActions}>
           <button type="button" className="btn btn--ghost" disabled={busy}
@@ -292,7 +292,7 @@ export default function RecipeForm({
 
       <label className={styles.field}>
         <span className={styles.label}>{t('form.nameLatin')}</span>
-        <input className={styles.input} value={titleEn} placeholder="Khaluz"
+        <input className={styles.input} value={titleEn} placeholder={t('form.nameLatinHint')}
           onChange={(e) => touch(setTitleEn)(e.target.value)} />
       </label>
 

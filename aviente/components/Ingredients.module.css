@@ -48,13 +48,16 @@
 
 .list { list-style: none; margin: 0; padding: 0; }
 
-/* Dotted leader between name and amount — the printed-cookbook convention. */
+/* Dotted leader between name and amount — the printed-cookbook convention.
+   Padding halved (sp-2 -> sp-1): this rule and `.row > *` further down BOTH padded the
+   same rows, so every ingredient carried 32px of vertical air and a six-ingredient
+   recipe filled a laptop screen before the method started. */
 .row {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: baseline;
   gap: var(--sp-2);
-  padding: var(--sp-2) 0;
+  padding: var(--sp-1) 0;
 }
 
 /* The sub-group heading spans the whole row and pushes the dotted rule down,
@@ -102,8 +105,9 @@
   font-style: italic;
   font-size: 0.8125rem;
   color: var(--ink-soft);
-  border-left: 2px solid var(--gold);
-  padding-left: var(--sp-3);
+  /* Logical, not `left`: in Hebrew the rule belongs on the right of the text. */
+  border-inline-start: 2px solid var(--gold);
+  padding-inline-start: var(--sp-3);
 }
 
 /* ── the ingredient table ──────────────────────────────────────────────────
@@ -131,7 +135,14 @@
    between the two columns — collapse joins borders that meet, and these did not
    quite. One border on the row cannot have a gap in it by construction. */
 .row { border-bottom: 1px solid var(--card-border); }
-.row > * { padding: var(--sp-2) 0; vertical-align: baseline; }
+/* Halved for the same reason as the padding on `.row` above — the two stacked. */
+.row > * { padding: var(--sp-1) 0; vertical-align: baseline; }
+
+/* Narrower in the two-column recipe layout: 7.5rem out of a 34% column leaves the
+   ingredient names too little room, and long Hebrew names wrapped to three lines. */
+@media (min-width: 900px) {
+  .table .amount { width: 6rem; }
+}
 
 .amount {
   /* Fixed and narrow so every amount starts on the same axis. Tabular numerals so
@@ -173,3 +184,41 @@
   color: var(--gold-ink);
 }
 .groupRow:first-child .groupHead { padding-top: 0; }
+
+/* ── cook mode ────────────────────────────────────────────────────────────────
+   This screen is used with wet hands, at arm's length, mid-task. Ticking an
+   ingredient off is how you keep your place in a list of fourteen. */
+
+.thTick { width: var(--tap); }
+.tickCell { width: var(--tap); padding-inline-end: 0; }
+
+.tick {
+  /* Bigger than a default checkbox. The row is the real target, but the box has to
+     look like something you could hit on its own. */
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.row { cursor: pointer; }
+/* Ticked rows recede rather than disappear: you still need to re-read the amount
+   when something goes wrong, so this is "done", not "gone". No line-through — it
+   makes Hebrew numerals genuinely hard to read at a glance. */
+.rowDone { opacity: 0.45; }
+.rowDone .name { color: var(--ink-soft); }
+
+.clearTicks {
+  justify-self: start;
+  margin-block-start: var(--sp-2);
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-2);
+  background: none;
+  border: 1px solid var(--card-border);
+  border-radius: 2px;
+  font: inherit;
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.clearTicks:hover, .clearTicks:focus-visible { color: var(--ink); }

@@ -110,3 +110,30 @@
 }
 .error { margin: 0; font-size: var(--t-small); color: var(--danger, #8f2f2f); }
 .btnRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+
+/* The disclosure cue the rows never had. */
+.chev {
+  display: inline-block;
+  font-size: 0.9em;
+  color: var(--muted-ink);
+  transition: transform 120ms ease;
+}
+.chevOpen { transform: rotate(180deg); }
+.head:hover .chev, .head:focus-visible .chev { color: var(--ink); }
+.head:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+
+/* The gentler alternative, inside the delete panel. A text button: it must read as
+   the quiet option beside a question about deleting someone. */
+.orRevoke {
+  justify-self: start;
+  padding: var(--sp-1) 0;
+  min-height: var(--tap);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.orRevoke:hover, .orRevoke:focus-visible { color: var(--ink); }

@@ -81,16 +81,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The notes block. It is the densest prose on the page — substitutions, timings, the
+   things you read mid-cook with wet hands — and it was set in an italic serif at a
+   softened ink, which made the hardest text in the app to read out of the block people
+   actually read. Upright now, at body contrast, with room between the lines. It keeps
+   its distinction from body text through the panel, the gold rule and the serif face
+   rather than through slant and low contrast.
+   `border-inline-start`, not `border-left`: in Hebrew the rule belongs on the right. */
 .story {
   margin: var(--sp-5) 0 0;
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4);
   border: 1px solid var(--card-border);
-  border-left: 2px solid var(--gold);
+  border-inline-start: 2px solid var(--gold);
   background: var(--card);
   font-family: var(--ser);
-  font-style: italic;
+  font-style: normal;
   font-size: 1.0625rem;
-  line-height: 1.65;
+  line-height: 1.75;
   color: var(--ink);
 }
 
@@ -106,7 +113,8 @@
 
 .steps {
   margin: 0;
-  padding-left: 1.5rem;
+  /* Logical: the step numbers hang on the right in Hebrew. */
+  padding-inline-start: 1.5rem;
   display: grid;
   gap: var(--sp-4);
 }
@@ -126,7 +134,7 @@
 .serve { margin-top: var(--sp-6); }
 .serveList {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
   display: grid;
   gap: var(--sp-2);
   font-size: var(--t-small);
@@ -158,6 +166,42 @@
 @media (min-width: 768px) {
   .hero, .heroPlate { height: min(46vh, 400px); }
   .body { max-width: 68ch; margin: 0 auto; }
+}
+
+/* ── ingredients BESIDE the method, above 900px ────────────────────────────────
+   The print sheet has done this all along (printrecipe.module.css `.cols`, 34% / 1fr)
+   and it was plainly the more usable of the two: on screen the recipe was one 68ch
+   column, so the ingredients scrolled out of sight before the first step arrived and the
+   print-out was easier to cook from than the app.
+   Same proportions as the sheet rather than new ones. Two columns only from 900px —
+   below that the single column is still right, and the print sheet itself collapses.
+   The grid lives on `.body`, which also holds the title, the actions and the notes, so
+   everything spans both columns by default and only the first two sections — the
+   Ingredients component and the method — are placed side by side. */
+/* Grid-column hooks for the two-column layout below. Declared here, empty, because
+   this is the contract with page.tsx: the method section wears .methodCol and the
+   Ingredients component is HANDED .ingredientsCol (CSS Modules scope class names per
+   file, so the page cannot reach that component's own root class). */
+.ingredientsCol {}
+.methodCol {}
+
+@media (min-width: 900px) {
+  .body {
+    /* Wide enough for a 34% ingredients column plus a method column that still reads
+       at a comfortable measure. */
+    max-width: 104ch;
+    display: grid;
+    grid-template-columns: 34% 1fr;
+    /* No row gap: the blocks bring their own vertical rhythm. */
+    gap: 0 var(--sp-6);
+    align-items: start;
+  }
+  /* Everything is full width unless placed otherwise below. */
+  .body > * { grid-column: 1 / -1; min-width: 0; }
+  /* Keyed off real hooks rather than position: `nth-of-type` meant a new section
+     anywhere above the ingredients would swap the two columns. */
+  .body > .ingredientsCol { grid-column: 1; }
+  .body > .methodCol { grid-column: 2; margin-top: var(--sp-6); }
 }
 
 .history { margin-top: var(--sp-4); }

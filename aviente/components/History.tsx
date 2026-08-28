@@ -131,7 +131,9 @@ export default function History({
                     {i === 0 ? t('history.beforeLastSave') : when(v.created_at, t)}
                   </span>
                   <span className={styles.who}>
-                    {v.editor?.name ? t('history.savedOverBy', { name: v.editor.name }) : '—'}
+                    {/* Nothing at all when nobody is recorded — the dash was standing
+                        in for an absent name and saying less than the empty space. */}
+                    {v.editor?.name ? t('history.savedOverBy', { name: v.editor.name }) : ''}
                   </span>
                 </button>
               </li>

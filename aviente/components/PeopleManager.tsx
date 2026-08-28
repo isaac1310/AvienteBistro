@@ -113,6 +113,13 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
               <span className={styles.status}>
                 {m.role === 'admin' && <span className={styles.badge}>{t('people.admin')}</span>}
                 {status(m)}
+                {/* Nothing on the row looked clickable — no chevron, no hover cue —
+                    though each one opens an editor. Rotates when open, so the row
+                    also says which state it is in. */}
+                <span aria-hidden="true"
+                  className={`${styles.chev} ${openId === m.id ? styles.chevOpen : ''}`}>
+                  ⌄
+                </span>
               </span>
             </button>
 
@@ -159,13 +166,25 @@ export default function PeopleManager({ members, selfId }: { members: MemberRow[
                     focus and Escape handling added there would have had to be written
                     twice — which is the drift a shared component exists to stop. */}
                 {confirmId === m.id && (
-                  <Confirm
-                    message={t('people.deleteConfirm', { name: m.name })}
-                    confirmLabel={t('common.confirmDelete')}
-                    busy={busy}
-                    onConfirm={() => run(() => deleteMember(m.id))}
-                    onCancel={() => setConfirmId(null)}
-                  />
+                  <>
+                    <Confirm
+                      message={t('people.deleteConfirm', { name: m.name })}
+                      confirmLabel={t('common.confirmDelete')}
+                      busy={busy}
+                      onConfirm={() => run(() => deleteMember(m.id))}
+                      onCancel={() => setConfirmId(null)}
+                    />
+                    {/* The gentler answer, offered where the question is asked. The
+                        copy used to recommend "Remove access" while that control was
+                        out of sight above the panel, so the advice could not be
+                        followed from where it was given. */}
+                    {(m.user_id || m.email) && (
+                      <button type="button" className={styles.orRevoke} disabled={busy}
+                        onClick={() => run(() => revokeAccess(m.id))}>
+                        {t('people.orRevoke')}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}

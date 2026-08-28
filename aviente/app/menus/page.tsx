@@ -4,9 +4,9 @@ import Nav from '@/components/Nav';
 import PageHeader from '@/components/PageHeader';
 import { todayIn } from '@/lib/today';
 import PageTitle from '@/components/PageTitle';
-import { serverT } from '@/lib/lang';
+import { currentLang, serverT } from '@/lib/lang';
 import { occasionRules, savedMenus } from '@/lib/menus';
-import { cardDate, upcomingOccasions } from '@/lib/occasion';
+import { listDate, upcomingOccasions } from '@/lib/occasion';
 import Motif from '@/components/Motif';
 import styles from './menus.module.css';
 
@@ -17,7 +17,7 @@ export const metadata = { title: 'Aviente — Menus' };
 export default async function MenusPage({
   searchParams,
 }: { searchParams: Promise<{ all?: string }> }) {
-  const t = await serverT();
+  const [t, lang] = await Promise.all([serverT(), currentLang()]);
   const { all } = await searchParams;
   const showAll = all === '1';
 
@@ -77,7 +77,7 @@ export default async function MenusPage({
                             and the candle came out six pixels wide. */}
                         <Motif name="candle" size={16} strokeWidth={2.2}
                           className={styles.rowCandle} />{' '}
-                        {cardDate(new Date(`${m.date}T12:00:00`))}
+                        {listDate(new Date(`${m.date}T12:00:00`), lang)}
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
@@ -99,7 +99,7 @@ export default async function MenusPage({
                   <li key={m.id}>
                     <Link href={`/menus/${m.id}`} className={`card ${styles.row}`}>
                       <span className={styles.when}>
-                        {m.saved ? '★ ' : ''}{cardDate(new Date(`${m.date}T12:00:00`))}
+                        {m.saved ? '★ ' : ''}{listDate(new Date(`${m.date}T12:00:00`), lang)}
                       </span>
                       <span className={styles.name}>{m.title ?? 'Menu'}</span>
                       <span className={styles.meta}>
@@ -132,7 +132,7 @@ export default async function MenusPage({
                         <Motif
                           name={s.occasion.ornament === 'apple' ? 'apple' : 'candle'}
                           size={16} strokeWidth={2.4} />{' '}
-                        {cardDate(s.date)}
+                        {listDate(s.date, lang)}
                       </span>
                       <span className={styles.name}>{s.occasion.title}</span>
                       <span className={styles.meta}>{t('menus.planAhead')}</span>

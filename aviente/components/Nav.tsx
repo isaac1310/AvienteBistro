@@ -11,10 +11,16 @@ import styles from './Nav.module.css';
    rendered at four different weights depending on the platform's fallback. */
 /* Labels come from the dictionary by key, not as English text with a translation
    beside it — the key is the identity of the destination. */
+/* FIVE items, not four. The kids' planner is a weekly-use feature promoted on the
+   home screen and it was reachable ONLY from there — so from any recipe you had to
+   go home first to plan the week. Five still fits a phone bottom bar at 412px.
+   Settings stays out: it is once-a-month housekeeping, reached from the home card
+   and (on desktop) the sidebar foot. */
 const LINKS = [
   { href: '/',        key: 'nav.home',    icon: 'home' },
   { href: '/recipes', key: 'nav.recipes', icon: 'recipes' },
   { href: '/menus',   key: 'nav.menus',   icon: 'menus' },
+  { href: '/kids',    key: 'nav.kids',    icon: 'kids_bear' },
   { href: '/add',     key: 'nav.add',     icon: 'add' },
 ] as const;
 

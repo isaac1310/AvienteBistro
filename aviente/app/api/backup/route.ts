@@ -96,6 +96,15 @@ export async function GET() {
     })),
   };
 
+  /* Stamp the singleton BEFORE handing the file over, so the Settings panel can
+     answer "am I covered?" — it used to state that nothing is backed up
+     automatically and then show three buttons and no state, which turns an honest
+     warning into something you scroll past.
+     Deliberately not awaited into the failure path: a stamp that did not write is
+     not a reason to refuse a backup that did. The worst case is the panel
+     under-reporting, which is the safe direction for this particular lie. */
+  void db.from('family_settings').update({ last_backup_at: new Date().toISOString() }).eq('id', 1);
+
   const today = new Date().toISOString().slice(0, 10);
   return new NextResponse(JSON.stringify(payload, null, 2), {
     headers: {

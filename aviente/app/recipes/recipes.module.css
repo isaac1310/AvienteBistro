@@ -37,12 +37,18 @@
 
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
 
+/* The count sits BESIDE the name, not at the opposite edge of the card. The 1fr used
+   to be on the name column, which stretched it and threw the count ~900px away at
+   1512px — "מרקים" and "8" were reading as two unrelated things. The free space is a
+   trailing third column now, so the pair stays together at every width.
+   Padding halved as well: at var(--sp-4)/var(--sp-5) the rows measured ~114px and only
+   four categories fitted on a laptop screen. */
 .row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
   min-height: var(--tap);
   text-decoration: none;
   color: inherit;
@@ -56,7 +62,10 @@
 .rowName {
   font-family: var(--ser);
   font-weight: 300;
-  font-size: 1.5rem;
+  /* 1.5rem set the row height as much as the padding did; 1.25rem keeps the engraved
+     look and buys back the other half of the ~114px row. */
+  font-size: 1.25rem;
+  line-height: 1.3;
   color: var(--ink);
 }
 .rowCount {

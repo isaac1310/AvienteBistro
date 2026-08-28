@@ -56,7 +56,10 @@ export default function KidsPlanner({
      the whole guard — and window.confirm could not be one, being suppressed in
      embedded browsers and undriveable by the regression agent. */
   const [asking, setAsking] = useState<
-    { kind: 'takeOut'; weekday: number; planned: number } | { kind: 'clearWeek' } | null
+    { kind: 'takeOut'; weekday: number; planned: number }
+    | { kind: 'clearWeek' }
+    | { kind: 'removeDish'; dish: KidsMeal }
+    | null
   >(null);
 
   /* try/finally with no catch meant every thrown error became an unhandled
@@ -253,19 +256,32 @@ export default function KidsPlanner({
                           </option>
                         ))}
                       </select>
+                      {/* The glyph AND the word. Two similar arrows next to each other
+                          made a sighted reader guess which was "move to another day"
+                          and which was "swap this meal"; the aria-labels were already
+                          right, so only the visible half was missing. */}
                       <button className={styles.swap} aria-label={t('kids.moveDish')}
-                        disabled={busy} onClick={() => setMoving(dish)}>⇄</button>
+                        disabled={busy} onClick={() => setMoving(dish)}>
+                        <span aria-hidden="true">⇄</span>
+                        <span className={styles.actionWord}>{t('kids.moveShort')}</span>
+                      </button>
                       <button className={styles.swap} aria-label={t('kids.swapMeal')}
                         disabled={busy}
                         onClick={() => setPicking({
                           weekday: a.weekday, meal: meal.key, replaceId: dish.id,
-                        })}>↻</button>
+                        })}>
+                        <span aria-hidden="true">↻</span>
+                        <span className={styles.actionWord}>{t('kids.swapShort')}</span>
+                      </button>
                       {/* ONE dish, not the slot. This called clearMeal(week, day,
                           meal), which with several dishes in a slot would have deleted
                           all of them from a ✕ sitting on one. */}
                       <button className={styles.remove} aria-label={t('kids.removeDish')}
                         disabled={busy}
-                        onClick={() => run(() => removeMeal(dish.id))}>✕</button>
+                        onClick={() => setAsking({ kind: 'removeDish', dish })}>
+                        <span aria-hidden="true">✕</span>
+                        <span className={styles.actionWord}>{t('kids.removeShort')}</span>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -310,6 +326,19 @@ export default function KidsPlanner({
           confirmLabel={t('common.confirmRemove')}
           busy={busy}
           onConfirm={() => takeOutDay(asking.weekday)}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+
+      {/* Was a bare ✕ that removed the dish immediately. Nothing in the planner has
+          an undo, so this panel is the only guard — and the app now asks the same way
+          everywhere something is destroyed. */}
+      {asking?.kind === 'removeDish' && (
+        <Confirm
+          message={t('kids.removeDishConfirm', { dish: dishLabel(asking.dish) })}
+          confirmLabel={t('common.confirmRemove')}
+          busy={busy}
+          onConfirm={() => { const d = asking.dish; setAsking(null); run(() => removeMeal(d.id)); }}
           onCancel={() => setAsking(null)}
         />
       )}

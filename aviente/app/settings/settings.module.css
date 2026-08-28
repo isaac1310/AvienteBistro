@@ -62,3 +62,21 @@
 .btnRow { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 
 .backRow { padding-top: var(--sp-3); }
+
+/* Backup status. The neutral line is quiet; the stale one is not, because by then
+   it is the most useful sentence on the page. */
+.backupWhen {
+  margin: 0;
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+}
+.backupStale {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-inline-start: 3px solid var(--danger, #8f2f2f);
+  background: color-mix(in srgb, var(--danger, #8f2f2f) 7%, transparent);
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--ink);
+}

@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import Nav from '@/components/Nav';
 import CategoryPlate from '@/components/CategoryPlate';
 import ExportPdfButton from '@/components/ExportPdfButton';
 import Arrow from '@/components/Arrow';
 import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
+import KeepAwake from '@/components/KeepAwake';
 import RecipeHistory from '@/components/RecipeHistory';
 import type { CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
@@ -84,6 +86,13 @@ export default async function RecipePage({ params }: Params) {
   const hebrew = /[\u0590-\u05FF]/.test(recipe.title);
 
   return (
+    <>
+      {/* The navigation was absent from this page entirely: a full-bleed hero, the
+          sidebar gone, and the only way out a small arrow floating over a photograph
+          whose contrast depends on whatever is behind it. The hero still runs
+          full-bleed — Nav is a fixed bottom bar on a phone and a sidebar on desktop,
+          so it costs the hero nothing. */}
+      <Nav current="/recipes" />
     <article className={styles.page}>
       {recipe.photo_url ? (
         /* Falls back to the plate if the object is missing — see RecipePhoto. One
@@ -153,6 +162,9 @@ export default async function RecipePage({ params }: Params) {
           {/* Two actions, because these were one and it was mislabelled: the button
               said "Export PDF" and opened the print PAGE, downloading nothing. */}
           <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
+          {/* Cook mode's other half: the ticks are in the ingredient list, this
+              stops the screen sleeping while you use them. */}
+          <KeepAwake />
           <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
             className="btn btn--ghost" />
         </div>
@@ -162,12 +174,17 @@ export default async function RecipePage({ params }: Params) {
         )}
 
         <Ingredients
+          className={styles.ingredientsCol}
+          recipeId={recipe.id}
           ingredients={recipe.ingredients}
           servings={recipe.servings}
           yieldText={recipe.yield_text}
         />
 
-        <section>
+        {/* Named, not positional. The two-column layout above 900px used to pair
+            `.body > section:nth-of-type(1|2)`, so adding any section above the
+            ingredients would have silently swapped the columns. */}
+        <section className={styles.methodCol}>
           <h2 className={styles.h2}>{t('recipe.method')}</h2>
           <ol className={styles.steps}>
             {recipe.steps.map((s) => (
@@ -234,5 +251,6 @@ export default async function RecipePage({ params }: Params) {
         </p>
       </div>
     </article>
+    </>
   );
 }

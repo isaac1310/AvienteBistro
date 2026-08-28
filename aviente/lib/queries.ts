@@ -274,3 +274,29 @@ export async function searchRecipes(query: string): Promise<RecipeSummary[]> {
 
   return attachPhotoUrls(db, byTitle(rows.map(flatten)));
 }
+
+/**
+ * When the cookbook was last backed up, or null if nobody knows.
+ *
+ * Null is a real answer, not a missing one: the column arrived in migration 0020 and
+ * an existing project has no history to report. It is also what a database still
+ * behind that migration returns — the 42703 is swallowed here rather than blanking
+ * the Settings page, since "we cannot tell you" and "no backup yet" lead to the same
+ * advice: take one.
+ */
+export async function lastBackupAt(): Promise<{ at: string | null; days: number | null }> {
+  const db = await supabaseServer();
+  const { data, error } = await db
+    .from('family_settings')
+    .select('last_backup_at')
+    .eq('id', 1)
+    .maybeSingle();
+  if (error) return { at: null, days: null };
+  const at = (data?.last_backup_at as string | null) ?? null;
+  /* Days counted HERE rather than in the page. Reading the clock during a component's
+     render is an impure read — react-hooks/purity rejects it, and rightly: the value
+     would be resampled on every re-render. A query is the right place for "how long
+     ago", since it is already asking the database what time it thinks it is. */
+  const days = at ? Math.floor((Date.now() - new Date(at).getTime()) / 86_400_000) : null;
+  return { at, days };
+}

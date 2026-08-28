@@ -28,7 +28,8 @@ export default async function SearchPage({
           <div className="shell">
             <Link href="/recipes" className={styles.back}><Arrow /> {t('book.back')}</Link>
             <p className="eyebrow">{t('search.title')}</p>
-            <h1 className={styles.h1} lang="he">{query || '—'}</h1>
+            {/* An empty search shows the label below, not a dash as a heading. */}
+            <h1 className={styles.h1} lang="he" dir="auto">{query || t('search.title')}</h1>
             <p className={styles.count}>
               {!query
                 ? t('search.prompt')

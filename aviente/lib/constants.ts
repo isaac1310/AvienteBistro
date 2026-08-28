@@ -90,17 +90,21 @@ export type Recipe = RecipeSummary & {
 /* Courses carry BOTH: `fr` is printed on the menu card, which is a French bistro
    artifact by design; `en` is what the builder shows, because the builder is app
    chrome. Kids' meals never use these — that section has its own vocabulary. */
+/* Three names per course, and each has a job: `fr` is the printed card's, a brand
+   decision about an object that has already been shared; `en` and `he` are the
+   INTERFACE's. The builder used to label its sections in French, so a Hebrew speaker
+   had to decode "Plat Principal" before they could add a dish to it. */
 export const COURSES = [
-  { key: 'aperitif', fr: 'Apéritif',         en: 'Aperitif' },
-  { key: 'entree',   fr: 'Entrée',           en: 'Starter' },
+  { key: 'aperitif', fr: 'Apéritif',         en: 'Aperitif', he: 'פתיח' },
+  { key: 'entree',   fr: 'Entrée',           en: 'Starter',  he: 'ראשונה' },
   /* Pain de Table. The sample card has a bread course and ours could not reproduce
      it — a focaccia had to be filed under Sides. Courses and categories answer
      different questions: a category is where a recipe is filed in the book, a course
      is where a dish sits in the running order of one printed meal. */
-  { key: 'pain',     fr: 'Pain de Table',    en: 'Bread' },
-  { key: 'main',     fr: 'Plat Principal',   en: 'Main' },
-  { key: 'sides',    fr: 'Accompagnements',  en: 'Sides' },
-  { key: 'dessert',  fr: 'Dessert',          en: 'Dessert' },
+  { key: 'pain',     fr: 'Pain de Table',    en: 'Bread',    he: 'לחם' },
+  { key: 'main',     fr: 'Plat Principal',   en: 'Main',     he: 'עיקרית' },
+  { key: 'sides',    fr: 'Accompagnements',  en: 'Sides',    he: 'תוספות' },
+  { key: 'dessert',  fr: 'Dessert',          en: 'Dessert',  he: 'קינוח' },
 ] as const;
 
 export type CourseKey = (typeof COURSES)[number]['key'];
@@ -112,6 +116,13 @@ export const courseLabel = (key: string) =>
 /** English — for the builder and anywhere else in the app. */
 export const courseLabelEn = (key: string) =>
   COURSES.find((c) => c.key === key)?.en ?? key;
+
+/** The reader's language, for the INTERFACE. The card keeps `courseLabel` (French). */
+export const courseLabelIn = (key: string, lang: 'he' | 'en') => {
+  const c = COURSES.find((x) => x.key === key);
+  if (!c) return key;
+  return lang === 'he' ? c.he : c.en;
+};
 
 export const courseIndex = (key: string) =>
   COURSES.findIndex((c) => c.key === key);
@@ -132,6 +143,17 @@ export const courseIndex = (key: string) =>
  */
 export const DEFAULT_COURSE_ORDER: CourseKey[] =
   ['aperitif', 'pain', 'entree', 'main', 'sides', 'dessert'];
+
+/**
+ * What a NEW menu opens with, as distinct from the full printing order above.
+ *
+ * The builder used to start as six identical empty slots, each with the same add
+ * button and the same ✕ / ↑ / ↓ row — almost all of it repetition you had to read
+ * past before adding one dish. These three are the ones nearly every menu uses; the
+ * rest are one tap away under "add a course", and DEFAULT_COURSE_ORDER still governs
+ * the order they print in once they hold something.
+ */
+export const STARTING_COURSE_ORDER: CourseKey[] = ['pain', 'main', 'sides'];
 
 /**
  * The courses a menu prints, in order.

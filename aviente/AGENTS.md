@@ -51,6 +51,12 @@ live, and you already drive a real browser.
 6. **Run it at 412px and 1280px.** Several checks skip themselves outside phone
    width; they must be seen to skip, not assumed to pass.
 
+**The whole protocol has a command:** `/regression` for the every-PR sanity layer,
+`/regression release` for the full pass. It starts the app, reads the suite at both
+widths, drives the click-level catalogue in `tests/REGRESSION.md` (Appendix A) with a
+Sonnet subagent, writes a dated report and cleans its fixtures up. It uses the browser
+session you are already signed into — there is no test password in this repo.
+
 **Release candidates:** also run `npm run db-check` — it exists now, and it is the
 only gate covering WRITES: anon refused on every table, the migration constraints
 actually enforced, and a `__test__` fixture created and removed. Read-only by default;

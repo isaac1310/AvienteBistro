@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { supabaseServer, currentMember } from './supabase/server';
 import type { Unit } from './constants';
 
@@ -172,16 +171,6 @@ export async function restoreRecipe(id: string) {
   const { error } = await db.from('recipes').update({ deleted_at: null }).eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/', 'layout');
-}
-
-export async function deleteAndGoBack(id: string, category: string, sort?: string) {
-  await softDeleteRecipe(id);
-  /* The sort rides along. Deleting from a list ordered by "recently added" used to
-     drop you back into the same list ordered by name, so the row you were about to
-     check next had moved. Only the three known keys are echoed back into the URL —
-     a value from a card is still a value from the page. */
-  const order = sort && ['updated', 'created'].includes(sort) ? `&sort=${sort}` : '';
-  redirect(`/recipes/${category}?undo=${id}${order}`);
 }
 
 /** Revisions for the ⟲ list, newest first. */

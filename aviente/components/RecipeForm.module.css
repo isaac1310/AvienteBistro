@@ -225,3 +225,11 @@
 @media (prefers-reduced-motion: reduce) {
   .rowLifted { opacity: 0.55; }
 }
+
+/* A refused save has to be visible where the caret lands, not only in the strip at
+   the top of the form — pressing Save and getting silence reads as a dead button. */
+.input[aria-invalid='true'] {
+  border-color: var(--danger, #8f2f2f);
+  outline: 2px solid color-mix(in srgb, var(--danger, #8f2f2f) 35%, transparent);
+  outline-offset: 1px;
+}

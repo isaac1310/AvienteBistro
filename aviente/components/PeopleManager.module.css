@@ -96,14 +96,6 @@
 
 .hint { margin: 0; font-size: var(--t-small); line-height: 1.6; color: var(--ink-soft); }
 
-.confirm {
-  display: grid;
-  gap: var(--sp-2);
-  padding: var(--sp-3);
-  border-top: 1px solid var(--card-border);
-  background: color-mix(in srgb, var(--danger, #8f2f2f) 6%, transparent);
-}
-
 /* The delete button dresses like a ghost button but speaks in the danger colour —
    quiet until read, unmistakable once read. */
 .danger {

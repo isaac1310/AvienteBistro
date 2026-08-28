@@ -256,14 +256,22 @@ export function addWeeks(weekStart: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Pretty week label, e.g. "10 – 14 AUG". */
-export function weekLabel(weekStart: string): string {
+/**
+ * Pretty week label, e.g. "10 – 14 AUG" or "10 – 14 באוג׳".
+ *
+ * The locale was hardcoded 'en-GB', so the kids' planner — the most Hebrew, most
+ * family-facing screen in the app — printed its week in English.
+ */
+export function weekLabel(weekStart: string, lang: 'he' | 'en' = 'en'): string {
   const start = new Date(`${weekStart}T12:00:00`);
   const end = new Date(start);
   // +6, not +4: the week is Sunday to Saturday now, so a five-day span would print
   // "2 – 6 AUG" for a week that runs to the 8th.
   end.setDate(end.getDate() + 6);
-  const month = end.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-  return `${start.getDate()} – ${end.getDate()} ${month}`;
+  const locale = lang === 'he' ? 'he-IL' : 'en-GB';
+  const month = end.toLocaleDateString(locale, { month: 'short' });
+  /* Upper-casing is a Latin flourish; Hebrew has no case and toUpperCase() on
+     Hebrew is a no-op that only makes the intent unclear. */
+  return `${start.getDate()} – ${end.getDate()} ${lang === 'he' ? month : month.toUpperCase()}`;
 }
 

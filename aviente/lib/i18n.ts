@@ -127,6 +127,8 @@ const DICT = {
   'time.hoursAgo': { he: 'לפני {n} שעות', en: '{n} hours ago' },
   'time.dayAgo':   { he: 'לפני יום',     en: '1 day ago' },
   'time.daysAgo':  { he: 'לפני {n} ימים', en: '{n} days ago' },
+  'time.monthAgo': { he: 'לפני חודש',    en: '1 month ago' },
+  'time.monthsAgo': { he: 'לפני {n} חודשים', en: '{n} months ago' },
 
   // ── the recipe form ─────────────────────────────────────────────────────
   'form.editing':      { he: 'עריכה',        en: 'Editing' },
@@ -447,7 +449,6 @@ const DICT = {
   'people.delete':     { he: 'מחיקה',       en: 'Delete' },
   'people.deleteConfirm': { he: 'למחוק את {name} לגמרי? אם יש מתכונים על שמם — המחיקה תסורב. לביטול גישה בלבד יש כפתור נפרד.',
                              en: 'Delete {name} entirely? If any recipes carry their name, the delete will be refused. To only take away their login, use Remove access.' },
-  'people.deleteYes':  { he: 'כן, למחוק',  en: 'Yes, delete' },
 
   // ── the schema banner ───────────────────────────────────────────────────
   // Written for the person who CANNOT fix it: Moran has no Supabase access, so the

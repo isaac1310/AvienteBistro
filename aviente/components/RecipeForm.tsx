@@ -6,7 +6,7 @@ import MovePhoto from './MovePhoto';
 import PhotoField from './PhotoField';
 import BusyButton from './BusyButton';
 import Confirm from './Confirm';
-import { useT } from './LangProvider';
+import { useLang, useT } from './LangProvider';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
 import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
 /* The parts rules live in lib/ so the selftest can exercise them directly — two
@@ -37,6 +37,9 @@ export default function RecipeForm({
   members: { id: string; name: string }[];
 }) {
   const t = useT();
+  /* The INTERFACE language. `lang` below is a different thing — which of the two
+     card descriptions the editor is showing — so this one is named for what it is. */
+  const uiLang = useLang();
   const router = useRouter();
 
   const [title, setTitle] = useState(recipe?.title ?? '');
@@ -120,6 +123,21 @@ export default function RecipeForm({
      the regression agent, so the two most destructive controls here were the only
      untestable ones. */
   const [asking, setAsking] = useState<'discard' | 'delete' | null>(null);
+  /* Which field the last refused save was about, or null. Drives aria-invalid, and
+     the effect that scrolls it into view and focuses it. */
+  const [invalid, setInvalid] = useState<'title' | 'servings' | null>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const servingsRef = useRef<HTMLInputElement>(null);
+
+  /* After the paint that renders the error, not during the click that caused it:
+     the strip has to exist before there is anything to scroll to. */
+  useEffect(() => {
+    if (!invalid) return;
+    const el = invalid === 'title' ? titleRef.current : servingsRef.current;
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.focus({ preventScroll: true });
+  }, [invalid]);
 
   /* The dirty guard. Without it, a mistyped back-swipe on a phone silently
      discards an evening of typing. */
@@ -132,8 +150,20 @@ export default function RecipeForm({
 
   const touch = <T,>(setter: (v: T) => void) => (v: T) => { setDirty(true); setter(v); };
 
+  /**
+   * Refuse the save, and take the screen to the reason.
+   *
+   * Throws, so it reads as a guard clause at the point of the check — the catch in
+   * onSave puts the message in the error strip, and `invalid` marks the field so the
+   * effect below can scroll to it and focus it once React has painted.
+   */
+  function fail(field: 'title' | 'servings', message: string): never {
+    setInvalid(field);
+    throw new Error(message);
+  }
+
   async function onSave() {
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setInvalid(null);
     try {
       const input: RecipeInput = {
         id: recipe?.id,
@@ -158,10 +188,14 @@ export default function RecipeForm({
           .filter((s) => s.body.trim())
           .map((s) => ({ heading: s.heading.trim() || null, body: s.body.trim() })),
       };
-      if (!input.title.trim()) throw new Error(t('form.needsName'));
-      if (!input.servings && !input.yield_text) {
-        throw new Error(t('form.needsServings'));
-      }
+      /* Validation FAILURES MOVE THE SCREEN. The error has always been rendered —
+         at the top of the form, hundreds of pixels above a viewport parked at the
+         Save button — with no scroll, no focus move and no field highlight. A
+         screen reader heard it (role="alert"); a sighted user pressed Save and got
+         silence, which reads as a dead button. `fail` names the field so the caret
+         can be put in it. */
+      if (!input.title.trim()) fail('title', t('form.needsName'));
+      if (!input.servings && !input.yield_text) fail('servings', t('form.needsServings'));
       const id = await saveRecipe(input);
       setDirty(false);
       /* Refiling a recipe returns you to where you were WORKING, not to where the
@@ -250,8 +284,10 @@ export default function RecipeForm({
 
       <label className={styles.field}>
         <span className={styles.label}>{t('form.name')}</span>
-        <input className={styles.input} value={title} lang="he"
-          onChange={(e) => touch(setTitle)(e.target.value)} />
+        <input ref={titleRef} className={styles.input} value={title} lang="he"
+          dir="auto"
+          aria-invalid={invalid === 'title' || undefined}
+          onChange={(e) => { setInvalid(null); touch(setTitle)(e.target.value); }} />
       </label>
 
       <label className={styles.field}>
@@ -265,7 +301,12 @@ export default function RecipeForm({
           <span className={styles.label}>{t('form.category')}</span>
           <select className={styles.input} value={category}
             onChange={(e) => touch(setCategory)(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.en}</option>)}
+            {/* The Hebrew label sits right beside the English one in CATEGORIES, and
+                the meal-type select directly below already used it — this one printed
+                `c.en` unconditionally, so a Hebrew screen offered "Mains". */}
+            {CATEGORIES.map((c) => (
+              <option key={c.key} value={c.key}>{uiLang === 'he' ? c.he : c.en}</option>
+            ))}
           </select>
         </label>
 
@@ -288,8 +329,10 @@ export default function RecipeForm({
       <div className={styles.pair}>
         <label className={styles.field}>
           <span className={styles.label}>{t('form.serves')}</span>
-          <input className={styles.input} inputMode="numeric" value={servings}
-            onChange={(e) => touch(setServings)(e.target.value)} />
+          <input ref={servingsRef} className={styles.input} inputMode="numeric"
+            value={servings}
+            aria-invalid={invalid === 'servings' || undefined}
+            onChange={(e) => { setInvalid(null); touch(setServings)(e.target.value); }} />
         </label>
         <label className={styles.field}>
           <span className={styles.label}>{t('form.orMakes')}</span>
@@ -596,7 +639,10 @@ export default function RecipeForm({
           onChange={(e) => touch(setServeWith)(e.target.value)} />
       </label>
 
-      {recipe && asking !== 'delete' && (
+      {/* Stays mounted and enabled while its panel is open — see the note in
+          PeopleManager: Confirm returns focus to the control that opened it, and a
+          disabled or unmounted control cannot receive it. */}
+      {recipe && (
         <button type="button" className={styles.delete}
           onClick={() => setAsking('delete')} disabled={busy}>
           {t('form.deleteRecipe')}

@@ -140,10 +140,11 @@ export default function KidsPlanner({
           onClick={() => router.push(`/kids?week=${addWeeks(weekStart, -1)}`)}>
           {lang === 'he' ? '▶' : '◀'}
         </button>
-        {/* dir="ltr": the label is "16 – 22 AUG", a Latin range, and inside an RTL
-            page bidi reordered it to "AUG 22 – 16" — a week that appears to run
-            backwards. */}
-        <span className={styles.week} dir="ltr">{weekLabel(weekStart)}</span>
+        {/* dir="auto", not "ltr". Bidi reordered the Latin range to "AUG 22 – 16" —
+            a week that appears to run backwards — and a hardcoded ltr then did the
+            same to the Hebrew one: the label is "16 – 22 AUG" in English and
+            "16 – 22 באוג׳" in Hebrew. Only the text itself knows which. */}
+        <span className={styles.week} dir="auto">{weekLabel(weekStart, lang)}</span>
         <button className={styles.arrow} aria-label={t('kids.nextWeek')}
           onClick={() => router.push(`/kids?week=${addWeeks(weekStart, 1)}`)}>
           {lang === 'he' ? '◀' : '▶'}
@@ -195,7 +196,7 @@ export default function KidsPlanner({
         <ul className={styles.tray}>
           {tray.map((r) => (
             <li key={r.id} className={styles.trayItem}>
-              <span lang="he">{r.title}</span>
+              <span lang="he" dir="auto">{r.title}</span>
               <button aria-label={t('kids.removeFromTray')}
                 onClick={() => setTray(tray.filter((t) => t.id !== r.id))}>✕</button>
             </li>
@@ -226,11 +227,11 @@ export default function KidsPlanner({
                         this used to be an unconditional Link — so "bread with white
                         cheese" would have pointed at /recipes/kids/null. */}
                     {dish.recipe_id ? (
-                      <Link href={`/recipes/kids/${dish.recipe_id}`} className={styles.dish} lang="he">
+                      <Link href={`/recipes/kids/${dish.recipe_id}`} className={styles.dish} lang="he" dir="auto">
                         {dishLabel(dish)}
                       </Link>
                     ) : (
-                      <span className={`${styles.dish} ${styles.dishPlain}`} lang="he">
+                      <span className={`${styles.dish} ${styles.dishPlain}`} lang="he" dir="auto">
                         {dishLabel(dish)}
                       </span>
                     )}
@@ -359,7 +360,7 @@ export default function KidsPlanner({
               <span>{t('kids.orSomething')}</span>
               <input
                 className={styles.freeField}
-                lang="he"
+                lang="he" dir="auto"
                 value={freeText}
                 placeholder={t('kids.freeTextHint')}
                 onChange={(e) => setFreeText(e.target.value)}
@@ -382,7 +383,7 @@ export default function KidsPlanner({
                       { recipeId: r.id }, { replaceId: picking.replaceId ?? null });
                     setPicking(null); setFreeText('');
                   })}>
-                    <span lang="he">{r.title}</span>
+                    <span lang="he" dir="auto">{r.title}</span>
                     {r.meal_type && <span className={styles.pickTag}>{r.meal_type}</span>}
                   </button>
                 </li>
@@ -457,7 +458,7 @@ export default function KidsPlanner({
                 <li key={r.id}>
                   <button className={`${styles.pick} ${chosen ? styles.pickOn : ''}`}
                     onClick={() => setTray(chosen ? tray.filter((t) => t.id !== r.id) : [...tray, r])}>
-                    <span lang="he">{r.title}</span>
+                    <span lang="he" dir="auto">{r.title}</span>
                     <span className={styles.pickTag}>{chosen ? '✓' : r.meal_type ?? ''}</span>
                   </button>
                 </li>

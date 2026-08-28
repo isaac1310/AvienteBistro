@@ -84,20 +84,25 @@ export default function Ingredients({
                   </tr>
                 )}
                 <tr className={styles.row}>
-                  {/* dir="ltr" on the amount only.
-                      Amounts are Latin: digits, then a unit like "cup" or "tbsp". In
-                      an RTL page the bidi algorithm reorders that run and "0.5 cup"
-                      came out as "cup 0.5". The cell still sits on the leading edge —
-                      dir here governs the text inside it, not where the column goes. */}
-                  <td className={styles.amount} dir="ltr">
+                  {/* Amounts are usually Latin — digits then a unit like "cup" — and
+                      in an RTL page bidi reordered that run into "cup 0.5". This was a
+                      hardcoded dir="ltr", which fixed the Latin case and broke the
+                      Hebrew one; "auto" lets each amount answer for itself. The cell
+                      still sits on the leading edge: dir governs the text inside it,
+                      not where the column goes. */}
+                  <td className={styles.amount} dir="auto">
                     {amount ? amount.text : '—'}
                     {amount?.approximate && (
                       <span className={styles.approx} title="rounded up">≈</span>
                     )}
                   </td>
-                  <td className={styles.name} lang="he">
+                  {/* dir="auto" on both: lang="he" chooses the font and does nothing
+                      for bidi, so an ingredient starting with a number or a Latin word
+                      resolved against the wrong base direction — the same defect that
+                      stranded full stops in the method, and it printed that way too. */}
+                  <td className={styles.name} lang="he" dir="auto">
                     {ing.name}
-                    {ing.note && <em className={styles.note} lang="he">{ing.note}</em>}
+                    {ing.note && <em className={styles.note} lang="he" dir="auto">{ing.note}</em>}
                   </td>
                 </tr>
               </Fragment>

@@ -1,25 +1,33 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { deleteAndGoBack } from '@/lib/mutations';
 import Icon from './Icon';
 import { useT } from './LangProvider';
 import styles from './RecipeCardActions.module.css';
 
 /**
- * Edit and delete, on the card itself.
+ * Edit, on the card itself.
  *
- * Deleting is one tap with no dialog, and that is deliberate rather than careless:
- * the delete is soft, `deleteAndGoBack` redirects with `?undo=<id>`, and the ten-
- * second UndoToast on the category page puts the recipe back. Revisions mean nothing
- * here is truly lost either way. A confirm dialog on top of a working undo trains
- * people to dismiss dialogs.
+ * DELETE USED TO LIVE HERE, and it was one tap with no dialog. The reasoning was
+ * that the delete is soft, the redirect carries `?undo=<id>`, and the ten-second
+ * UndoToast puts the recipe back — so a confirm on top of a working undo would only
+ * train people to dismiss confirms.
  *
- * The buttons are siblings of the card's link, not children of it — see RecipeCard.
- * They still stop propagation, because the card may later gain a click handler and
- * this is the failure that would be found by a deleted recipe rather than by a test.
+ * That argument holds everywhere except the place it was used. The ✕ sat inside the
+ * card's own tap surface, on a list you scroll through with a thumb, at phone width,
+ * in a kitchen — and the undo is only a net if you happen to be looking at the
+ * screen when the toast appears. The recipe's own edit form already has a delete,
+ * now behind a written confirm, and reaching it takes one extra tap on the pencil
+ * that is still right here.
+ *
+ * So: one delete, in one place, guarded. The edit form's own delete does the same
+ * two things this did — soft-delete, then land on the category page with `?undo=`
+ * so the toast still appears — which left `deleteAndGoBack` in lib/mutations.ts
+ * with no caller, and it is gone rather than kept "in case".
+ *
+ * The button is a sibling of the card's link, not a child of it — see RecipeCard —
+ * and still stops propagation, because the card may later gain a click handler and
+ * that is the sort of failure found by a lost recipe rather than by a test.
  */
 export default function RecipeCardActions({
   id, category, title,
@@ -27,8 +35,6 @@ export default function RecipeCardActions({
   id: string; category: string; title: string;
 }) {
   const t = useT();
-  const sort = useSearchParams().get('sort') ?? undefined;
-  const [busy, setBusy] = useState(false);
 
   return (
     <div className={styles.actions}>
@@ -40,23 +46,6 @@ export default function RecipeCardActions({
       >
         <Icon name="add_recipe" size={18} strokeWidth={1.8} />
       </Link>
-
-      <button
-        type="button"
-        className={styles.action}
-        disabled={busy}
-        aria-label={t('card.delete', { title })}
-        onClick={(e) => {
-          e.stopPropagation();
-          setBusy(true);
-          /* No await and no catch: the action ends in a redirect(), which Next
-             signals by THROWING. Awaiting it here would turn a successful delete
-             into a caught error and an error strip on a card that is already gone. */
-          void deleteAndGoBack(id, category, sort);
-        }}
-      >
-        ✕
-      </button>
     </div>
   );
 }

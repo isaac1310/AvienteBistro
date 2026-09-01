@@ -2,6 +2,7 @@ import MenuBuilder from '@/components/MenuBuilder';
 import { occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
 import { supabaseServer } from '@/lib/supabase/server';
+import { safeNext } from '@/lib/safeNext';
 import type { RecipeSummary } from '@/lib/constants';
 
 export const metadata = { title: 'Aviente — Build a menu' };
@@ -15,9 +16,15 @@ function nextFriday(): string {
 
 export default async function NewMenuPage({
   searchParams,
-}: { searchParams: Promise<{ dish?: string; date?: string; meal?: string }> }) {
-  const { dish, date, meal } = await searchParams;
+}: { searchParams: Promise<{ dish?: string; date?: string; meal?: string; returnTo?: string }> }) {
+  const { dish, date, meal, returnTo } = await searchParams;
   const when = date ?? nextFriday();
+  /* Where Cancel goes when the builder was entered from a recipe or a category
+     selection. Validated like a login `next` — same phishing-hop risk — and '/'
+     (safeNext's refusal value) means "no return context", so the builder falls
+     back to /menus as before. */
+  const back = safeNext(returnTo);
+  const cancelTo = back === '/' ? null : back;
 
   const db = await supabaseServer();
   const [{ data: recipes }, rules] = await Promise.all([
@@ -52,6 +59,7 @@ export default async function NewMenuPage({
     <MenuBuilder
       recipes={list}
       occasion={occasion}
+      cancelTo={cancelTo}
       initial={{
         date: when,
         meal_time: mealTime,

@@ -85,3 +85,12 @@
 
 .backRow { padding-top: var(--sp-3); }
 .search { display: block; margin-bottom: var(--sp-5); }
+
+/* Quiet link into /recipes/trash, under the maintenance block. */
+.trashLink {
+  margin: var(--sp-3) 0 0;
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--gold-ink);
+}
+.trashLink a { text-decoration: underline; }

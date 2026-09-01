@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Rubik, Petit_Formal_Script, Baloo_2, Frank_Ruhl_Libre, Heebo } from 'next/font/google';
+import localFont from 'next/font/local';
 import { LangProvider } from '@/components/LangProvider';
 import SchemaBanner from '@/components/SchemaBanner';
 import SelfTest from '@/components/SelfTest';
@@ -24,30 +24,62 @@ import './globals.css';
  *                         falls back to a system font.
  *   Heebo               — the Hebrew sans, kept behind Rubik as a second line.
  */
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'], weight: ['300', '400', '500', '600'],
-  style: ['normal', 'italic'], variable: '--font-cormorant', display: 'swap',
+/* Self-hosted (next/font/local), not next/font/google: the production build used
+   to FETCH all six families at build time, so a Google Fonts outage — or any
+   network-restricted build machine — failed the build of an app whose fonts had
+   not changed. The exact woff2 files live in app/fonts; same faces, same weights,
+   zero build-time network. */
+const cormorant = localFont({
+  src: [
+    { path: './fonts/cormorant-garamond-v21-latin-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/cormorant-garamond-v21-latin-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/cormorant-garamond-v21-latin-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/cormorant-garamond-v21-latin-600.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/cormorant-garamond-v21-latin-300italic.woff2', weight: '300', style: 'italic' },
+    { path: './fonts/cormorant-garamond-v21-latin-italic.woff2', weight: '400', style: 'italic' },
+    { path: './fonts/cormorant-garamond-v21-latin-500italic.woff2', weight: '500', style: 'italic' },
+    { path: './fonts/cormorant-garamond-v21-latin-600italic.woff2', weight: '600', style: 'italic' },
+  ],
+  variable: '--font-cormorant', display: 'swap',
 });
-const rubik = Rubik({
-  // Hebrew AND Latin: the whole point of choosing it over Jost.
-  subsets: ['hebrew', 'latin'], weight: ['300', '400', '500', '600'],
+const rubik = localFont({
+  // Hebrew AND Latin in every file: the whole point of choosing it over Jost.
+  src: [
+    { path: './fonts/rubik-v31-hebrew_latin-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/rubik-v31-hebrew_latin-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/rubik-v31-hebrew_latin-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/rubik-v31-hebrew_latin-600.woff2', weight: '600', style: 'normal' },
+  ],
   variable: '--font-rubik', display: 'swap',
 });
-const script = Petit_Formal_Script({
+const script = localFont({
   // One weight exists, and Latin is all it has — see --script in globals.css.
-  subsets: ['latin'], weight: '400',
+  src: [{ path: './fonts/petit-formal-script-v19-latin-regular.woff2', weight: '400', style: 'normal' }],
   variable: '--font-script', display: 'swap',
 });
-const baloo = Baloo_2({
-  subsets: ['latin'], weight: ['400', '600', '700'],
+const baloo = localFont({
+  src: [
+    { path: './fonts/baloo-2-v23-latin-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/baloo-2-v23-latin-600.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/baloo-2-v23-latin-700.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-baloo', display: 'swap',
 });
-const frank = Frank_Ruhl_Libre({
-  subsets: ['hebrew', 'latin'], weight: ['300', '400', '500', '700'],
+const frank = localFont({
+  src: [
+    { path: './fonts/frank-ruhl-libre-v23-hebrew_latin-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/frank-ruhl-libre-v23-hebrew_latin-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/frank-ruhl-libre-v23-hebrew_latin-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/frank-ruhl-libre-v23-hebrew_latin-700.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-frank', display: 'swap',
 });
-const heebo = Heebo({
-  subsets: ['hebrew', 'latin'], weight: ['300', '400', '500'],
+const heebo = localFont({
+  src: [
+    { path: './fonts/heebo-v28-hebrew_latin-300.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/heebo-v28-hebrew_latin-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/heebo-v28-hebrew_latin-500.woff2', weight: '500', style: 'normal' },
+  ],
   variable: '--font-heebo', display: 'swap',
 });
 

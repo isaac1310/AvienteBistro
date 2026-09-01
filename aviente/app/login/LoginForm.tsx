@@ -68,7 +68,7 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
       },
     });
     setBusy(false);
-    if (error) { setError(readable(error.message)); return; }
+    if (error) { setError(readable(error.message, t)); return; }
     setSent(true);
   }
 
@@ -78,7 +78,7 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
     const db = supabaseBrowser();
     const { error } = await db.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
-    if (error) { setError(readable(error.message)); return; }
+    if (error) { setError(readable(error.message, t)); return; }
     router.replace(next);
   }
 
@@ -86,22 +86,22 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
     return (
       <div className={styles.form}>
         <div className={styles.sent}>
-          <p><strong>Check your email.</strong> Tap the link in it and you are in.</p>
+          <p><strong>{t('login.checkEmail')}</strong> {t('login.tapLink')}</p>
           {/* Said explicitly, because the failure is silent and looks like a broken
               app: a magic link is completed by the browser that ASKED for it, so a
-              link requested here and opened on another device fails, and fails
-              looking like an expired link.
+              link requested here and opened in another BROWSER fails, even on the
+              same phone — a PWA or an email app can open its own browser context.
+              "This device" was therefore a lie; the honest unit is this browser.
               This used to have an answer on the screen — a six-digit code from the
               same email, which works anywhere. That was cancelled: the email now
               carries a link and nothing else, so the only remaining answer is to
               open it here. */}
-          <p>Open it on this device — a link only signs in the browser that asked
-            for it.</p>
+          <p>{t('login.sameBrowser')}</p>
         </div>
         {error && <p className={styles.error}>{error}</p>}
         <button type="button" className={styles.linkish}
           onClick={() => { setSent(false); setError(null); }}>
-          Use a different email
+          {t('login.differentEmail')}
         </button>
       </div>
     );
@@ -118,9 +118,9 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
         />
         {error && <p className={styles.error}>{error}</p>}
         <button className="btn" type="submit" disabled={busy || !email.includes('@')}>
-          {busy ? 'Sending…' : 'Send me a link'}
+          {busy ? t('login.sending') : t('login.sendLink')}
         </button>
-        <p className={styles.hint}>No password to remember — we email you a link.</p>
+        <p className={styles.hint}>{t('login.hint')}</p>
 
         {localOnly && (
           <details className={styles.e2e} open={showE2E}
@@ -145,17 +145,17 @@ export default function LoginForm({ e2eAvailable }: { e2eAvailable: boolean }) {
 }
 
 /** Supabase's messages are accurate and unhelpful. Say what to do instead. */
-function readable(message: string): string {
+function readable(message: string, t: ReturnType<typeof useT>): string {
   const m = message.toLowerCase();
   /* The doorman's own words pass through untouched — the hook message was written
      for this screen ("Ask Itzik to add you"), and rewriting it here would give the
      two gates two different voices. */
   if (m.includes('family list')) return message;
   if (m.includes('signups not allowed') || m.includes('not found') || m.includes('invalid login'))
-    return 'That email is not on the family list. Only two accounts exist — check for a typo.';
+    return t('login.notOnList');
   if (m.includes('token has expired') || m.includes('invalid'))
-    return 'That link has expired, or it was opened on a different device. Ask for a new one and open it here.';
+    return t('login.expired');
   if (m.includes('rate limit') || m.includes('too many'))
-    return 'Too many attempts just now. Wait a minute and try again.';
+    return t('login.rateLimit');
   return message;
 }

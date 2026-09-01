@@ -204,6 +204,13 @@ const DICT = {
   'form.needsName':          { he: 'למתכון צריך שם.', en: 'A recipe needs a name.' },
   'form.needsServings':      { he: 'צריך לכתוב כמה מנות, או מה יוצא מזה (למשל «ליטר אחד»).',
                                en: 'Give either a number of servings or what it makes (e.g. “1 litre”).' },
+  /* The generic fallbacks. They were the last two hardcoded English sentences the
+     form could show, and they show exactly when someone is already frustrated. */
+  'form.cantSave':           { he: 'השמירה לא עברה.', en: 'Could not save.' },
+  'form.cantDelete':         { he: 'המחיקה לא עברה.', en: 'Could not delete.' },
+  /* After refiling a recipe: the banner on the saved recipe, in its new category. */
+  'recipe.movedTo':          { he: 'הועבר אל {category}', en: 'Moved to {category}' },
+  'recipe.backToPrevious':   { he: 'חזרה לקטגוריה הקודמת', en: 'Back to the previous category' },
 
   // ── the menu builder ────────────────────────────────────────────────────
   // The CARD itself stays French/Hebrew by decision; these are the controls around it.
@@ -251,9 +258,11 @@ const DICT = {
   'print.print':        { he: 'הדפסה',          en: 'Print' },
   'print.backToRecipe': { he: 'חזרה למתכון',    en: 'Back to the recipe' },
   'print.backToMenu':   { he: 'חזרה לתפריט',    en: 'Back to the menu' },
+  /* The trash exists now, so the original promise — "can be restored afterwards" —
+     finally became true and the blunt ten-second warning could be retired. */
   'form.deleteConfirm': {
-    he: 'למחוק את «{title}»? אפשר לבטל במשך עשר שניות בלבד.',
-    en: 'Delete “{title}”? You have ten seconds to undo it.',
+    he: 'למחוק את «{title}»? אפשר לשחזר אחר כך מסל המחזור.',
+    en: 'Delete “{title}”? It can be restored later from the trash.',
   },
   'undo.deleted':      { he: 'נמחק.',           en: 'Deleted.' },
   'undo.undo':         { he: 'ביטול',           en: 'Undo' },
@@ -556,7 +565,53 @@ const DICT = {
   'photo.move':       { he: 'העברת תמונה', en: 'Move photo' },
   'brand.eyebrow':    { he: 'שרטוטים', en: 'Blueprints' },
   'settings.prefs':   { he: 'העדפות',  en: 'Preferences' },
+
+  // ── login ───────────────────────────────────────────────────────────────
+  // The whole screen was hardcoded English — the first screen a Hebrew reader
+  // meets, and the one place a stuck person has no other screen to compare with.
   'login.email':      { he: 'האימייל שלך', en: 'Your email' },
+  'login.checkEmail': { he: 'לבדוק את האימייל.', en: 'Check your email.' },
+  'login.tapLink':    { he: 'ללחוץ על הקישור שבו — וזהו.', en: 'Tap the link in it and you are in.' },
+  'login.sameBrowser': { he: 'לפתוח את הקישור כאן, באותו דפדפן — קישור נכנס רק בדפדפן שביקש אותו.',
+                          en: 'Open it here, in this same browser — a link only signs in the browser that asked for it.' },
+  'login.differentEmail': { he: 'להשתמש באימייל אחר', en: 'Use a different email' },
+  'login.sending':    { he: 'שולח…', en: 'Sending…' },
+  'login.sendLink':   { he: 'לשלוח לי קישור', en: 'Send me a link' },
+  'login.hint':       { he: 'בלי סיסמה לזכור — נשלח לך קישור באימייל.',
+                         en: 'No password to remember — we email you a link.' },
+  'login.notOnList':  { he: 'האימייל הזה לא ברשימת המשפחה. קיימים רק שני חשבונות — כדאי לבדוק אם יש טעות הקלדה.',
+                         en: 'That email is not on the family list. Only two accounts exist — check for a typo.' },
+  'login.expired':    { he: 'הקישור פג, או שנפתח בדפדפן אחר. לבקש חדש ולפתוח אותו כאן.',
+                         en: 'That link has expired, or it was opened in a different browser. Ask for a new one and open it here.' },
+  'login.rateLimit':  { he: 'יותר מדי ניסיונות. לחכות דקה ולנסות שוב.',
+                         en: 'Too many attempts just now. Wait a minute and try again.' },
+
+  // ── list metadata that was hardcoded ────────────────────────────────────
+  'menus.shared':     { he: 'משותף', en: 'shared' },
+  'import.status.added':    { he: 'נוספו', en: 'added' },
+  'import.status.replaced': { he: 'הוחלפו', en: 'replaced' },
+  'import.status.skipped':  { he: 'דולגו', en: 'skipped' },
+  'import.status.failed':   { he: 'נכשלו', en: 'failed' },
+  'import.nIngredients':    { he: '{n} מרכיבים', en: '{n} ingredients' },
+  'import.nSteps':          { he: '{n} שלבים', en: '{n} steps' },
+  // ── the trash ───────────────────────────────────────────────────────────
+  // Deletion was recoverable in the DATABASE from day one (soft delete), but the
+  // only door was a ten-second toast. This is the durable door.
+  'trash.title':     { he: 'סל המחזור', en: 'Trash' },
+  'trash.link':      { he: 'מתכונים שנמחקו', en: 'Deleted recipes' },
+  'trash.empty':     { he: 'אין מתכונים מחוקים. כל מה שנמחק אי פעם שוחזר.',
+                        en: 'No deleted recipes. Everything ever deleted has been restored.' },
+  'trash.hint':      { he: 'מתכון שנמחק נשאר כאן — שום דבר לא נעלם באמת. שחזור מחזיר אותו לקטגוריה שלו.',
+                        en: 'A deleted recipe stays here — nothing is ever really gone. Restore puts it back in its category.' },
+  'trash.restore':   { he: 'שחזור', en: 'Restore' },
+  'trash.restoring': { he: 'משחזרים…', en: 'Restoring…' },
+  'trash.deletedOn': { he: 'נמחק {date}', en: 'deleted {date}' },
+  'trash.failed':    { he: 'השחזור לא עבר.', en: 'Could not restore.' },
+
+  /* Clipboard can be denied (permissions) or missing (old WebView, http). The
+     fallback is honest: the text is selected, finish the copy by hand. */
+  'clipboard.failed':       { he: 'ההעתקה נחסמה — הטקסט מסומן, אפשר להעתיק ידנית.',
+                               en: 'Copy was blocked — the text is selected, copy it by hand.' },
   'guest.gone':       { he: 'התפריט הזה אינו זמין', en: 'This menu is not available' },
   'guest.goneBody':   { he: 'אפשר שהשיתוף בוטל, ואפשר שהקישור חלקי — צריך את הכתובת כולה, כולל החלק שאחרי סימן השאלה.',
                          en: 'The link may have been withdrawn, or it may be incomplete — the address needs the whole thing, including the part after the question mark.' },

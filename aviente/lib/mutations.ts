@@ -99,19 +99,66 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
   let previousPhoto: string | null = null;
 
   if (recipeId) {
-    await snapshot(recipeId, member.id);
-
     const { data: before } = await db
       .from('recipes').select('photo_path').eq('id', recipeId).maybeSingle();
     previousPhoto = (before?.photo_path as string | null) ?? null;
+  }
 
+  /* ONE transaction — migration 0021. The old path was six separate round trips
+     (revision → update → delete ingredients → delete steps → insert both), and a
+     failure between any two of them left the recipe half-written. The function
+     keeps the same order and the same revision-first invariant; the database now
+     guarantees all-or-nothing. */
+  const rpc = await db.rpc('save_recipe_tx', {
+    p_id: recipeId ?? null,
+    p_fields: fields,
+    p_ingredients: input.ingredients,
+    p_steps: input.steps,
+    p_member: member.id,
+  });
+
+  if (rpc.error && rpc.error.code === 'PGRST202') {
+    /* Migration 0021 not applied yet. The legacy multi-write path keeps the app
+       working against the older schema — delete this branch once the migration is
+       live everywhere. */
+    console.warn('saveRecipe: save_recipe_tx missing — using the legacy non-transactional path. Apply migration 0021.');
+    recipeId = await saveRecipeLegacy(db, member.id, recipeId, fields, input);
+  } else if (rpc.error) {
+    throw new Error(rpc.error.message);
+  } else {
+    recipeId = rpc.data as string;
+  }
+
+  /* The replaced photograph goes LAST, and that ordering is the fix for a real hole.
+     PhotoField used to delete the old object the moment the new one finished
+     uploading — before the row knew about the new path. Cancel the edit, close the
+     tab, or fail this save, and the recipe pointed at an object that no longer
+     existed: exactly the dangling state one recipe was found in. Now the object is
+     removed only once the row is written, and only when the path actually changed.
+     A failure here is logged, not thrown: an orphaned file is untidy, while throwing
+     would report a successful save as failed. The backup manifest names orphans. */
+  if (previousPhoto && previousPhoto !== fields.photo_path) {
+    const { error } = await db.storage.from('recipe-photos').remove([previousPhoto]);
+    if (error) console.warn(`saveRecipe: old photo ${previousPhoto} not removed — ${error.message}`);
+  }
+
+  revalidatePath('/', 'layout');
+  return recipeId!;
+}
+
+/** The pre-0021 save path, verbatim. Kept only for a database that has not run the
+ *  migration yet; the RPC above is the real one. */
+async function saveRecipeLegacy(
+  db: Awaited<ReturnType<typeof supabaseServer>>,
+  memberId: string,
+  recipeId: string | undefined,
+  fields: Record<string, unknown>,
+  input: RecipeInput,
+): Promise<string> {
+  if (recipeId) {
+    await snapshot(recipeId, memberId);
     const { error } = await db.from('recipes').update(fields).eq('id', recipeId);
     if (error) throw new Error(error.message);
-    // Children are replaced wholesale: positions and deletions make an
-    // incremental diff far more error-prone than a rewrite of eight rows.
-    /* Every result checked. These two were discarded, so a refused delete left the
-       old children in place and the inserts below appended to them — a recipe with
-       every ingredient twice, reported as a clean save. */
     const delIng = await db.from('ingredients').delete().eq('recipe_id', recipeId);
     if (delIng.error) throw new Error(`saveRecipe ingredients: ${delIng.error.message}`);
     const delSteps = await db.from('steps').delete().eq('recipe_id', recipeId);
@@ -134,21 +181,6 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
     );
     if (error) throw new Error(error.message);
   }
-
-  /* The replaced photograph goes LAST, and that ordering is the fix for a real hole.
-     PhotoField used to delete the old object the moment the new one finished
-     uploading — before the row knew about the new path. Cancel the edit, close the
-     tab, or fail this save, and the recipe pointed at an object that no longer
-     existed: exactly the dangling state one recipe was found in. Now the object is
-     removed only once the row is written, and only when the path actually changed.
-     A failure here is logged, not thrown: an orphaned file is untidy, while throwing
-     would report a successful save as failed. The backup manifest names orphans. */
-  if (previousPhoto && previousPhoto !== fields.photo_path) {
-    const { error } = await db.storage.from('recipe-photos').remove([previousPhoto]);
-    if (error) console.warn(`saveRecipe: old photo ${previousPhoto} not removed — ${error.message}`);
-  }
-
-  revalidatePath('/', 'layout');
   return recipeId!;
 }
 

@@ -25,6 +25,9 @@ export default function MenuActions({
     shareId && shareSecret ? `/m/${shareId}?k=${shareSecret}` : null,
   );
   const [copied, setCopied] = useState(false);
+  /* Clipboard denied or missing. The link field below is selectable, so the
+     fallback is to say so rather than fail silently with "Copied" never showing. */
+  const [copyFailed, setCopyFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /* The date being copied to, or null when nobody is duplicating. */
   const [copyDate, setCopyDate] = useState<string | null>(null);
@@ -48,8 +51,12 @@ export default function MenuActions({
       if (navigator.share) {
         try { await navigator.share({ url, title: 'Aviente — menu' }); return; } catch { /* cancelled */ }
       }
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+      } catch {
+        setCopyFailed(true); // the link field renders below; it selects on focus
+      }
     });
   }
 
@@ -97,13 +104,20 @@ export default function MenuActions({
                 typeof window === 'undefined' ? link : `${window.location.origin}${link}`
               } onFocus={(e) => e.currentTarget.select()} />
               <button type="button" className={styles.copy} disabled={busy}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(`${window.location.origin}${link}`);
-                  setCopied(true);
+                onClick={async (e) => {
+                  try {
+                    await navigator.clipboard.writeText(`${window.location.origin}${link}`);
+                    setCopied(true); setCopyFailed(false);
+                  } catch {
+                    const field = (e.currentTarget.previousElementSibling as HTMLInputElement | null);
+                    field?.focus(); field?.select();
+                    setCopyFailed(true);
+                  }
                 }}>
                 {copied ? t('menu.copied') : t('menu.copy')}
               </button>
             </div>
+            {copyFailed && <p className={styles.error} role="status">{t('clipboard.failed')}</p>}
             <BusyButton busy={busy} className={styles.revoke} busyLabel={t('menu.working')}
               onClick={() => setAskUnshare(true)}>
               <Motif name="link_off" size={18} /> {t('menu.stopSharing')}

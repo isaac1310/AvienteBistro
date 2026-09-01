@@ -15,7 +15,10 @@
   border-radius: var(--radius); color: var(--ink); resize: vertical; }
 .prompt { background: rgba(30,58,47,0.04); color: var(--ink-soft); }
 .paste { font-size: 1rem; }
-.paste:focus { border-color: var(--gold-deep); outline: none; }
+.paste:focus { border-color: var(--gold-deep); }
+/* Mouse focus keeps the quiet border tint; keyboard focus keeps the global ring.
+   `outline: none` on bare :focus was cancelling :focus-visible too. */
+.paste:focus:not(:focus-visible) { outline: none; }
 
 .copy { font: inherit; font-family: var(--san); font-size: var(--t-label);
   letter-spacing: 2px; text-transform: uppercase; min-height: var(--tap);
@@ -94,7 +97,8 @@
 }
 .titleField:hover { border-color: var(--card-border); }
 .titleField:focus-visible {
-  outline: none;
+  outline: var(--focus-ring);
+  outline-offset: 2px;
   border-color: var(--primary);
   background: var(--card);
 }

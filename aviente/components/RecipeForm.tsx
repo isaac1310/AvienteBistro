@@ -198,17 +198,19 @@ export default function RecipeForm({
       if (!input.servings && !input.yield_text) fail('servings', t('form.needsServings'));
       const id = await saveRecipe(input);
       setDirty(false);
-      /* Refiling a recipe returns you to where you were WORKING, not to where the
-         recipe went. Going through a category tidying things up, every move used to
-         throw you into the destination category and leave you to navigate back — and
-         `category` here is the form's NEW value, so it was the wrong list twice over.
-         The delete path has always used `recipe.category`, the untouched prop; this
-         borrows it. A new recipe has no origin, so it still opens. */
+      /* Refiling a recipe opens the SAVED RECIPE, in its new home, with a
+         "moved from" banner offering the previous category — the third design of
+         this navigation. v1 landed in the destination category (lost the batch-tidy
+         flow), v2 landed in the ORIGIN category (kept the flow, but hid the recipe
+         you just saved and its new address). Opening the recipe with a way back
+         serves both: the single move sees its result, the tidy-up is one tap away. */
       const moved = recipe && category !== recipe.category;
-      router.push(moved ? `/recipes/${recipe.category}` : `/recipes/${category}/${id}`);
+      router.push(moved
+        ? `/recipes/${category}/${id}?movedFrom=${recipe.category}`
+        : `/recipes/${category}/${id}`);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save.');
+      setError(e instanceof Error ? e.message : t('form.cantSave'));
       setBusy(false);
     }
   }
@@ -223,7 +225,7 @@ export default function RecipeForm({
       router.push(`/recipes/${recipe.category}?undo=${recipe.id}`);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not delete.');
+      setError(e instanceof Error ? e.message : t('form.cantDelete'));
       setBusy(false);
     }
   }

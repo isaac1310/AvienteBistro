@@ -70,6 +70,12 @@ export default async function RecipesIndex() {
               one maintenance job that genuinely belongs beside the recipe list. */}
           <div className={styles.settings}>
             <FillDescriptions />
+            {/* The trash, quietly, beside the other maintenance job. Deleted
+                recipes were recoverable only inside the ten-second toast; this is
+                the durable door. */}
+            <p className={styles.trashLink}>
+              <Link href="/recipes/trash">{t('trash.link')}</Link>
+            </p>
           </div>
         </main>
       </div>

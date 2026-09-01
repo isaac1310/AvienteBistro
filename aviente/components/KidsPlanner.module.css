@@ -280,7 +280,7 @@
   color: var(--ink);
   width: 100%;
 }
-.freeField:focus-visible { outline: none; border-color: #c2417e; }
+.freeField:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-color: #c2417e; }
 
 /* The planner is busy — and it says so wherever you are on the page.
    This sat under the week strip, which is fine until you scroll to Thursday: the only

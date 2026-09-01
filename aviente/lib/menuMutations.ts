@@ -40,10 +40,23 @@ export async function saveMenu(input: {
   const member = await requireMember();
   const db = await supabaseServer();
 
+  /* A blank title falls back to the occasion, resolved HERE for the date and meal
+     time actually being saved. The builder used to resolve this and send it along,
+     which saved a stale occasion when the date had just changed — the preview and
+     the card could both describe the previous date. */
+  let title = input.title?.trim() || null;
+  if (!title) {
+    const { occasionRules } = await import('./menus');
+    const { resolveOccasion } = await import('./occasion');
+    const rules = await occasionRules();
+    const at = input.meal_time === 'day' ? 'T12:00:00' : 'T18:00:00';
+    title = resolveOccasion(new Date(`${input.date}${at}`), input.meal_time, rules)?.title ?? null;
+  }
+
   const fields = {
     date: input.date,
     meal_time: input.meal_time,
-    title: input.title?.trim() || null,
+    title,
     language: input.language,
     chef_notes: input.chef_notes?.trim() || null,
     /* An empty array is stored as null, not as []. They would print identically —
@@ -53,23 +66,10 @@ export async function saveMenu(input: {
     course_order: input.course_order?.length ? input.course_order : null,
   };
 
-  let menuId = input.id;
-  if (menuId) {
-    // Before anything is overwritten — the same rule recipes have followed all
-    // along, and the reason last-write-wins is survivable.
-    await snapshotMenu(menuId, member.id);
-    const { error } = await db.from('menus').update(fields).eq('id', menuId);
-    if (error) throw new Error(error.message);
-    await db.from('menu_items').delete().eq('menu_id', menuId);
-  } else {
-    const { data, error } = await db.from('menus').insert(fields).select('id').single();
-    if (error) throw new Error(error.message);
-    menuId = data.id as string;
-  }
-
+  /* Snapshot every dish as it reads TODAY — read BEFORE the write so the whole
+     write can be one transaction. One query for all of them rather than N. */
+  let rows: Record<string, unknown>[] = [];
   if (input.items.length) {
-    /* Snapshot every dish as it reads TODAY. One query for all of them rather
-       than N, then the rows are built from that. */
     const ids = input.items.map((i) => i.recipe_id);
     const { data: recipes } = await db
       .from('recipes')
@@ -87,13 +87,11 @@ export async function saveMenu(input: {
       }),
     );
 
-    const rows = input.items.map((item, position) => {
+    rows = input.items.map((item) => {
       const r = byId.get(item.recipe_id);
       return {
-        menu_id: menuId,
         recipe_id: item.recipe_id,
         course: item.course,
-        position,
         dish_title: r?.title ?? null,
         dish_title_en: r?.title_en ?? null,
         /* A description typed on the CARD wins over the recipe's own.
@@ -106,9 +104,42 @@ export async function saveMenu(input: {
         credit_name: r?.source?.name ?? null,
       };
     });
+  }
 
-    const { error } = await db.from('menu_items').insert(rows);
-    if (error) throw new Error(error.message);
+  /* ONE transaction — migration 0021. Update + delete items + insert items used to
+     be three separate writes; a failure between them left a menu with no dishes, or
+     the old ones under a new title. The function keeps the revision-first rule. */
+  let menuId = input.id;
+  const rpc = await db.rpc('save_menu_tx', {
+    p_id: menuId ?? null,
+    p_fields: fields,
+    p_items: rows,
+    p_member: member.id,
+  });
+
+  if (rpc.error && rpc.error.code === 'PGRST202') {
+    /* Migration 0021 not applied yet — the legacy path, delete once it is live. */
+    console.warn('saveMenu: save_menu_tx missing — using the legacy non-transactional path. Apply migration 0021.');
+    if (menuId) {
+      await snapshotMenu(menuId, member.id);
+      const { error } = await db.from('menus').update(fields).eq('id', menuId);
+      if (error) throw new Error(error.message);
+      await db.from('menu_items').delete().eq('menu_id', menuId);
+    } else {
+      const { data, error } = await db.from('menus').insert(fields).select('id').single();
+      if (error) throw new Error(error.message);
+      menuId = data.id as string;
+    }
+    if (rows.length) {
+      const { error } = await db.from('menu_items').insert(
+        rows.map((r, position) => ({ ...r, menu_id: menuId, position })),
+      );
+      if (error) throw new Error(error.message);
+    }
+  } else if (rpc.error) {
+    throw new Error(rpc.error.message);
+  } else {
+    menuId = rpc.data as string;
   }
 
   revalidatePath('/menus');
@@ -267,4 +298,19 @@ export async function restoreMenuRevision(revisionId: string) {
     if (error) throw new Error(`restore items: ${error.message}`);
   }
   revalidatePath('/menus');
+}
+
+/** The occasion preview for a date the builder just changed to.
+ *
+ * The builder is handed both meal-time variants for its INITIAL date; this is the
+ * round trip for every date after that, so the preview never describes the date the
+ * page was opened with while a different one sits in the field. */
+export async function occasionFor(date: string): Promise<{ evening: string | null; day: string | null }> {
+  const { occasionRules } = await import('./menus');
+  const { resolveOccasion } = await import('./occasion');
+  const rules = await occasionRules();
+  return {
+    evening: resolveOccasion(new Date(`${date}T18:00:00`), 'evening', rules)?.title ?? null,
+    day: resolveOccasion(new Date(`${date}T12:00:00`), 'day', rules)?.title ?? null,
+  };
 }

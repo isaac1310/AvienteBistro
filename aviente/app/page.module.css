@@ -99,6 +99,13 @@
   margin: 0;
   padding: 0;
   display: grid;
+  /* Two-up ALWAYS on a phone, no breakpoint. 480 missed the Ultra (412), and the
+     fixed 400 that replaced it still missed the same phone with Samsung's
+     screen-zoom on, which makes it report 384 or 360 CSS px. Any width chosen
+     from a spec sheet loses to the device as actually configured; the product
+     intent — all four cards above the fold — holds at every phone width, so the
+     two columns are unconditional and only desktop widens them to four. */
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--sp-3);
 }
 
@@ -204,12 +211,8 @@
 }
 
 
-/* Four cards, not three: two-up on a phone so all four are above the fold on the
-   Ultra, four across on a desktop. */
-/* 400, not 480: the primary phone is the Ultra at 412 CSS px, and at 480 it was
-   still getting one column — the comment above promised a layout the breakpoint
-   never delivered. */
-@media (min-width: 400px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+/* Four cards, not three: two-up on a phone (unconditional — see .actions),
+   four across on a desktop. */
 @media (min-width: 1100px) { .actions { grid-template-columns: repeat(4, 1fr); } }
 
 /* The search row. Deliberately quiet: it is the first thing you can DO on this

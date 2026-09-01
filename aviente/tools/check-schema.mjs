@@ -93,6 +93,11 @@ const PROBES = [
      and it is invisible here — same blind spot as 16, covered by db-check, which
      reads schema_migrations with the service key. It maps to 17's probe: reaching 17
      is all this gate can prove. */
+  /* 21 adds only FUNCTIONS (save_recipe_tx / save_menu_tx), so it is invisible to a
+     column probe — same blind spot as 16 and 18, covered by db-check. It maps to
+     20's probe, and the app code falls back to the pre-0021 write path until the
+     migration is applied, so a database at 20 still works. */
+  [21, 'family_settings?select=id,last_backup_at&limit=1'],
   [20, 'family_settings?select=id,last_backup_at&limit=1'],
   [19, 'family_members?select=id,email&limit=1'],
   [18, 'kids_meals?select=id,free_text&limit=1'],

@@ -24,7 +24,8 @@
   padding: var(--sp-2) var(--sp-3); background: var(--card);
   border: 1px solid var(--card-border); border-radius: var(--radius); color: var(--ink); }
 .area { min-height: 0; line-height: 1.6; resize: vertical; }
-.input:focus, .area:focus { border-color: var(--gold-deep); outline: none; }
+.input:focus, .area:focus { border-color: var(--gold-deep); }
+.input:focus:not(:focus-visible), .area:focus:not(:focus-visible) { outline: none; }
 
 .langRow { display: flex; align-items: center; justify-content: space-between;
   gap: var(--sp-3); flex-wrap: wrap; }
@@ -129,7 +130,8 @@
 }
 .noteField::placeholder { color: var(--muted-ink); opacity: 0.7; }
 .noteField:focus-visible {
-  outline: none;
+  outline: var(--focus-ring);
+  outline-offset: 2px;
   border-bottom-color: var(--primary);
   background: var(--card);
 }

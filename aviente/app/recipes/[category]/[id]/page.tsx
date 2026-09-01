@@ -8,13 +8,16 @@ import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
 import KeepAwake from '@/components/KeepAwake';
 import RecipeHistory from '@/components/RecipeHistory';
-import type { CategoryKey } from '@/lib/constants';
+import { CATEGORIES, type CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
 import { currentLang, serverT } from '@/lib/lang';
 import { categoryLabel, getRecipe } from '@/lib/queries';
 import styles from './recipe.module.css';
 
-type Params = { params: Promise<{ category: string; id: string }> };
+type Params = {
+  params: Promise<{ category: string; id: string }>;
+  searchParams?: Promise<{ movedFrom?: string }>;
+};
 
 export async function generateMetadata({ params }: Params) {
   const { id } = await params;
@@ -61,12 +64,20 @@ function timeAgo(iso: string, t: Awaited<ReturnType<typeof serverT>>): string {
 }
 
 /* Recipe view (§3.3). */
-export default async function RecipePage({ params }: Params) {
+export default async function RecipePage({ params, searchParams }: Params) {
   const { category, id } = await params;
+  const { movedFrom } = (await searchParams) ?? {};
   const [recipe, t, lang] = await Promise.all([getRecipe(id), serverT(), currentLang()]);
   if (!recipe) notFound();
 
   const cat = categoryLabel(recipe.category);
+  /* ?movedFrom= is set by the edit form after refiling a recipe: the reader lands
+     on the SAVED recipe, and this banner names the new category and offers the old
+     one — the batch-tidy flow that used to be served by landing on the old list.
+     Validated against the real category set: it becomes a link. */
+  const movedCat = movedFrom && movedFrom !== recipe.category
+    && CATEGORIES.some((c) => c.key === movedFrom)
+    ? (movedFrom as CategoryKey) : null;
   const attribution = recipe.source_name
     ? t('recipe.attribution', { name: recipe.source_name })
     : null;
@@ -131,6 +142,13 @@ export default async function RecipePage({ params }: Params) {
           not, which is why this starts here and not on <html>. */}
       <div className={`shell ${styles.body}`} dir={hebrew ? 'rtl' : 'ltr'}
            lang={hebrew ? 'he' : 'en'}>
+        {movedCat && (
+          <p className={styles.moved} role="status">
+            {t('recipe.movedTo', { category: categoryName(cat, lang) })}
+            {' · '}
+            <Link href={`/recipes/${movedCat}`}>{t('recipe.backToPrevious')}</Link>
+          </p>
+        )}
         <p className="eyebrow">{categoryName(cat, lang)}</p>
         <h1 className={styles.title} lang="he" dir="auto">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
@@ -158,7 +176,7 @@ export default async function RecipePage({ params }: Params) {
             reach the thing you came for. Above the timing strip, because the actions
             belong to the recipe's identity rather than to its instructions. */}
         <div className={styles.actions}>
-          <Link href={`/menus/new?dish=${id}`} className="btn">{t('recipe.addToMenu')}</Link>
+          <Link href={`/menus/new?dish=${id}&returnTo=${encodeURIComponent(`/recipes/${recipe.category}/${id}`)}`} className="btn">{t('recipe.addToMenu')}</Link>
           {/* Two actions, because these were one and it was mislabelled: the button
               said "Export PDF" and opened the print PAGE, downloading nothing. */}
           <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>

@@ -117,7 +117,9 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
             onClick={() => {
               const ids = chosen.join(',');
               clearBasket();
-              router.push(`/menus/new?dish=${ids}`);
+              /* Cancelling the builder should land back here, not on /menus —
+                 abandoning "build a menu from this category" belongs where it began. */
+              router.push(`/menus/new?dish=${ids}&returnTo=${encodeURIComponent(window.location.pathname)}`);
             }}
           >
             {t('book.buildMenu')} <Arrow dir="forward" />

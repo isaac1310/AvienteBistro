@@ -206,7 +206,10 @@
 
 /* Four cards, not three: two-up on a phone so all four are above the fold on the
    Ultra, four across on a desktop. */
-@media (min-width: 480px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+/* 400, not 480: the primary phone is the Ultra at 412 CSS px, and at 480 it was
+   still getting one column — the comment above promised a layout the breakpoint
+   never delivered. */
+@media (min-width: 400px) { .actions { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1100px) { .actions { grid-template-columns: repeat(4, 1fr); } }
 
 /* The search row. Deliberately quiet: it is the first thing you can DO on this

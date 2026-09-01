@@ -49,6 +49,8 @@ export default function ImportPaste({
   const router = useRouter();
   const [text, setText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const promptBox = useRef<HTMLTextAreaElement>(null);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   /* Titles corrected on the preview card. Keyed by index like the category
      overrides, and empty until something is actually edited — so an untouched
@@ -103,10 +105,10 @@ export default function ImportPaste({
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('import.done')}</h1>
         <p className={styles.summary}>
-          {result.imported.length} added
-          {result.replaced.length > 0 && ` · ${result.replaced.length} replaced`}
-          {result.skipped.length > 0 && ` · ${result.skipped.length} skipped`}
-          {result.failed.length > 0 && ` · ${result.failed.length} failed`}
+          {result.imported.length} {t('import.status.added')}
+          {result.replaced.length > 0 && ` · ${result.replaced.length} ${t('import.status.replaced')}`}
+          {result.skipped.length > 0 && ` · ${result.skipped.length} ${t('import.status.skipped')}`}
+          {result.failed.length > 0 && ` · ${result.failed.length} ${t('import.status.failed')}`}
         </p>
 
         {/* A single recipe gets a real button. That is the commonest import by far —
@@ -122,7 +124,7 @@ export default function ImportPaste({
           <ul className={styles.report}>
             {result.imported.map((r) => (
               <li key={r.id}>
-                <span className={styles.ok}>added</span>{' '}
+                <span className={styles.ok}>{t('import.status.added')}</span>{' '}
                 <Link href={rowHref(r)} className={styles.rowLink} lang="he">{r.title}</Link>
               </li>
             ))}
@@ -132,18 +134,18 @@ export default function ImportPaste({
             recipe did not make it, which is the only thing worth knowing. */}
         {result.replaced.map((r) => (
           <p key={r.id} className={styles.line}>
-            <span className={styles.skip}>replaced</span>{' '}
+            <span className={styles.skip}>{t('import.status.replaced')}</span>{' '}
             <Link href={rowHref(r)} className={styles.rowLink} lang="he">{r.title}</Link>
           </p>
         ))}
         {result.skipped.map((r) => (
           <p key={r.title} className={styles.line}>
-            <span className={styles.skip}>skipped</span> <span lang="he">{r.title}</span> — {r.why}
+            <span className={styles.skip}>{t('import.status.skipped')}</span> <span lang="he">{r.title}</span> — {r.why}
           </p>
         ))}
         {result.failed.map((r) => (
           <p key={r.title} className={styles.line}>
-            <span className={styles.fail}>failed</span> <span lang="he">{r.title}</span> — {r.why}
+            <span className={styles.fail}>{t('import.status.failed')}</span> <span lang="he">{r.title}</span> — {r.why}
           </p>
         ))}
 
@@ -176,11 +178,24 @@ export default function ImportPaste({
       <section className={styles.step}>
         <h2 className={styles.h2}>{t('import.step1')}</h2>
         <p className={styles.hint}>{t('import.howto')}</p>
-        <textarea className={styles.prompt} readOnly rows={6} value={PROMPT} />
+        <textarea ref={promptBox} className={styles.prompt} readOnly rows={6} value={PROMPT} />
         <button type="button" className={styles.copy}
-          onClick={async () => { await navigator.clipboard.writeText(PROMPT); setCopied(true); }}>
+          onClick={async () => {
+            /* Clipboard access can be missing or denied, and the old handler simply
+               threw — the button did nothing and said nothing. The prompt is already
+               a visible textarea, so the fallback is to select it and say so. */
+            try {
+              await navigator.clipboard.writeText(PROMPT);
+              setCopied(true); setCopyFailed(false);
+            } catch {
+              promptBox.current?.focus();
+              promptBox.current?.select();
+              setCopyFailed(true);
+            }
+          }}>
           {copied ? t('import.copied') : t('import.copyPrompt')}
         </button>
+        {copyFailed && <p className={styles.error} role="status">{t('clipboard.failed')}</p>}
       </section>
 
       <section className={styles.step}>
@@ -271,8 +286,8 @@ export default function ImportPaste({
                       onChange={(e) => setTitles({ ...titles, [i]: e.target.value })}
                     />
                     <p className={styles.meta}>
-                      {r.ingredients.length} ingredients · {r.steps.length} steps
-                      {r.servings ? ` · serves ${r.servings}` : r.yieldText ? ` · ${r.yieldText}` : ''}
+                      {t('import.nIngredients', { n: r.ingredients.length })} · {t('import.nSteps', { n: r.steps.length })}
+                      {r.servings ? ` · ${t('book.serves', { n: r.servings })}` : r.yieldText ? ` · ${r.yieldText}` : ''}
                     </p>
                     {r.warnings?.map((w: string) => (
                       <p key={w} className={styles.warn}>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveMenu } from '@/lib/menuMutations';
+import { occasionFor, saveMenu } from '@/lib/menuMutations';
 import { COURSES, DEFAULT_COURSE_ORDER, STARTING_COURSE_ORDER, categoryLabel, courseLabelIn, coursesForMenu, type CourseKey, type RecipeSummary } from '@/lib/constants';
 import { cardDate } from '@/lib/occasion';
 import BusyButton from './BusyButton';
@@ -21,7 +21,7 @@ type Row = {
 };
 
 export default function MenuBuilder({
-  recipes, initial, occasion,
+  recipes, initial, occasion, cancelTo,
 }: {
   recipes: RecipeSummary[];
   initial: {
@@ -34,6 +34,9 @@ export default function MenuBuilder({
      begins at sundown, so the same Friday is Shabbat in the evening and an ordinary
      Friday at lunch — two different answers for one date. */
   occasion: { evening: string | null; day: string | null };
+  /* Where Cancel lands when the builder was entered from a recipe page or a
+     category selection. Already validated by the server page (safeNext). */
+  cancelTo?: string | null;
 }) {
   const t = useT();
   /* The INTERFACE language. `language` below is the CARD's, which stays French for
@@ -88,13 +91,27 @@ export default function MenuBuilder({
   >(null);
 
   /* The suggestion follows the lunch/dinner toggle with no round trip, because both
-     answers were resolved on the server.
-     It does NOT follow the date field: that would need the rules re-resolved for the
-     new date, which only the server can do. Changing the date and saving picks up the
-     right occasion; the preview catches up then. Worth knowing rather than pretending
-     otherwise — an earlier comment here claimed it tracked the date, and it never
-     did. */
-  const suggested = mealTime === 'day' ? occasion.day : occasion.evening;
+     answers were resolved on the server. Changing the DATE needs the rules
+     re-resolved, which only the server can do — so the effect below fetches the pair
+     for the new date, and until it lands the preview keeps the previous answer
+     rather than flashing blank. A stale response for a date no longer in the field
+     is discarded. */
+  const [fetched, setFetched] =
+    useState<{ forDate: string; value: { evening: string | null; day: string | null } } | null>(null);
+  useEffect(() => {
+    if (date === initial.date) return;   // the server-resolved prop already answers
+    let current = true;
+    occasionFor(date)
+      .then((got) => { if (current) setFetched({ forDate: date, value: got }); })
+      .catch(() => { /* preview only — save resolves the occasion itself */ });
+    return () => { current = false; };
+  }, [date, initial.date]);
+  /* Derived, not synced: the answer is keyed by the date it was fetched FOR, so a
+     late response for a date no longer in the field is simply not selected. */
+  const liveOccasion = date === initial.date
+    ? occasion
+    : (fetched?.forDate === date ? fetched.value : occasion);
+  const suggested = mealTime === 'day' ? liveOccasion.day : liveOccasion.evening;
 
   /* What the printed card will actually say. Save falls back to the occasion when
      the field is blank, so the preview has to apply the SAME fallback — otherwise
@@ -120,11 +137,12 @@ export default function MenuBuilder({
       || r.course !== initial.items[i]?.course
       || r.note !== (initial.items[i]?.note ?? ''));
 
-  /* Back to the menu being edited, or to the list for a new one. history.back()
-     is wrong here: arriving from a recipe page's "add to a menu" link would send
-     you back into that recipe. */
+  /* Back to the menu being edited; for a new menu, back to wherever the builder was
+     entered from (a recipe page, a category selection) when the entry point said so,
+     and the list otherwise. history.back() is still wrong here: it can leave the
+     app entirely when the builder was the first page opened. */
   function leave() {
-    router.push(initial.id ? `/menus/${initial.id}` : '/menus');
+    router.push(initial.id ? `/menus/${initial.id}` : (cancelTo ?? '/menus'));
   }
 
   function onCancel() {
@@ -198,7 +216,11 @@ export default function MenuBuilder({
         id: initial.id,
         date,
         meal_time: mealTime,
-        title: title.trim() || suggested,
+        /* Blank means blank: saveMenu resolves the occasion for the SAVED date and
+           meal time itself. Sending `suggested` from here saved whatever the preview
+           happened to show, which could be the previous date's occasion when the
+           round trip had not landed yet. */
+        title: title.trim() || null,
         language,
         chef_notes: notes,
         /* Stored only when it differs from the default, so a menu nobody rearranged

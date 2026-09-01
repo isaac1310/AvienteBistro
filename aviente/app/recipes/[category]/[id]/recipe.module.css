@@ -211,3 +211,13 @@
 
 /* Both blocks stack their lines rather than running them into one sentence. */
 .editedLine, .attributionLine { display: block; }
+
+/* The "moved from" banner after refiling a recipe — quiet, one line, above the
+   eyebrow so the first thing a tidy-up reads is where the recipe went. */
+.moved {
+  margin: 0 0 var(--sp-3);
+  font-family: var(--san);
+  font-size: var(--t-small);
+  color: var(--gold-ink);
+}
+.moved a { text-decoration: underline; }

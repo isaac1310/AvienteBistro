@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader';
 import { todayIn } from '@/lib/today';
 import PageTitle from '@/components/PageTitle';
 import { currentLang, serverT } from '@/lib/lang';
+import { count } from '@/lib/i18n';
 import { occasionRules, savedMenus } from '@/lib/menus';
 import { listDate, upcomingOccasions } from '@/lib/occasion';
 import Motif from '@/components/Motif';
@@ -79,10 +80,10 @@ export default async function MenusPage({
                           className={styles.rowCandle} />{' '}
                         {listDate(new Date(`${m.date}T12:00:00`), lang)}
                       </span>
-                      <span className={styles.name}>{m.title ?? 'Menu'}</span>
+                      <span className={styles.name}>{m.title ?? t('menu.untitled')}</span>
                       <span className={styles.meta}>
-                        {m.items.length} {m.items.length === 1 ? 'dish' : 'dishes'}
-                        {m.share_id && ' · shared'}
+                        {count(t, m.items.length, 'menu.dishes.one', 'menu.dishes.many')}
+                        {m.share_id && <> · {t('menus.shared')}</>}
                       </span>
                     </Link>
                   </li>
@@ -101,9 +102,9 @@ export default async function MenusPage({
                       <span className={styles.when}>
                         {m.saved ? '★ ' : ''}{listDate(new Date(`${m.date}T12:00:00`), lang)}
                       </span>
-                      <span className={styles.name}>{m.title ?? 'Menu'}</span>
+                      <span className={styles.name}>{m.title ?? t('menu.untitled')}</span>
                       <span className={styles.meta}>
-                        {m.items.length} {m.items.length === 1 ? 'dish' : 'dishes'}
+                        {count(t, m.items.length, 'menu.dishes.one', 'menu.dishes.many')}
                       </span>
                     </Link>
                   </li>

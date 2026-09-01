@@ -53,7 +53,8 @@
   background: var(--page); border: 1px solid var(--card-border);
   border-radius: var(--radius); color: var(--ink);
 }
-.search:focus { border-color: var(--gold-deep); outline: none; }
+.search:focus { border-color: var(--gold-deep); }
+.search:focus:not(:focus-visible) { outline: none; }
 
 .hint {
   margin: 0;

@@ -300,3 +300,21 @@ export async function lastBackupAt(): Promise<{ at: string | null; days: number 
   const days = at ? Math.floor((Date.now() - new Date(at).getTime()) / 86_400_000) : null;
   return { at, days };
 }
+
+/** The trash: soft-deleted recipes, newest deletion first.
+ *
+ * Recovery used to be a ten-second toast and nothing else — the rows were kept
+ * forever (soft delete has been the rule from the start) but nothing listed them,
+ * so "it can be restored" was true of the database and false of the app. */
+export async function deletedRecipes(): Promise<
+  { id: string; title: string; category: string; deleted_at: string }[]
+> {
+  const db = await supabaseServer();
+  const { data, error } = await db
+    .from('recipes')
+    .select('id, title, category, deleted_at')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as { id: string; title: string; category: string; deleted_at: string }[];
+}

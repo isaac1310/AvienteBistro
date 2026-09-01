@@ -63,7 +63,8 @@
   color: var(--ink);
 }
 .area { min-height: 0; line-height: 1.6; resize: vertical; }
-.input:focus, .area:focus, .small:focus { border-color: var(--gold-deep); outline: none; }
+.input:focus, .area:focus, .small:focus { border-color: var(--gold-deep); }
+.input:focus:not(:focus-visible), .area:focus:not(:focus-visible), .small:focus:not(:focus-visible) { outline: none; }
 .input:disabled { opacity: 0.5; }
 
 .h2 {

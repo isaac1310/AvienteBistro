@@ -9,8 +9,8 @@
 }
 
 .head { text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 14px; }
-.eyebrow { margin: 0; font-family: var(--san); font-size: 9px; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--gold-ink); }
+/* The lockup sits above the title with a little air; Cachet centres itself. */
+.cachet { display: flex; justify-content: center; margin-bottom: 14px; }
 .title { font-family: var(--ser); font-size: 30px; margin: 6px 0 0; color: var(--primary); }
 .titleEn { margin: 2px 0 0; font-family: var(--san); font-size: 10px;
   letter-spacing: 3px; text-transform: uppercase; color: var(--gold-ink); }
@@ -41,8 +41,15 @@
 .story { margin-top: 16px; padding: 8px 12px; border-inline-start: 2px solid var(--gold);
   font-family: var(--ser); font-style: italic; font-size: 13px; color: var(--ink-soft); }
 
-@page { size: A4 portrait; margin: 14mm; }
+/* Size only. The margins belong to the PDF route (api/pdf), which sets 14mm for
+   every sheet — declaring them here too meant the PDF got both. */
+@page { size: A4 portrait; }
 @media print {
+  /* White page, not the app's cream. The body ground printed as a beige field
+     filling the rest of the A4 sheet below a short recipe — in the PDF only, since
+     a browser's own Print dialog drops backgrounds by default — so the two outputs
+     of the same route did not match. */
+  :global(html), :global(body) { background: #fff !important; }
   .sheet { max-width: none; padding: 0; }
   .cols { break-inside: avoid; }
   .steps li, .ingredients li { break-inside: avoid; }

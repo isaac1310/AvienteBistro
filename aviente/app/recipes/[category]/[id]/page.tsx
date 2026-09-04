@@ -6,7 +6,7 @@ import Arrow from '@/components/Arrow';
 import RecipePhoto from '@/components/RecipePhoto';
 import { notFound } from 'next/navigation';
 import Ingredients from '@/components/Ingredients';
-import KeepAwake from '@/components/KeepAwake';
+import CookMode from '@/components/CookMode';
 import RecipeHistory from '@/components/RecipeHistory';
 import { CATEGORIES, type CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
@@ -96,6 +96,31 @@ export default async function RecipePage({ params, searchParams }: Params) {
      recipe has and the one that is always written in the recipe's own language. */
   const hebrew = /[\u0590-\u05FF]/.test(recipe.title);
 
+  /* The method, rendered once and shown twice: in the page, and inside cooking mode. */
+  const method = (
+    <>
+      <h2 className={styles.h2}>{t('recipe.method')}</h2>
+      <ol className={styles.steps}>
+        {recipe.steps.map((s) => (
+          <li key={s.id} className={styles.step}>
+            {/* dir="auto" is the fix for a real, printed bug. `lang="he"` picks the FONT and
+                says nothing about bidi, so a paragraph that begins or ends with a
+                digit or a Latin word resolved against the page's base direction:
+                real examples from \u05D0\u05E1\u05D0\u05D3\u05D5 \u05D1\u05D9\u05D9\u05DF were "\u2026\u05D5\u05E9\u05D5\u05E4\u05DB\u05D9\u05DD \u05D0\u05EA \u05D4\u05E8\u05D5\u05D8\u05D1 \u05DE\u05E2\u05DC ." with
+                the full stop stranded at the left, and "\u05E2\u05DD \u05D4\u05D0\u05E1\u05D0\u05D3\u05D5( \u2026 \u05DE\u05D5\u05E9\u05E8\u05D4)" with
+                the parentheses reversed. The same text printed the same way, so
+                the sheet on the counter was wrong too. Only the text itself knows
+                which way it runs \u2014 which is what "auto" asks. */}
+            {s.heading && (
+              <strong className={styles.stepHead} lang="he" dir="auto">{s.heading}</strong>
+            )}
+            <span lang="he" dir="auto">{s.body}</span>
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+
   return (
     <>
       {/* The navigation was absent from this page entirely: a full-bleed hero, the
@@ -180,9 +205,24 @@ export default async function RecipePage({ params, searchParams }: Params) {
           {/* Two actions, because these were one and it was mislabelled: the button
               said "Export PDF" and opened the print PAGE, downloading nothing. */}
           <a href={`/print/recipe/${id}`} className="btn btn--ghost">{t('common.print')}</a>
-          {/* Cook mode's other half: the ticks are in the ingredient list, this
-              stops the screen sleeping while you use them. */}
-          <KeepAwake />
+          {/* Cooking mode: the sheet, held awake, with ticks. Replaced a keep-awake
+              button here and an always-on checklist below. The two blocks it shows
+              are rendered right here on the server and handed in, so the mode is
+              the same recipe, not a second copy of it. */}
+          <CookMode
+            recipeId={recipe.id}
+            title={recipe.title}
+            ingredients={
+              <Ingredients
+                ticks
+                recipeId={recipe.id}
+                ingredients={recipe.ingredients}
+                servings={recipe.servings}
+                yieldText={recipe.yield_text}
+              />
+            }
+            method={method}
+          />
           <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
             className="btn btn--ghost" />
         </div>
@@ -193,7 +233,6 @@ export default async function RecipePage({ params, searchParams }: Params) {
 
         <Ingredients
           className={styles.ingredientsCol}
-          recipeId={recipe.id}
           ingredients={recipe.ingredients}
           servings={recipe.servings}
           yieldText={recipe.yield_text}
@@ -202,27 +241,7 @@ export default async function RecipePage({ params, searchParams }: Params) {
         {/* Named, not positional. The two-column layout above 900px used to pair
             `.body > section:nth-of-type(1|2)`, so adding any section above the
             ingredients would have silently swapped the columns. */}
-        <section className={styles.methodCol}>
-          <h2 className={styles.h2}>{t('recipe.method')}</h2>
-          <ol className={styles.steps}>
-            {recipe.steps.map((s) => (
-              <li key={s.id} className={styles.step}>
-                {/* dir="auto" is the fix for a real, printed bug. `lang="he"` picks the FONT and
-                      says nothing about bidi, so a paragraph that begins or ends with a
-                      digit or a Latin word resolved against the page's base direction:
-                      real examples from אסאדו ביין were "…ושופכים את הרוטב מעל ." with
-                      the full stop stranded at the left, and "עם האסאדו( … מושרה)" with
-                      the parentheses reversed. The same text printed the same way, so
-                      the sheet on the counter was wrong too. Only the text itself knows
-                      which way it runs — which is what "auto" asks. */}
-                {s.heading && (
-                  <strong className={styles.stepHead} lang="he" dir="auto">{s.heading}</strong>
-                )}
-                <span lang="he" dir="auto">{s.body}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <section className={styles.methodCol}>{method}</section>
 
         {recipe.serving_suggestions && (
           <section className={styles.serve}>

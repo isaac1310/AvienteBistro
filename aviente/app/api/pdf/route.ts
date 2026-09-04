@@ -77,6 +77,10 @@ export async function GET(request: NextRequest) {
   try {
     browser = await launch();
     const page = await browser.newPage();
+    /* A4 at 96dpi. Without this the page laid out at puppeteer's 800×600 default,
+       so every width media query (the recipe sheet's two-column break, the lockup's
+       size steps) answered for a viewport the paper never had. */
+    await page.setViewport({ width: 794, height: 1123 });
 
     // Carry the caller's session so a family member's own menus render. Guests
     // pass ?k= inside `path` instead and need no cookie at all.
@@ -116,14 +120,15 @@ export async function GET(request: NextRequest) {
        Hebrew, and a snapshot taken before Frank Ruhl Libre arrives prints every dish
        name in a fallback. fonts.check answers "would this face be used at this size",
        so each family is probed at a size/weight the page really uses. */
-    const families = path.startsWith('/print/kids')
-      ? ['16px "Baloo 2"', '16px "Rubik"']
-      : ['16px "Cormorant Garamond"', '16px "Frank Ruhl Libre"'];
-
+    /* Family-agnostic since the fonts moved to next/font/local (v11.4.0): the
+       registered family names are hashed (`__cormorant_ab12cd`), so probing
+       `"Cormorant Garamond"` by name answered false forever and this wait burned its
+       whole timeout on every PDF. Instead: no FontFace on the page may still be
+       loading. A face the page never used stays 'unloaded', which is fine — it is
+       not going to appear in the snapshot either. */
     await page.waitForFunction(
-      (specs: string[]) => specs.every((spec) => document.fonts.check(spec)),
+      () => [...document.fonts].every((f) => f.status !== 'loading'),
       { timeout: 5000 },
-      families,
     ).catch(() => { /* fall through: a fallback face beats no PDF at all */ });
 
     /* ?debug=shot returns what Chromium actually sees, as a PNG. Kept because

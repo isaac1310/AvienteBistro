@@ -10,14 +10,23 @@ import styles from './Ingredients.module.css';
  *
  * Client-side because scaling is instant and local — a round trip to re-render a
  * list of eight rows would be absurd. */
+/** Forget the ticks for one recipe — cooking mode calls this on exit. */
+export function clearTicks(recipeId: string) {
+  try { localStorage.removeItem(`aviente.checked.${recipeId}`); } catch { /* private window */ }
+}
+
 export default function Ingredients({
-  ingredients, servings, yieldText, className, recipeId,
+  ingredients, servings, yieldText, className, recipeId, ticks = false,
 }: {
   ingredients: Ingredient[];
   servings: number | null;
   yieldText: string | null;
   /** Namespaces the check-off memory. Omit it and ticking works but is not kept. */
   recipeId?: string;
+  /* The check-off column. OFF on the reading page and ON in cooking mode — the
+     list used to carry ticks everywhere, which made the recipe page look like a
+     form and left half-ticked lists lying around between cooks. */
+  ticks?: boolean;
   /* The recipe page's grid column. CSS Modules scope class names per file, so the
      page cannot target this component's own root class — it has to hand one in. */
   className?: string;
@@ -39,7 +48,7 @@ export default function Ingredients({
   const storeKey = `aviente.checked.${recipeId ?? ''}`;
 
   useEffect(() => {
-    if (!recipeId) return;
+    if (!recipeId || !ticks) return;
     try {
       const raw = localStorage.getItem(storeKey);
       /* eslint-disable-next-line react-hooks/set-state-in-effect --
@@ -50,9 +59,10 @@ export default function Ingredients({
          extra render, which here is one paint on mount. */
       if (raw) setDone(new Set(JSON.parse(raw) as string[]));
     } catch { /* private window, or storage disabled — the list just starts clean */ }
-  }, [storeKey, recipeId]);
+  }, [storeKey, recipeId, ticks]);
 
   const toggle = (id: string) => {
+    if (!ticks) return;
     const next = new Set(done);
     if (next.has(id)) next.delete(id); else next.add(id);
     setDone(next);
@@ -96,7 +106,7 @@ export default function Ingredients({
 
       {/* Only once something is ticked: an always-present "clear" on a list nobody
           has touched is a control that explains a feature instead of doing a job. */}
-      {done.size > 0 && (
+      {ticks && done.size > 0 && (
         <button type="button" className={styles.clearTicks} onClick={clearDone}>
           {t('recipe.clearUsed', { n: done.size })}
         </button>
@@ -114,7 +124,9 @@ export default function Ingredients({
         <caption className="visually-hidden">{t('recipe.ingredients')}</caption>
         <thead>
           <tr>
-            <th scope="col" className={styles.thTick}><span className="visually-hidden">{t('recipe.usedCol')}</span></th>
+            {ticks && (
+              <th scope="col" className={styles.thTick}><span className="visually-hidden">{t('recipe.usedCol')}</span></th>
+            )}
             <th scope="col" className={styles.thAmount}>{t('recipe.amount')}</th>
             <th scope="col" className={styles.thName}>{t('recipe.ingredient')}</th>
           </tr>
@@ -132,30 +144,32 @@ export default function Ingredients({
                   <tr className={styles.groupRow}>
                     {/* Spans both columns: a group name is a heading over the table,
                         not a value in either column. */}
-                    <th scope="colgroup" colSpan={3} className={styles.groupHead} lang="he" dir="auto">
+                    <th scope="colgroup" colSpan={ticks ? 3 : 2} className={styles.groupHead} lang="he" dir="auto">
                       {ing.group_label}
                     </th>
                   </tr>
                 )}
                 <tr
-                  className={`${styles.row} ${done.has(ing.id) ? styles.rowDone : ''}`}
+                  className={`${styles.row} ${ticks ? styles.rowTickable : ''} ${done.has(ing.id) ? styles.rowDone : ''}`}
                   /* The ROW is the target, not just the box: a 20px checkbox is not
                      something to hit with wet hands, and this list is read at arm's
                      length. aria-hidden is deliberately absent — the checkbox below
                      carries the state for a screen reader. */
-                  onClick={() => toggle(ing.id)}
+                  onClick={ticks ? () => toggle(ing.id) : undefined}
                 >
-                  <td className={styles.tickCell}>
-                    <input
-                      type="checkbox" className={styles.tick}
-                      checked={done.has(ing.id)}
-                      onChange={() => toggle(ing.id)}
-                      /* The click already bubbles from the row; without this the two
-                         handlers would fire in sequence and cancel each other out. */
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={t('recipe.used', { name: ing.name })}
-                    />
-                  </td>
+                  {ticks && (
+                    <td className={styles.tickCell}>
+                      <input
+                        type="checkbox" className={styles.tick}
+                        checked={done.has(ing.id)}
+                        onChange={() => toggle(ing.id)}
+                        /* The click already bubbles from the row; without this the two
+                           handlers would fire in sequence and cancel each other out. */
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={t('recipe.used', { name: ing.name })}
+                      />
+                    </td>
+                  )}
                   {/* Amounts are usually Latin — digits then a unit like "cup" — and
                       in an RTL page bidi reordered that run into "cup 0.5". This was a
                       hardcoded dir="ltr", which fixed the Latin case and broke the

@@ -1,0 +1,68 @@
+/* Cooking mode — a full-screen sheet over the recipe page. Above the nav bar
+   (z 20), on the page ground, scrolling on its own so the recipe underneath stays
+   where it was for when you come back. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: block;
+  background: var(--page);
+  color: var(--ink);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Slim, sticky. Title in the middle, one way out on the trailing edge — the thumb
+   should not land on Exit by accident, so it is a ghost button, not a filled one. */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  padding: max(var(--sp-3), env(safe-area-inset-top, 0)) var(--sp-4) var(--sp-3);
+  background: var(--card);
+  border-bottom: 1px solid var(--card-border);
+}
+.eyebrow {
+  grid-column: 1;
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.title {
+  grid-column: 1;
+  font-family: var(--ser);
+  font-size: var(--t-h3);
+  font-weight: 500;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.exit { grid-column: 2; grid-row: 1 / span 2; min-height: var(--tap); }
+
+.confirm { padding: var(--sp-3) var(--sp-4) 0; max-width: 780px; margin: 0 auto; }
+
+/* The sheet: the printed layout, sized for arm's length. One column on a phone,
+   ingredients beside method from 620px — the same break as the print sheet. */
+.sheet {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-4) var(--sp-8);
+  display: grid;
+  gap: var(--sp-5);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+@media (min-width: 620px) {
+  .sheet { grid-template-columns: 38% 1fr; gap: var(--sp-6); align-items: start; }
+}
+.ingredients { min-width: 0; }
+.method { min-width: 0; }
+/* Larger method type than the reading page: this is read from a step back. */
+.method ol { font-size: 1.125rem; line-height: 1.8; }

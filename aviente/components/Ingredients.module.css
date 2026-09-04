@@ -201,7 +201,7 @@
   cursor: pointer;
 }
 
-.row { cursor: pointer; }
+.rowTickable { cursor: pointer; }
 /* Ticked rows recede rather than disappear: you still need to re-read the amount
    when something goes wrong, so this is "done", not "gone". No line-through — it
    makes Hebrew numerals genuinely hard to read at a glance. */

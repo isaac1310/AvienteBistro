@@ -106,8 +106,13 @@ const DICT = {
   'recipe.used':          { he: 'סימון ש{name} נוסף', en: 'Mark {name} as used' },
   'recipe.usedCol':       { he: 'נוסף',      en: 'Used' },
   'recipe.clearUsed':     { he: 'ניקוי הסימונים ({n})', en: 'Clear {n} ticked' },
-  'recipe.keepAwake':     { he: 'להשאיר את המסך דלוק', en: 'Keep the screen awake' },
-  'recipe.keepAwakeOn':   { he: 'המסך יישאר דלוק',    en: 'Screen staying awake' },
+  /* Cooking mode replaced the separate keep-awake button and the always-on ticks:
+     one screen, held awake, ticks on, guarded exit. */
+  'recipe.cookMode':      { he: 'מצב בישול',     en: 'Cooking mode' },
+  'recipe.cooking':       { he: 'מבשלים',        en: 'Cooking' },
+  'recipe.exitCook':      { he: 'יציאה',          en: 'Exit' },
+  'recipe.exitCookConfirm': { he: 'לצאת ממצב בישול? הסימונים יימחקו.',
+                              en: 'Leave cooking mode? Your ticks will be cleared.' },
 
   // ── earlier versions ────────────────────────────────────────────────────
   // The whole sheet used to be hardcoded English, including the confirm — an

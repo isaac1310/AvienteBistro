@@ -1,6 +1,7 @@
 import { getRecipe } from '@/lib/queries';
 import { scaleAmount } from '@/lib/scale';
 import PrintExit from '@/components/PrintExit';
+import Cachet from '@/components/Cachet';
 import { serverT } from '@/lib/lang';
 import styles from './printrecipe.module.css';
 
@@ -37,7 +38,10 @@ export default async function PrintRecipe({ params }: { params: Promise<{ id: st
       <PrintExit href={`/recipes/${recipe.category}/${recipe.id}`}
         label={t('print.backToRecipe')} />
       <header className={styles.head}>
-        <p className={styles.eyebrow}>Aviente · The Family Recipe Book</p>
+        {/* The home page's lockup, not a hand-typed line. The eyebrow here read
+            "Aviente · The Family Recipe Book" — a near-miss of the real tagline — so
+            the one printed object that leaves the house carried the wrong name. */}
+        <div className={styles.cachet}><Cachet variant="header" /></div>
         <h1 className={styles.title} lang="he" dir="auto">{recipe.title}</h1>
         {recipe.title_en && <p className={styles.titleEn}>{recipe.title_en}</p>}
         {recipe.source_name && (

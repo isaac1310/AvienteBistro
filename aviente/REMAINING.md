@@ -1,161 +1,83 @@
 # What is actually left
 
-Rewritten 21 Aug 2026 for v11.1.0, against the code rather than against the last
+Re-audited 4 Sep 2026 for v11.5.0, against the code rather than against the last
 version of this file. Everything below was checked; nothing is carried forward on
-trust.
+trust. (The last rewrite was for v11.1.0 and by v11.4.1 it listed transactional saves
+and a recipe trash as open — both had shipped. A stale plan is read as evidence.)
 
-The previous version of this document is why: it still listed "B4 · no select mode on
-category browse" as open, months after `components/SelectableList.tsx` shipped, and a
-code review repeated the claim back to us as a finding. A stale plan is worse than no
-plan — it is read as evidence.
+## Open · after v11.5.0
 
-## Open · after v11.1.0
-
-- **Recipe sharing is DROPPED, not deferred** (Itzik's call, and the right one). A
-  guest share needed a migration for three reasons — somewhere to keep the secret, a
-  `security definer` function because RLS refuses a visitor with no session outright,
-  and a storage policy so the photograph is fetchable. The alternative that needed no
-  migration was signing the id and reading with the service key from a route, which
-  would put the service-role key in Vercel; that key is local tooling only. **A PDF
-  does the job with no schema at all**: Export PDF produces a real 197KB A4 file that
-  can be sent anywhere, works with no account, and cannot be revoked because there is
-  nothing to revoke. What it does not give is a LIVING copy — fix a typo and the PDF
-  someone holds is the old one. If that ever matters, the plan is still written.
-- **Transactional saves.** `saveRecipe`, `saveMenu` and the import replace path each
-  do snapshot → update → delete children → insert children as separate statements. All
-  three snapshot FIRST and now check every result, so a partial failure loses the
-  display and not the data, and says so. The right long-term shape is one plpgsql
-  function per operation; deliberately not done for a two-user app with no write
-  concurrency, and recorded here so the reasoning is not re-derived.
-- **A recipe trash list.** Delete is soft and the undo toast lasts ten seconds; after
-  that `restoreRecipe` exists with no screen. The confirm now says ten seconds rather
-  than promising "afterwards", which makes the copy honest but does not make the
-  recipe reachable.
-- **Touch drag in the recipe form.** Native HTML drag does not fire on touch, so the
-  ingredient drag is mouse-only until proven otherwise on the Ultra — step 2 of the
-  test plan asks. The ↑↓ buttons do the same job and are the guaranteed path.
-- **`icon-maskable.svg` had no recorded provenance.** It is the source of the 512
-  maskable PNG, and the PNGs were hand-made with rsvg-convert in one session. Now
-  `npm run brand:png` regenerates all four plus `app/favicon.ico`.
-
-## Open · after v11.0.0
-
-- **The self-test suite sees the login page unless someone signs in on `:3001` first.**
-  `:3001` is a separate origin by design, so it carries no session of its own. Signing
-  in there once fixes it for as long as the cookie lasts, and v11.1's pass was done
-  that way — nine pages walked, not one. But an UNATTENDED run still lands on `/login`
-  and reports green against a sign-in form, so this stays open until the suite can
-  authenticate itself.
-  The run is genuinely green — 58 passed, 0 failed — and it is green against a sign-in
-  form. The checks that matter to the app skip themselves with a printed reason, which
-  is what made this invisible: it looked like a clean run with two honest skips.
-  Fixing it needs a session on `:3001` (sign in there once, having allow-listed
-  `http://localhost:3001/**` in Supabase's redirect URLs) or a way for the suite to
-  authenticate itself. Until then, per-page verification is manual on `:3000`.
-  **This is the largest known gap in the project's verification story.**
-- **One check was found blind because of the above.** "the serif stack resolves, not
-  Times" looked for `header h1`; the wordmark is a `<span>` and always has been, so
-  the check guarding against every heading becoming Times had been skipping itself
-  since the header was redesigned. It has a `[data-wordmark]` hook now. Assume others
-  like it exist — a skip with a reason is not the same as a check that ran.
-- **The kids planner has no drag and drop.** Deferred deliberately: on a phone a drag
-  between two small boxes is a coin toss. "העבר ל…" opens a slot picker instead — two
-  taps, works with a keyboard and a screen reader — and `kids_move` is built either
-  way, so drag can be added later without touching the data path.
-- **Five unreferenced objects in the photo bucket**, left by replaced or abandoned
-  uploads. `/api/backup/photos` names them in its manifest rather than deleting them; a
-  backup route is the wrong place to delete anything. Sweeping them is a separate,
-  deliberate act.
-- **Occasion-aware default course order.** The occasion already resolves per date, so
-  a Friday evening could default to the full six courses and a weekday lunch to main +
-  sides — the app guessing the shape of the meal it already knows you are planning.
-  Out of scope for v11 on purpose: the manual version has to be lived with first, or
-  the defaults are guesses about a workflow nobody has used.
-- **Sorting a category by chef.** Dropped from the sort control with a reason: the
-  chef is a nested join, not a column on `recipes`, so `.order('chef')` fails at
-  RUNTIME rather than at build. Needs PostgREST's `referencedTable` form.
-- **`softDeleteMenu` has no caller.** The mutation exists; no UI reaches it. Either
-  add delete + undo to `MenuActions`, or remove the mutation.
-- **Search is `ilike`, not `pg_trgm`.** `lib/queries.ts` does a substring match on
-  `search_text`. §3.2 specifies trigram similarity. **The extension IS enabled** —
-  `0001_init.sql:9` creates it, and this file claimed for three releases that it was
-  not, which is the sort of stale line a reviewer reads back as a finding. Only the
-  QUERY is still substring.
-  Substring is adequate for 41 recipes; revisit at a few hundred.
-- **The kids' fridge sheet has now been seen with content** — two dishes in one cell
-  with a divider, a free-text dish, chefs by alias — but never on PAPER. The grid is a
-  fixed landscape table; the cell caps at four dishes and says "+2" past that rather
-  than clipping silently. Whether that holds at A4 is still unverified.
-- **`?debug=shot` is gated to non-Vercel** — good — but nothing tests that the gate
-  holds. A regression there re-exposes a full-page screenshot of any print route.
+- **Import / restore are still per-recipe multi-writes.** `lib/importMutations.ts`
+  snapshots first and checks every result, so a failure loses one recipe's display and
+  says so; recipe and menu SAVES are transactional (0021). Extending `save_recipe_tx`
+  to carry `import_batch_id` and the replace path's preserve-flags is the remaining
+  step. Not urgent: the importer is failure-isolated per row.
+- **Typo-tolerant search** was considered and dropped: `pg_trgm` is enabled and the GIN
+  index exists (`0001_init.sql:9,148`) but similarity on short Hebrew words is noisy.
+  Search is `ILIKE` over the trigger-maintained `search_text`, with category / chef /
+  time filters (v11.5.0). Revisit at a few hundred recipes.
+- **OTP code sign-in** as a fallback to the magic link (a link only signs in the
+  browser that asked for it; the screen now says so). Deferred.
+- **A shared Dialog/Sheet primitive** with focus trap + Escape for the menu, kids,
+  history and photo pickers. `Confirm` has it; the pickers do not. Deferred.
+- **Local draft recovery** for the recipe form (crash, closed tab, expired session).
+  The dirty guard covers deliberate navigation only. Deferred.
+- **Touch drag in the recipe form** is unverified on the Ultra; ↑↓ buttons are the
+  guaranteed path.
+- **The kids' fridge sheet has never been printed on paper.** Layout caps a cell at
+  four dishes and says "+2"; A4 unverified.
+- **`?debug=shot` is gated to non-Vercel**; nothing tests that the gate holds.
+- **Occasion-aware default course order** — out of scope until the manual version has
+  been lived with.
+- **Sorting a category by chef** needs PostgREST's `referencedTable` order form.
 
 ## Open · needs a decision, not code
 
-- **No staging database.** `:3000`, `:3001` and production share one Postgres, by
-  decision. `tools/check-schema.mjs` narrows the risk of shipping code ahead of the
-  schema; it does not make a migration rehearsable. Take a backup before any migration
-  that rewrites rows — 0010 and 0013 both did.
-- **The `prepr` guard protects the developer, not production.** It fails the local
-  build when the database is behind. Nothing stops a merge that skips `prepr`; that
-  would need a GitHub Action, and the repo is public, so the URL and anon key would
-  have to be repo secrets.
-- **Moran cannot repair a schema-behind failure.** The banner now speaks to her
-  ("nothing is lost — Itzik has the steps") instead of naming a SQL file, which is a
-  fix for the wording, not for the situation.
-- **The repo is public and the pushed history contains the recipe book and the
-  photos.** They are untracked going forward. Untracking is not retraction; only
-  making the repo private stops what is already there being fetched.
+- **No staging database** — decided again in v11.5.0: applying every migration twice
+  is a recurring manual step for a two-user app. The safeguards are the
+  backup-before-migration rule, `check-schema` refusing to build behind, and the banner.
+- **No CI gate** — decided in v11.5.0. `npm run prepr` + `/regression` before every PR
+  is the gate; a GitHub Action would need the anon key (and for a schema check, Supabase
+  reachable) as repo secrets, and the project's rule is that no key leaves this machine.
+- **No observability** — decided. Two users who tell each other; every failure is
+  surfaced in the UI with a message.
+- **Moran cannot repair a schema-behind failure.** The banner speaks to her; the fix is
+  still Itzik's.
 
-## Done in v11.0.0, and verified in the app rather than reported
+## Done in v11.5.0
 
-- **The menu card redrawn to the sample** — notched double frame, paper texture,
-  burgundy course headings, delicate dish names, a drawn candle, and a rule with a
-  lozenge between courses. A per-dish note, which turned out to be a FEATURE gap
-  rather than styling: `saveMenu` only ever copied the recipe's own description, so
-  the only way to change what a card said was to edit the recipe — which rewrites it
-  on every card that dish has ever appeared on.
-- **A running order per menu** (`menus.course_order`, migration 15/16). A course
-  holding dishes always prints, appended at the end rather than dropped; verified on a
-  fixture built wrong on purpose.
-- **`sauces` and the tenth plate**, `breads` relabelled מאפים / Breads & Baking.
-- **The kids table**: several dishes per meal, free-text dishes, ordering held by
-  three `security definer` functions rather than by application code. Verified against
-  the live database — four dishes numbered 0..3, removing the MIDDLE one closing the
-  gap, a move across slots reindexing both ends.
-- **The third loader**, from the delivered artboard, and the first that is an
-  illustration rather than a motif.
-- **Every arrow points the right way in Hebrew.** Back is → in an RTL interface, and
-  half the arrows were baked into translation strings where no designer could reach
-  them.
-- **The photo backup** (A2), with a hand-written STORE-only zip writer verified
-  against the system `unzip`.
-- **Photo uploads 63% smaller**, measured on a real file rather than asserted.
+- **Selftest red when signed out.** The four DOM groups each fail one check on `/login`
+  instead of measuring the sign-in card — closes the largest known verification gap
+  (it was "58 passed against a sign-in form").
+- **`npm run backup-check`** — builds the backup via the shared `lib/backupDocument.mjs`,
+  proves the importer reads it, checks counts, empty shells and every photo path, writes
+  `/backups/…json`, stamps `last_backup_at`. Local only, no secrets off the machine.
+- **Menu delete → `/menus/trash` → restore.** Soft delete, snapshot-first, share link
+  revoked on delete (deliberately not resurrected on restore).
+- **"How did it go?"** — `menus.after_notes` (0022): never printed, never shared, never
+  duplicated. **Promote** one line into a recipe's Notes, dated, snapshot-first.
+- **Search**: the field on the results page with a button; `%`/`_` escaped; category
+  chips, chef and time filters in the URL.
+- **Recently added** on the home page (five, title-tiebroken) and `/recipes/recent`.
+- **`npm run photos:orphans`** — lists unreferenced Storage objects; `--delete` demands
+  a photos zip that contains every object it would remove.
+- **Docs**: README is the operational truth; `CHECKLIST.md`'s "auto-tidy" claim
+  corrected (it is a list filter); the search comment no longer says "trigram".
+- **Removed the 0021 write fallbacks** — a database at 20 no longer runs this code, and
+  `check-schema` says so via the 22 probe.
 
-## Done earlier, and verified in the app rather than reported
+## Done in v11.4.x
 
-Recorded because the same items kept being re-raised as open:
+- Cooking mode (full-screen sheet, ticks, wake lock, guarded exit); print sheet white
+  under print media so the PDF matches; Cachet lockup on the recipe sheet; A4 viewport
+  in the PDF route; family-agnostic font wait (v11.4.1).
+- Typography tokens `--t-h1/h2/h3`; self-hosted fonts; login/menus/import localized;
+  recipe trash; `returnTo` into the menu builder; occasion follows the date;
+  moved-category banner; focus ring restored; two-up home grid; clipboard fallbacks;
+  transactional recipe and menu saves (0021) (v11.4.0).
 
-- **Select mode / the cross-category basket** — `SelectableList`, `lib/basket.ts`.
-  Verified end to end: a soup and a dessert picked in two categories both arrive in
-  the builder.
-- **Per-user theme** — `data-theme` on `<html>`, switch in Settings, burgundy
-  re-derived against the new palette.
-- **Hebrew-first UI** — the per-person setting drives the whole interface; document
-  `dir` follows it. The menu card keeps French course titles by decision, and the
-  AVIENTE lockup stays Latin in both languages.
-- **The new design system** — palette, Rubik, the wordmark from the delivered
-  artboards, one shared page header across every screen.
-- **Backup round trip** — download → Replace-import preserves ingredients, groups,
-  notes and `photo_path`. Proven against the live 41-recipe export, 0 errors.
-- **Photo paths, not signed URLs** — photos no longer carry a one-year expiry.
-- **`meal_time`** — was dead code; all five call sites passed the literal `'evening'`,
-  so every Friday lunch was titled "Shabbat Dinner".
-- **Recipe ingredient parts** — one heading per run in the editor, not a text field
-  repeated on every row.
-- **`tools/db-check.mjs`** — the write-path gate `AGENTS.md` had required since the
-  beginning and which had never existed. 12 checks, read-only by default.
-- **Response headers** — `Referrer-Policy: no-referrer` matters most: a share link
-  carries its secret in the URL.
-- **Timezone** — `family_settings.timezone` had held `Asia/Jerusalem` since 0001 and
-  was read by nothing. Between midnight and 03:00 local a UTC server reported
-  yesterday, so the kids planner opened on last week. See `lib/today.ts`.
+## Earlier
+
+- v11.0.0 – v11.3.x: menu card redraw, per-menu running order, `sauces`, guest share,
+  kids planner multi-dish and guest chefs, people self-service, backup stamp. Recipe
+  sharing is DROPPED, not deferred — the PDF does the job with no schema.

@@ -151,7 +151,7 @@ export function byTitle<T extends { title: string }>(rows: T[]): T[] {
  * the obvious wrong fix. So: walk the rows, and reorder only the runs that share a
  * timestamp.
  */
-function tiebreakByTitle<T extends { title: string }>(
+export function tiebreakByTitle<T extends { title: string }>(
   rows: T[], column: 'updated_at' | 'created_at',
 ): T[] {
   const stamp = (r: T) => (r as unknown as Record<string, string | null>)[column] ?? '';
@@ -253,26 +253,88 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
   });
 }
 
-/** Trigram search over title, title_en, ingredient names and both descriptions. */
-export async function searchRecipes(query: string): Promise<RecipeSummary[]> {
+export type SearchFilters = {
+  /** A CATEGORIES key, or null for all. */
+  category?: string | null;
+  /** family_members.id of the recipe's source, or null for anyone. */
+  source?: string | null;
+  /** Total minutes (prep + cook) ceiling, or null for any. Recipes with NO time at
+      all are excluded when set — "up to 30 minutes" must not include "unknown". */
+  maxMinutes?: number | null;
+};
+
+/**
+ * Substring search over `search_text` — title, title_en, ingredient names and both
+ * descriptions, kept current by triggers (0001_init.sql). It is ILIKE, not trigram
+ * similarity: the pg_trgm GIN index exists and serves this ILIKE, but no similarity()
+ * is used — typo tolerance was considered for v11.5.0 and rejected as too noisy on
+ * short Hebrew words. (This comment used to say "trigram search", which it never was.)
+ */
+export async function searchRecipes(
+  query: string, filters: SearchFilters = {},
+): Promise<RecipeSummary[]> {
   const q = query.trim();
   if (!q) return [];
+  /* `%` and `_` are LIKE wildcards and `\` its escape. Typed by a user they must
+     match themselves, not everything. */
+  const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   const db = await supabaseServer();
   const { rows } = await selectTolerant<SummaryRow>('searchRecipes', SUMMARY_COLUMNS,
-    (cols) => db
-      .from('recipes')
-      .select(cols)
-      .is('deleted_at', null)
-      .ilike('search_text', `%${q}%`)
+    (cols) => {
+      let s = db
+        .from('recipes')
+        .select(cols)
+        .is('deleted_at', null)
+        .ilike('search_text', pattern);
+      if (filters.category) s = s.eq('category', filters.category);
+      if (filters.source) s = s.eq('source_member_id', filters.source);
       /* No .order('title') — see byTitle. And the limit is the WHOLE corpus with room
          to spare, not 50: cutting at 50 in the database and then sorting those 50 in
          Hebrew gives the wrong first fifty, because the rows that would have sorted
          first may be among the ones already dropped. At ~80 recipes "fetch all the
          matches" is the honest answer; a real limit belongs with a real collated
          index. */
-      .limit(500));
+      return s.limit(500);
+    });
 
-  return attachPhotoUrls(db, byTitle(rows.map(flatten)));
+  let flat = rows.map(flatten);
+  if (filters.maxMinutes) {
+    const max = filters.maxMinutes;
+    flat = flat.filter((r) =>
+      (r.prep_minutes != null || r.cook_minutes != null)
+      && (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0) <= max);
+  }
+  return attachPhotoUrls(db, byTitle(flat));
+}
+
+/** Everyone who can be a recipe's source — for the search's "whose" filter.
+ *  Not lib/memberMutations.listMembers, which is admin-only; this is the same read
+ *  the edit form's page makes and any member may make it. */
+export async function memberNames(): Promise<{ id: string; name: string }[]> {
+  const db = await supabaseServer();
+  const { data } = await db.from('family_members').select('id, name').order('name');
+  return (data ?? []) as { id: string; name: string }[];
+}
+
+/**
+ * The newest recipes in the book, for the home page and /recipes/recent.
+ *
+ * Ordered by created_at with the Hebrew title tiebreak: every recipe from one import
+ * shares a timestamp to the second, so without the tiebreak five rows chosen from a
+ * tie of forty would shuffle between reloads. Title is also the SQL secondary order so
+ * the database's cut at `n` is stable before the tiebreak ever sees it.
+ */
+export async function recentRecipes(n: number): Promise<RecipeSummary[]> {
+  const db = await supabaseServer();
+  const { rows } = await selectTolerant<SummaryRow>('recentRecipes', SUMMARY_COLUMNS,
+    (cols) => db
+      .from('recipes')
+      .select(cols)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .order('title')
+      .limit(n));
+  return attachPhotoUrls(db, tiebreakByTitle(rows.map(flatten), 'created_at'));
 }
 
 /**

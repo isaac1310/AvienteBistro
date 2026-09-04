@@ -117,30 +117,11 @@ export async function saveMenu(input: {
     p_member: member.id,
   });
 
-  if (rpc.error && rpc.error.code === 'PGRST202') {
-    /* Migration 0021 not applied yet — the legacy path, delete once it is live. */
-    console.warn('saveMenu: save_menu_tx missing — using the legacy non-transactional path. Apply migration 0021.');
-    if (menuId) {
-      await snapshotMenu(menuId, member.id);
-      const { error } = await db.from('menus').update(fields).eq('id', menuId);
-      if (error) throw new Error(error.message);
-      await db.from('menu_items').delete().eq('menu_id', menuId);
-    } else {
-      const { data, error } = await db.from('menus').insert(fields).select('id').single();
-      if (error) throw new Error(error.message);
-      menuId = data.id as string;
-    }
-    if (rows.length) {
-      const { error } = await db.from('menu_items').insert(
-        rows.map((r, position) => ({ ...r, menu_id: menuId, position })),
-      );
-      if (error) throw new Error(error.message);
-    }
-  } else if (rpc.error) {
-    throw new Error(rpc.error.message);
-  } else {
-    menuId = rpc.data as string;
-  }
+  /* No fallback: migration 0021 is live everywhere this code runs. The pre-0021
+     multi-write path was removed in v11.5.0; a database without the function fails
+     here loudly, which is what the schema banner and check-schema exist to prevent. */
+  if (rpc.error) throw new Error(rpc.error.message);
+  menuId = rpc.data as string;
 
   revalidatePath('/menus');
   return menuId!;
@@ -161,6 +142,8 @@ export async function duplicateMenu(id: string, date: string): Promise<string> {
   await requireMember();
   const db = await supabaseServer();
 
+  /* NOT after_notes. "How did it go" is about one evening; a copy of the menu onto a
+     new date starts with that question unanswered. Deliberate — do not "fix". */
   const { data: source } = await db
     .from('menus').select('title, language, chef_notes').eq('id', id).single();
   const { data: items } = await db
@@ -208,13 +191,44 @@ export async function unshareMenu(id: string) {
   revalidatePath('/menus');
 }
 
+/** Soft delete. The row stays; getMenu/savedMenus filter it; /menus/trash lists it.
+ *
+ * Snapshot first — the same rule recipes have always followed and menus did not.
+ * The share is REVOKED, not merely hidden: deleting means "gone", and a link in
+ * somebody's WhatsApp that springs back to life on restore is a surprise nobody
+ * asked for. A restored menu can be shared again with a fresh link. */
 export async function softDeleteMenu(id: string) {
-  await requireMember();
+  const member = await requireMember();
   const db = await supabaseServer();
+  await snapshotMenu(id, member.id);
   const { error } = await db
-    .from('menus').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    .from('menus')
+    .update({
+      deleted_at: new Date().toISOString(),
+      share_id: null, share_secret: null, shared_at: null,
+    })
+    .eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/menus');
+}
+
+export async function restoreMenu(id: string) {
+  await requireMember();
+  const db = await supabaseServer();
+  const { error } = await db.from('menus').update({ deleted_at: null }).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/menus');
+}
+
+/** The note after the meal. A narrow write, snapshot-first like every other. */
+export async function saveAfterNotes(menuId: string, text: string) {
+  const member = await requireMember();
+  const db = await supabaseServer();
+  await snapshotMenu(menuId, member.id);
+  const { error } = await db
+    .from('menus').update({ after_notes: text.trim() || null }).eq('id', menuId);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/menus/${menuId}`);
 }
 
 /* Menu revisions.
@@ -262,6 +276,7 @@ export async function restoreMenuRevision(revisionId: string) {
   const snap = rev.snapshot as {
     date: string; title: string | null; language: 'en' | 'he'; chef_notes: string | null;
     meal_time?: 'evening' | 'day'; course_order?: string[] | null; saved?: boolean;
+    after_notes?: string | null;
     menu_items: Record<string, unknown>[];
   };
 
@@ -280,6 +295,9 @@ export async function restoreMenuRevision(revisionId: string) {
     meal_time: snap.meal_time ?? 'evening',
     course_order: snap.course_order ?? null,
     saved: snap.saved ?? false,
+    /* Added with 0022 — in the type AND here, because the type alone restores
+       nothing (the lesson three fields up). */
+    after_notes: snap.after_notes ?? null,
   }).eq('id', rev.menu_id);
   if (upErr) throw new Error(`restore: ${upErr.message}`);
 

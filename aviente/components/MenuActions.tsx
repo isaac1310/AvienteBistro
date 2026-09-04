@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { duplicateMenu, shareMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
+import { duplicateMenu, shareMenu, softDeleteMenu, toggleSaved, unshareMenu } from '@/lib/menuMutations';
 import { useT } from './LangProvider';
 import BusyButton from './BusyButton';
 import Confirm from './Confirm';
@@ -34,6 +34,26 @@ export default function MenuActions({
   /* Revoking is the least reversible thing on this screen: a new link can be minted,
      but the one already in somebody's WhatsApp is dead for good. It asked nothing. */
   const [askUnshare, setAskUnshare] = useState(false);
+  /* Deleting a menu. Soft — it goes to /menus/trash — but its share link is revoked
+     for good, which is why it asks. */
+  const [askDelete, setAskDelete] = useState(false);
+
+  async function onDelete() {
+    setAskDelete(false);
+    setBusy(true); setError(null);
+    try {
+      await softDeleteMenu(id);
+      /* Push, THEN refresh — not through run(), whose refresh runs before the push
+         and re-fetches a page that no longer exists. The refresh after is needed:
+         without it the router cache served the list with the deleted menu still on it
+         (seen in the v11.5.0 run). Same order MenuBuilder uses after a save. */
+      router.push('/menus');
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('menu.actionFailed'));
+      setBusy(false);
+    }
+  }
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true); setError(null);
@@ -130,6 +150,23 @@ export default function MenuActions({
           </BusyButton>
         )}
       </div>
+
+      {/* Delete, de-emphasised and last — the one action here that removes the whole
+          object rather than changing something about it. */}
+      <BusyButton busy={busy} className={styles.revoke} busyLabel={t('menu.working')}
+        onClick={() => setAskDelete(true)}>
+        {t('menu.delete')}
+      </BusyButton>
+
+      {askDelete && (
+        <Confirm
+          message={t('menu.deleteConfirm')}
+          confirmLabel={t('common.confirmDelete')}
+          busy={busy}
+          onConfirm={onDelete}
+          onCancel={() => setAskDelete(false)}
+        />
+      )}
 
       {askUnshare && (
         <Confirm

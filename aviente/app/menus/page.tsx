@@ -117,6 +117,9 @@ export default async function MenusPage({
             <Link href={showAll ? '/menus' : '/menus?all=1'}>
               {showAll ? t('menus.showKept') : t('menus.showAll')}
             </Link>
+            {/* The trash, quietly, beside the other list control. */}
+            {' · '}
+            <Link href="/menus/trash">{t('menusTrash.link')}</Link>
           </p>
 
           {suggestions.length > 0 && (

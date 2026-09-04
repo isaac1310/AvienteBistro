@@ -43,7 +43,7 @@ Do not restate the catalogue here. Two lists drift; one does not.
 The agent uses the browser session **Itzik is already signed into**. There is no
 password in this repo, no test account, and nothing to leak: magic links cannot be
 automated (there is no inbox to poll), and typing a password into a login form is
-not something Claude does. If the pane is signed out, say so and stop — do not try to
+not something Claude does. **Since 11.5.0 a signed-out suite run is red by construction** (four DOM groups fail with "signed out"), so the Claude Browser pane — which holds no session — can only ever prove the logic groups; the green DOM run and the click layer happen in Itzik's Chrome via the extension. If the pane is signed out, say so and stop — do not try to
 sign in.
 
 Consequence, stated because it will come up: **anything needing a *second* identity

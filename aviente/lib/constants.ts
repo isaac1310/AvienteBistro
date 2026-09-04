@@ -297,3 +297,7 @@ export function weekLabel(weekStart: string, lang: 'he' | 'en' = 'en'): string {
   return `${start.getDate()} – ${end.getDate()} ${lang === 'he' ? month : month.toUpperCase()}`;
 }
 
+/** The search's allowed time ceilings (prep + cook), so the URL cannot smuggle an
+ *  arbitrary number in. Here, not in lib/queries, because the client-side filter
+ *  control imports it and lib/queries drags next/headers into the bundle. */
+export const MAX_MINUTES = [30, 60, 120] as const;

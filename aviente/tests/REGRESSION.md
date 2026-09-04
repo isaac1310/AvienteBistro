@@ -122,7 +122,7 @@ Fast, shallow, fails loudly on a broken build.
 | 1.6 | Widths | 412×915 and 1280×800 with **no horizontal page scroll** |
 | 1.7 | Version | the footer matches `APP_VERSION` |
 | 1.8 | Splash | `?splash=hold` shows the plaque; without it, it is gone and not hit-testable |
-| 1.9 | Suite | `window.__selftest` 0 failed at **both** widths, every skip explained |
+| 1.9 | Suite | `window.__selftest` 0 failed at **both** widths, every skip explained. **Signed in only:** since 11.5.0 a suite run on `/login` fails its four DOM groups with "signed out" by construction — that red is honest, not a bug, and it cannot be reported as a pass |
 | 1.10 | Caret | type 5+ characters into an ingredient while a part heading is being named — focus never leaves the field |
 | 1.11 | Add part | "＋ הוספת חלק" produces a **second** section; naming it does not rename the first section's ingredients |
 | 1.12 | Refused save | Save an empty new recipe from the bottom of the form: the page scrolls to the name field, focuses it, marks it invalid |
@@ -201,13 +201,27 @@ catch — a suite that only tests what was never broken is decoration.
 | # | Check | Passes when |
 |---|---|---|
 | 2.47 | Ticks | ticking an ingredient dims its row; the tick survives a reload; "clear" appears only once something is ticked |
-| 2.48 | Keep awake | the button toggles and reads back its state; absent entirely where the browser has no `wakeLock` (that absence is a pass) |
+| 2.48 | Cooking mode | **מצב בישול** opens the full-screen sheet with ticks; Back or **יציאה** asks first; confirming clears the ticks (`aviente.checked.<id>` gone). The reading page has no tick column and no keep-awake button (both moved into the mode in 11.4.1) |
 | 2.49 | Two columns | above 900px ingredients sit beside the method, and **no horizontal page scroll** in RTL |
 | 2.50 | Confirm focus | opening any confirm moves focus to **Cancel**; Escape cancels it and does **not** close the editor underneath; focus returns to the trigger |
 | 2.51 | No native dialogs | no flow anywhere raises `window.confirm`/`prompt` — they are suppressed in embedded browsers, which is how a delete came to look like a dead button |
 | 2.52 | Guarded destruction | removing a kids dish, removing a menu row, and stop-sharing each ask first |
 | 2.53 | Menu notes survive | type a per-dish note, save, reopen edit — the note is still in the field (re-saving used to blank it) |
 | 2.54 | Kids targets | every control on `/kids` measures ≥44px at 412px |
+
+## 2G · Menu trash, the note after, search filters, recently added *(since 11.5.0)*
+
+| # | Check | Passes when |
+|---|---|---|
+| 2.55 | Menu delete | **מחיקת התפריט** on a finished menu asks first; confirming lands on `/menus`; the menu is gone from the list and present in `/menus/trash` |
+| 2.56 | Share dies | a menu that had a share link: after delete, its `/m/<id>?k=…` says not available, and after **שחזור** it stays dead (a restored menu has no link until shared again) |
+| 2.57 | Menu restore | **שחזור** in `/menus/trash` puts the menu back in the list |
+| 2.58 | Note after | **איך זה הלך?** under the card: type, **שמירה**, reload — the text is there; it does NOT appear on the card, the print sheet, or the guest page |
+| 2.59 | Promote | **להוסיף שורה להערות של מתכון** → pick a dish → **הוספה למתכון**: the recipe's Notes end with a dated line `· dd/mm/yy — …`, and its ⟲ list grew by one |
+| 2.60 | Duplicate keeps no note | **שכפול** of a menu with an after-note: the copy's note field is empty |
+| 2.61 | Search input | `/recipes/search` has the field prefilled with the query and a **חיפוש** button; searching `%` returns no wildcard flood |
+| 2.62 | Search filters | a category chip narrows the list and puts `cat=` in the URL; whose/time selects do the same with `chef=`/`max=`; re-submitting the field keeps them |
+| 2.63 | Recently added | the home page lists up to five recipes under **נוספו לאחרונה**, newest first, stable across two reloads; **כל המתכונים לפי תאריך הוספה** opens `/recipes/recent` |
 
 ## 2D · Rendering and accessibility
 
@@ -286,6 +300,12 @@ red run that means nothing.
 `pass / fail / skipped`, every failure's `detail`, every skip's reason. Note that
 `layout/tap targets` skips itself at desktop width — expected, and still reported.
 
+**The pane must be signed in.** If the page that loads is `/login`, the four DOM groups
+(tokens, type, layout, splash) each fail one check with "signed out — ran on /login,
+not an app screen" — exactly four fails at either width. That run is RED and is
+reported as red; the logic groups it still passed are not a pass of the app. Run the
+suite in the signed-in browser (the Chrome extension session) instead.
+
 ## Recipe form: the caret and the parts (1.10, 1.11, 1.12)
 
 Two traps here, both of which caught the first agent to run this:
@@ -351,6 +371,32 @@ Two traps here, both of which caught the first agent to run this:
 4. On a shared menu, **להפסיק לשתף** asks first, and says every link already handed
    out stops working.
 5. `npm run test:clean` removes the `__test__` menu.
+
+## Menu trash, the note after, promote (2.55 – 2.60)
+
+1. On a `__test__` menu, **קישור לשיתוף** first, copy the `/m/…?k=…` URL. Then
+   **מחיקת התפריט** (below the button grid) → the confirm names the trash and the
+   dead link → **כן, למחוק**. You land on `/menus`; the menu is not listed.
+2. Open the copied `/m/` URL in the pane: "not available".
+3. `/menus` → **תפריטים שנמחקו** (beside "show all") → the menu is listed with its
+   date → **שחזור**. It is back in `/menus`; the `/m/` URL is still dead.
+4. Open the menu. Under the actions, **איך זה הלך?** — type `__test__ note`,
+   **שמירה**, reload: still there. Open **הדפסה** and the `/m/` page after re-sharing:
+   the note is on neither.
+5. **להוסיף שורה להערות של מתכון** → choose the `__test__` dish → **הוספה למתכון**.
+   Open that recipe: Notes end with `· dd/mm/yy — __test__ note`; **⟲ גרסאות קודמות**
+   has one more entry than before.
+6. **שכפול** onto tomorrow: the copy's **איך זה הלך?** is empty.
+
+## Search and recently added (2.61 – 2.63)
+
+1. `/recipes/search?q=%25` (a literal `%`): the count is 0 or tiny, never the whole
+   book. The field shows `%` and a **חיפוש** button sits beside it.
+2. Search a common ingredient. Tap the **מרקים** chip → the URL gains `cat=soups`,
+   the list narrows. Pick a chef in **של מי** → `chef=<uuid>`. Change the field and
+   press **חיפוש** → `cat` and `chef` are still in the URL.
+3. `/` → **נוספו לאחרונה** shows ≤5 rows; reload twice, same order. The foot link
+   opens `/recipes/recent`, newest first.
 
 ## Kids (2.54, 2.52)
 

@@ -1,0 +1,20 @@
+.wrap { display: grid; gap: var(--sp-3); padding: var(--sp-4); max-width: 460px;
+  margin: var(--sp-5) auto 0; }
+.h2 { font-family: var(--ser); font-size: var(--t-h3); font-weight: 500; margin: 0; }
+.hint { margin: 0; font-family: var(--ser); font-style: italic; font-size: var(--t-small);
+  color: var(--ink-soft); }
+.area, .input, .select { font: inherit; width: 100%; padding: var(--sp-2) var(--sp-3);
+  background: var(--page); border: 1px solid var(--card-border); border-radius: var(--radius);
+  color: var(--ink); min-height: var(--tap); }
+.area { line-height: 1.6; resize: vertical; }
+.area:focus, .input:focus, .select:focus { border-color: var(--gold-deep); }
+.area:focus:not(:focus-visible), .input:focus:not(:focus-visible),
+.select:focus:not(:focus-visible) { outline: none; }
+.row { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.saved { font-family: var(--san); font-size: var(--t-small); color: var(--gold-ink); margin: 0; }
+.error { margin: 0; font-size: var(--t-small); color: #8c2b2b; }
+.promote { padding-top: var(--sp-3); border-top: 1px solid var(--card-border); display: grid; gap: var(--sp-3); }
+.linkish { font: inherit; font-size: var(--t-small); background: none; border: 0; padding: 0;
+  min-height: var(--tap); text-align: start; color: var(--gold-ink); text-decoration: underline; cursor: pointer; }
+.promoteForm { display: grid; gap: var(--sp-3); }
+.label { display: grid; gap: var(--sp-1); font-family: var(--san); font-size: var(--t-small); color: var(--ink-soft); }

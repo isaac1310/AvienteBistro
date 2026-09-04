@@ -599,6 +599,44 @@ const DICT = {
   'import.status.failed':   { he: 'נכשלו', en: 'failed' },
   'import.nIngredients':    { he: '{n} מרכיבים', en: '{n} ingredients' },
   'import.nSteps':          { he: '{n} שלבים', en: '{n} steps' },
+  // ── menus: delete, trash, and the note after the meal ───────────────────
+  'menu.delete':        { he: 'מחיקת התפריט', en: 'Delete this menu' },
+  'menu.deleteConfirm': { he: 'למחוק את התפריט? הוא יעבור לסל המחזור, וכל קישור שיתוף יפסיק לעבוד.',
+                          en: 'Delete this menu? It goes to the trash, and any share link stops working.' },
+  'menusTrash.title':   { he: 'סל המחזור', en: 'Trash' },
+  'menusTrash.link':    { he: 'תפריטים שנמחקו', en: 'Deleted menus' },
+  'menusTrash.empty':   { he: 'אין תפריטים מחוקים.', en: 'No deleted menus.' },
+  'menusTrash.hint':    { he: 'תפריט שנמחק נשאר כאן; שחזור מחזיר אותו לרשימה. קישור שיתוף שבוטל לא חוזר — אפשר לשתף מחדש.',
+                          en: 'A deleted menu stays here; restore puts it back. A revoked share link does not come back — share again.' },
+  /* The note AFTER the meal — the other kind of note. chef_notes prints on the card;
+     this never leaves the family. */
+  'menu.afterTitle':    { he: 'איך זה הלך?', en: 'How did it go?' },
+  'menu.afterHint':     { he: 'לא מודפס ולא משותף — רק לנו, ליום הזה.',
+                          en: 'Not printed, not shared — ours, for this date.' },
+  'menu.afterSaved':    { he: 'נשמר', en: 'Saved' },
+  'menu.afterFailed':   { he: 'ההערה לא נשמרה.', en: 'The note was not saved.' },
+  'menu.promote':       { he: 'להוסיף שורה להערות של מתכון', en: 'Add a line to a recipe’s notes' },
+  'menu.promoteWhich':  { he: 'לאיזה מתכון', en: 'Which recipe' },
+  'menu.promoteLine':   { he: 'השורה שתתווסף', en: 'The line to add' },
+  'menu.promoteGo':     { he: 'הוספה למתכון', en: 'Add to the recipe' },
+  'menu.promoted':      { he: 'נוסף להערות של «{title}»', en: 'Added to the notes of “{title}”' },
+  'menu.promoteFailed': { he: 'לא נוסף.', en: 'Could not add it.' },
+
+  // ── search filters ──────────────────────────────────────────────────────
+  'search.all':         { he: 'הכל', en: 'All' },
+  'search.chef':        { he: 'של מי', en: 'Whose' },
+  'search.anyChef':     { he: 'כולם', en: 'Anyone' },
+  'search.maxTime':     { he: 'זמן', en: 'Time' },
+  'search.anyTime':     { he: 'כל זמן', en: 'Any time' },
+  'search.upTo':        { he: 'עד {n} דק׳ (מתכונים עם זמן)', en: 'Up to {n} min (recipes with a time)' },
+  'search.go':          { he: 'חיפוש', en: 'Search' },
+
+  // ── recently added ──────────────────────────────────────────────────────
+  'home.recent':        { he: 'נוספו לאחרונה', en: 'Recently added' },
+  'home.recentAll':     { he: 'כל המתכונים לפי תאריך הוספה', en: 'All recipes, newest first' },
+  'recent.title':       { he: 'נוספו לאחרונה', en: 'Recently added' },
+  'recent.added':       { he: 'נוסף {ago}', en: 'added {ago}' },
+
   // ── the trash ───────────────────────────────────────────────────────────
   // Deletion was recoverable in the DATABASE from day one (soft delete), but the
   // only door was a ten-second toast. This is the durable door.

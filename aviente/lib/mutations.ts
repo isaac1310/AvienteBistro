@@ -117,17 +117,11 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
     p_member: member.id,
   });
 
-  if (rpc.error && rpc.error.code === 'PGRST202') {
-    /* Migration 0021 not applied yet. The legacy multi-write path keeps the app
-       working against the older schema — delete this branch once the migration is
-       live everywhere. */
-    console.warn('saveRecipe: save_recipe_tx missing — using the legacy non-transactional path. Apply migration 0021.');
-    recipeId = await saveRecipeLegacy(db, member.id, recipeId, fields, input);
-  } else if (rpc.error) {
-    throw new Error(rpc.error.message);
-  } else {
-    recipeId = rpc.data as string;
-  }
+  /* No fallback: 0021 is live everywhere this code runs. The pre-0021 six-write path
+     was removed in v11.5.0 — a database without the function fails loudly here,
+     which is what the schema banner and check-schema are for. */
+  if (rpc.error) throw new Error(rpc.error.message);
+  recipeId = rpc.data as string;
 
   /* The replaced photograph goes LAST, and that ordering is the fix for a real hole.
      PhotoField used to delete the old object the moment the new one finished
@@ -146,42 +140,30 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
   return recipeId!;
 }
 
-/** The pre-0021 save path, verbatim. Kept only for a database that has not run the
- *  migration yet; the RPC above is the real one. */
-async function saveRecipeLegacy(
-  db: Awaited<ReturnType<typeof supabaseServer>>,
-  memberId: string,
-  recipeId: string | undefined,
-  fields: Record<string, unknown>,
-  input: RecipeInput,
-): Promise<string> {
-  if (recipeId) {
-    await snapshot(recipeId, memberId);
-    const { error } = await db.from('recipes').update(fields).eq('id', recipeId);
-    if (error) throw new Error(error.message);
-    const delIng = await db.from('ingredients').delete().eq('recipe_id', recipeId);
-    if (delIng.error) throw new Error(`saveRecipe ingredients: ${delIng.error.message}`);
-    const delSteps = await db.from('steps').delete().eq('recipe_id', recipeId);
-    if (delSteps.error) throw new Error(`saveRecipe steps: ${delSteps.error.message}`);
-  } else {
-    const { data, error } = await db.from('recipes').insert(fields).select('id').single();
-    if (error) throw new Error(error.message);
-    recipeId = data.id as string;
-  }
-
-  if (input.ingredients.length) {
-    const { error } = await db.from('ingredients').insert(
-      input.ingredients.map((i, position) => ({ ...i, recipe_id: recipeId, position })),
-    );
-    if (error) throw new Error(error.message);
-  }
-  if (input.steps.length) {
-    const { error } = await db.from('steps').insert(
-      input.steps.map((s, position) => ({ ...s, recipe_id: recipeId, position })),
-    );
-    if (error) throw new Error(error.message);
-  }
-  return recipeId!;
+/**
+ * Append one line to a recipe's notes (`story`) — the "promote" half of the note
+ * written after a meal. Snapshot first, then a narrow update: saveRecipe rewrites
+ * every column and every child row, which is the wrong tool for adding a sentence.
+ * The line carries the menu's date so its provenance survives on the printed sheet.
+ */
+export async function appendToStory(recipeId: string, line: string, dated: string) {
+  const member = await requireMember();
+  const text = line.trim();
+  if (!text) throw new Error('Nothing to add.');
+  const db = await supabaseServer();
+  const { data: row, error: readErr } = await db
+    .from('recipes').select('story').eq('id', recipeId).is('deleted_at', null).maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!row) throw new Error('That recipe is no longer there.');
+  await snapshot(recipeId, member.id);
+  const story = (row.story as string | null) ?? '';
+  const { error } = await db.from('recipes').update({
+    story: `${story ? story + '\n\n' : ''}· ${dated} — ${text}`,
+    updated_by: member.id,
+    updated_at: new Date().toISOString(),
+  }).eq('id', recipeId);
+  if (error) throw new Error(error.message);
+  revalidatePath('/', 'layout');
 }
 
 /** Soft delete. The row stays; every query filters it. Undo is a null update. */

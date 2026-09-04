@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation';
 import MenuCard from '@/components/MenuCard';
 import MenuActions from '@/components/MenuActions';
 import MenuHistory from '@/components/MenuHistory';
+import AfterNotes from '@/components/AfterNotes';
 import Nav from '@/components/Nav';
-import { getMenu, occasionRules } from '@/lib/menus';
+import { getMenu, menuAfterNotes, occasionRules } from '@/lib/menus';
 import { resolveOccasion } from '@/lib/occasion';
 import styles from './menu.module.css';
 import Arrow from '@/components/Arrow';
@@ -18,7 +19,8 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
   const [menu, t] = await Promise.all([getMenu(id), serverT()]);
   if (!menu) notFound();
 
-  const rules = await occasionRules();
+  /* Read separately, tolerant of a database still at migration 21 — see menuAfterNotes. */
+  const [rules, after] = await Promise.all([occasionRules(), menuAfterNotes(menu.id)]);
   const occasion = resolveOccasion(
     /* Noon for a daytime meal, 18:00 for an evening one. The clock time is not
        what decides anything — mealTime is — but a Date is still needed and
@@ -64,6 +66,19 @@ export default async function MenuPage({ params }: { params: Promise<{ id: strin
             shareId={menu.share_id}
             shareSecret={menu.share_secret}
           />
+          {/* The note AFTER the meal — outside cardWrap on purpose: everything inside
+              that wrapper is the printed card, and this must never be. Hidden until
+              migration 0022 has run. */}
+          {after.available && (
+            <AfterNotes
+              menuId={menu.id}
+              menuDate={menu.date}
+              initial={after.text}
+              dishes={menu.items
+                .filter((i) => i.recipe_id)
+                .map((i) => ({ recipeId: i.recipe_id as string, title: i.dish_title ?? '—' }))}
+            />
+          )}
           <div className={styles.history}><MenuHistory menuId={menu.id} /></div>
         </div>
       </div>

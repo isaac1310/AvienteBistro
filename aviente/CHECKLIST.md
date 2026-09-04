@@ -159,8 +159,11 @@ Legend: `[x]` done · `[ ]` to do · `[!]` blocked on you, not on code
       catch a missing embedded font.
 
 - [x] **Saved menus** (§3.7) — ★ list by default, upcoming pinned, "show all"
-      for the rest, DUPLICATE on every row, holiday suggestion rows, auto-tidy of
-      unstarred menus older than 6 months.
+      for the rest, DUPLICATE on every row, holiday suggestion rows. (An earlier
+      line here claimed "auto-tidy of unstarred menus older than 6 months" — there is
+      no such thing: unstarred past menus are hidden by the LIST FILTER in
+      `savedMenus` and shown again under "show all". Nothing is ever deleted by time.
+      Deleting is a deliberate act: Delete → /menus/trash → Restore, since v11.5.0.)
 
 - [x] **Guest share** (§3.6)
       1. 🔗 SHARE LINK mints `share_id` + `share_secret`, copies

@@ -3,7 +3,10 @@ import Nav from '@/components/Nav';
 import PageHeader from '@/components/PageHeader';
 import PageTitle from '@/components/PageTitle';
 import TrashList from '@/components/TrashList';
-import { serverT } from '@/lib/lang';
+import { categoryLabel } from '@/lib/constants';
+import { categoryName } from '@/lib/i18n';
+import { currentLang, serverT } from '@/lib/lang';
+import { restoreRecipe } from '@/lib/mutations';
 import { deletedRecipes } from '@/lib/queries';
 import styles from '../recipes.module.css';
 
@@ -16,7 +19,7 @@ export const metadata = { title: 'Aviente — Trash' };
  * recipe with a Restore button. It is a static segment, so it wins over
  * /recipes/[category] in routing; no category is named "trash". */
 export default async function TrashPage() {
-  const [rows, t] = await Promise.all([deletedRecipes(), serverT()]);
+  const [rows, t, lang] = await Promise.all([deletedRecipes(), serverT(), currentLang()]);
 
   return (
     <>
@@ -31,7 +34,15 @@ export default async function TrashPage() {
         </PageHeader>
 
         <main className="shell">
-          <TrashList rows={rows} />
+          <TrashList
+            rows={rows.map((r) => ({
+              id: r.id, title: r.title, deleted_at: r.deleted_at,
+              meta: categoryName(categoryLabel(r.category), lang),
+            }))}
+            restore={restoreRecipe}
+            backHref="/recipes" backLabel={t('book.back')}
+            emptyText={t('trash.empty')} hintText={t('trash.hint')}
+          />
         </main>
       </div>
     </>

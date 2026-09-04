@@ -1,0 +1,17 @@
+.wrap { margin-top: var(--sp-6); }
+.h2 { font-family: var(--san); font-size: var(--t-label); font-weight: 500; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold-ink); margin: 0 0 var(--sp-2); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); }
+.row { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: var(--sp-3);
+  min-height: var(--tap); padding: var(--sp-1) var(--sp-2); text-decoration: none;
+  border-radius: var(--radius); }
+.row:hover { background: var(--card); }
+.thumb { width: 40px; height: 40px; display: grid; place-items: center; overflow: hidden;
+  border-radius: var(--radius); }
+.img { width: 40px; height: 40px; object-fit: cover; display: block; }
+.text { display: grid; min-width: 0; }
+.title { font-family: var(--ser); font-size: var(--t-body); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.meta { font-family: var(--san); font-size: var(--t-small); color: var(--gold-ink); }
+.all { margin: var(--sp-2) 0 0; text-align: center; font-size: var(--t-small); }
+.all a { color: var(--gold-ink); text-underline-offset: 3px; }

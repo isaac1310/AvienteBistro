@@ -43,6 +43,9 @@ aviente/public/_upload/
 # deliberately wide: a backup is named for the day it was taken, so an exact filename
 # can never cover the next one.
 aviente-backup-*.json
+# tools/backup-check.mjs writes here. Anchored: a bare `backups/` would also match any
+# future app/api/.../backups route, the way `photos/` once un-shipped one.
+/aviente/backups/
 supabase_logs*.json
 *.dc.html
 # Design references dropped in the root while working. The one that got committed was

@@ -56,6 +56,19 @@
   const token = (name) => css(document.documentElement, name);
 
   /** Relative luminance / contrast, so the gold rule can be asserted numerically. */
+  /* Signed out = not an app screen. The DOM groups below measure the page they were
+     loaded on; on /login that is the sign-in card, and 68 green rows about it looked
+     like a pass of the cookbook. Each DOM group now fails ONE check instead — exactly
+     four fails at any width — while the pure-logic groups (parser, scaling, occasions,
+     kids weeks, redirects, backup round-trip) still run, because they are true
+     anywhere. The click layer and the green DOM run happen in a signed-in browser. */
+  var signedOut = location.pathname.indexOf('/login') === 0;
+  function notAnAppScreen(groupName) {
+    check(groupName + ' checks ran on an app screen', function () {
+      return 'signed out — ran on /login, not an app screen';
+    });
+  }
+
   function contrast(a, b) {
     const lum = (c) => {
       const [r, g, bl] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number)
@@ -86,6 +99,7 @@
 
   function designTokens() {
     group('tokens');
+    if (signedOut) { notAnAppScreen('tokens'); return; }
 
     /* The palette moved from gold to the delivered design's muted stone, and the
        SPLIT survived the move because the trap did: --muted is 2.48:1 where the old
@@ -139,6 +153,7 @@
 
   function typography() {
     group('type');
+    if (signedOut) { notAnAppScreen('type'); return; }
 
     check('the serif stack resolves, not Times', () => {
 /* Which face is EXPECTED here, rather than one rule for every page.
@@ -244,6 +259,7 @@
 
   function layout() {
     group('layout');
+    if (signedOut) { notAnAppScreen('layout'); return; }
 
     check('the page does not scroll sideways', () => {
       const over = document.documentElement.scrollWidth - document.documentElement.clientWidth;
@@ -272,6 +288,7 @@
 
   function splash() {
     group('splash');
+    if (signedOut) { notAnAppScreen('splash'); return; }
 
     check('it is gone, or held on purpose', () => {
       const held = new URLSearchParams(location.search).get('splash') === 'hold';
@@ -715,9 +732,21 @@
      Both are raced against a ceiling so a genuine hang still produces a report. */
   function whenReady(done) {
     const held = new URLSearchParams(location.search).get('splash') === 'hold';
-    const deadline = Date.now() + 6000;
+    /* Twelve seconds, and TWO conditions. The page streams: the shell arrives with the
+       loading fallback, the real content lands later in a hidden segment and is
+       swapped in by an inline script, and only THEN does the Splash mount and start
+       its 1.7s minimum. With a six-second ceiling and a splash-only test the suite
+       had a race in both directions — it could start while the fallback was showing
+       (no splash in the DOM → "gone") and it could time out and run against a splash
+       that had mounted a moment before. So: wait until nothing is still streaming
+       (no `template[id^=B:]`, no hidden `S:` segment), THEN for the splash to leave,
+       and give the whole thing twelve seconds. Past the deadline the splash check
+       fails honestly — that is the check's job, not this function's. */
+    const deadline = Date.now() + 12000;
+    const streaming = () =>
+      !!document.querySelector('template[id^="B:"], div[hidden][id^="S:"]');
     const splashGone = () => held
-      || !document.querySelector('[role="status"][aria-label="Aviente"]')
+      || (!streaming() && !document.querySelector('[role="status"][aria-label="Aviente"]'))
       || Date.now() > deadline;
     const poll = () => (splashGone() ? done() : setTimeout(poll, 100));
     const fonts = document.fonts?.ready ?? Promise.resolve();

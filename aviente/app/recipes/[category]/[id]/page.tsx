@@ -11,6 +11,7 @@ import RecipeHistory from '@/components/RecipeHistory';
 import { CATEGORIES, type CategoryKey } from '@/lib/constants';
 import { categoryName } from '@/lib/i18n';
 import { currentLang, serverT } from '@/lib/lang';
+import { shortDate, timeAgo } from '@/lib/dates';
 import { categoryLabel, getRecipe } from '@/lib/queries';
 import styles from './recipe.module.css';
 
@@ -26,41 +27,6 @@ export async function generateMetadata({ params }: Params) {
      page render, caught by lint rather than by anyone reading it. */
   const recipe = await getRecipe(id);
   return { title: recipe ? `Aviente — ${recipe.title}` : 'Aviente' };
-}
-
-/** "3 days ago" without pulling in a date library for one string. */
-/**
- * dd/mm/yy — the format Itzik asked for, and the one that is unambiguous here.
- *
- * Not toLocaleDateString: that follows the SERVER's locale, which on Vercel is
- * en-US, so a recipe added on the fourth of August would print 8/4 and read as the
- * eighth of April to everyone who will ever use this app. Built by hand from the
- * parts so the order cannot drift with a deploy region.
- */
-function shortDate(iso: string): string {
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${p(d.getFullYear() % 100)}`;
-}
-
-/**
- * "8 days ago", in the reader's language.
- *
- * Returned hardcoded English on a Hebrew-first page — at the foot of every recipe —
- * while `time.daysAgo` and its siblings already sat in the dictionary, added for the
- * revisions sheet and then not used here. `t` is passed in because this is a server
- * component's helper and reads the clock, so it cannot be a hook.
- */
-function timeAgo(iso: string, t: Awaited<ReturnType<typeof serverT>>): string {
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return t('time.justNow');
-  if (mins < 60) return t('time.minsAgo', { n: mins });
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return hours === 1 ? t('time.hourAgo') : t('time.hoursAgo', { n: hours });
-  const days = Math.round(hours / 24);
-  if (days < 31) return days === 1 ? t('time.dayAgo') : t('time.daysAgo', { n: days });
-  const months = Math.round(days / 30);
-  return months === 1 ? t('time.monthAgo') : t('time.monthsAgo', { n: months });
 }
 
 /* Recipe view (§3.3). */

@@ -85,6 +85,36 @@ export async function savedMenus(includeAll = false): Promise<Menu[]> {
   return (data as unknown as Menu[]).map(order);
 }
 
+/** The trash: soft-deleted menus, newest deletion first. */
+export async function deletedMenus(): Promise<
+  { id: string; date: string; title: string | null; saved: boolean; deleted_at: string }[]
+> {
+  const db = await supabaseServer();
+  const { data, error } = await db
+    .from('menus')
+    .select('id, date, title, saved, deleted_at')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw new Error(`deletedMenus: ${error.message}`);
+  return (data ?? []) as { id: string; date: string; title: string | null; saved: boolean; deleted_at: string }[];
+}
+
+/**
+ * The note after the meal, read on its own.
+ *
+ * NOT part of MENU_COLUMNS on purpose: getMenu and savedMenus throw on any error and
+ * have no tolerant path, so a database still at migration 21 would 500 every menu
+ * page — the exact class of outage check-schema exists for. Read separately, a
+ * missing column (42703) answers `available: false` and the page simply hides the
+ * field. Same pattern as lastBackupAt in lib/queries.ts.
+ */
+export async function menuAfterNotes(id: string): Promise<{ available: boolean; text: string | null }> {
+  const db = await supabaseServer();
+  const { data, error } = await db.from('menus').select('after_notes').eq('id', id).maybeSingle();
+  if (error) return { available: false, text: null };
+  return { available: true, text: (data?.after_notes as string | null) ?? null };
+}
+
 /** The guest view, via the security-definer RPC. No session involved. */
 export async function fetchSharedMenu(id: string, secret: string) {
   const db = await supabaseServer();

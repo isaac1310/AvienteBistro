@@ -1,0 +1,7 @@
+.wrap { display: grid; gap: var(--sp-3); padding: var(--sp-3) 0 var(--sp-2); }
+.selects { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.label { display: grid; gap: var(--sp-1); font-family: var(--san); font-size: var(--t-label);
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-ink); }
+.select { font: inherit; font-size: var(--t-small); min-height: var(--tap); padding: 0 var(--sp-3);
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius);
+  color: var(--ink); }

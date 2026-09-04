@@ -18,6 +18,8 @@
     "brand:png": "node tools/build-brand-png.mjs",
     "kids-art": "node tools/build-kids-art.mjs",
     "db-check": "node tools/db-check.mjs",
+    "backup-check": "node tools/backup-check.mjs",
+    "photos:orphans": "node tools/orphan-photos.mjs",
     "motifs": "node tools/build-motifs.mjs"
   },
   "dependencies": {

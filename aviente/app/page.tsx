@@ -6,7 +6,8 @@ import type { Key } from '@/lib/i18n';
 import Nav from '@/components/Nav';
 import PageHeader from '@/components/PageHeader';
 import Splash from '@/components/Splash';
-import { categoryCounts } from '@/lib/queries';
+import RecentList from '@/components/RecentList';
+import { categoryCounts, recentRecipes } from '@/lib/queries';
 import { serverT } from '@/lib/lang';
 import { currentMember } from '@/lib/supabase/server';
 import { BUILD_LABEL } from '@/lib/version';
@@ -38,7 +39,9 @@ const ACTIONS: { href: string; icon: IconName; name: Key; hint: Key; kid?: boole
 ];
 
 export default async function Home() {
-  const [counts, member, t] = await Promise.all([categoryCounts(), currentMember(), serverT()]);
+  const [counts, member, t, recent] = await Promise.all([
+    categoryCounts(), currentMember(), serverT(), recentRecipes(5),
+  ]);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
@@ -94,6 +97,9 @@ export default async function Home() {
             ))}
           </ul>
 
+          {/* What arrived lately. Itzik's ask: a glance at the book's newest pages
+              without opening a category. Five rows and a link to the rest. */}
+          <RecentList recipes={recent} t={t} />
         </main>
 
         <footer className={styles.footer}>

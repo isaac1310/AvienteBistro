@@ -1,4 +1,4 @@
-.wrap { margin-top: var(--sp-6); }
+.wrap { margin: var(--sp-4) 0 var(--sp-2); }
 .h2 { font-family: var(--san); font-size: var(--t-label); font-weight: 500; letter-spacing: 3px;
   text-transform: uppercase; color: var(--gold-ink); margin: 0 0 var(--sp-2); }
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); }

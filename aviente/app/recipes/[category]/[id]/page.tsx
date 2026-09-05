@@ -187,7 +187,8 @@ export default async function RecipePage({ params, searchParams }: Params) {
                 yieldText={recipe.yield_text}
               />
             }
-            method={method}
+            steps={recipe.steps}
+            methodTitle={t('recipe.method')}
           />
           <ExportPdfButton path={`/print/recipe/${id}`} name={`aviente-${id.slice(0, 8)}`}
             className="btn btn--ghost" />

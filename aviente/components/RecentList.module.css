@@ -13,5 +13,8 @@
 .title { font-family: var(--ser); font-size: var(--t-body); overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; }
 .meta { font-family: var(--san); font-size: var(--t-small); color: var(--gold-ink); }
-.all { margin: var(--sp-2) 0 0; text-align: center; font-size: var(--t-small); }
-.all a { color: var(--gold-ink); text-underline-offset: 3px; }
+.all { margin: 0; text-align: center; font-size: var(--t-small); }
+/* A real tap target: the bare inline link measured 16px tall at 412px and the suite
+   caught it. Inline-flex + min-height keeps the text a link and the row a button. */
+.all a { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--sp-3);
+  color: var(--gold-ink); text-underline-offset: 3px; }

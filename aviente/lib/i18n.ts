@@ -111,6 +111,7 @@ const DICT = {
   'recipe.cookMode':      { he: 'מצב בישול',     en: 'Cooking mode' },
   'recipe.cooking':       { he: 'מבשלים',        en: 'Cooking' },
   'recipe.exitCook':      { he: 'יציאה',          en: 'Exit' },
+  'recipe.stepDone':      { he: 'סימון שלב {n} כבוצע', en: 'Mark step {n} as done' },
   'recipe.exitCookConfirm': { he: 'לצאת ממצב בישול? הסימונים יימחקו.',
                               en: 'Leave cooking mode? Your ticks will be cleared.' },
 

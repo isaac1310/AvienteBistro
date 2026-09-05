@@ -7,12 +7,13 @@ import { timeAgo } from '@/lib/dates';
 import styles from './RecentList.module.css';
 
 /**
- * "Recently added" — the five newest recipes, under the home page's action cards.
+ * "Recently added" — the newest recipes, under the home page's search box.
  *
  * A SERVER component (links only), so `timeAgo(iso, t)` runs here with the request's
- * clock and translator. Five, not ten: ten rows are ~500px on the Ultra and push the
- * rest of the home page below the fold, and the whole point of that page is four
- * actions above it. The foot link opens everything, newest first.
+ * clock and translator. Three rows, under the search box: the two "find something"
+ * tools sit together above the four action cards, and three keeps the cards above the
+ * fold on the Ultra (five did not, ten certainly would not). The foot link opens
+ * everything, newest first.
  */
 export default function RecentList({ recipes, t }: { recipes: RecipeSummary[]; t: T }) {
   if (recipes.length < 2) return null;

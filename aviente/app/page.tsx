@@ -40,7 +40,7 @@ const ACTIONS: { href: string; icon: IconName; name: Key; hint: Key; kid?: boole
 
 export default async function Home() {
   const [counts, member, t, recent] = await Promise.all([
-    categoryCounts(), currentMember(), serverT(), recentRecipes(5),
+    categoryCounts(), currentMember(), serverT(), recentRecipes(3),
   ]);
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
@@ -77,6 +77,11 @@ export default async function Home() {
             />
           </form>
 
+          {/* What arrived lately, right under the search — the two "find something"
+              tools together, above the four actions. Three rows and a link to the
+              rest (Itzik's edit after seeing five: too tall for the fold). */}
+          <RecentList recipes={recent} t={t} />
+
           <hr className="rule" />
 
           <ul className={styles.actions}>
@@ -97,9 +102,6 @@ export default async function Home() {
             ))}
           </ul>
 
-          {/* What arrived lately. Itzik's ask: a glance at the book's newest pages
-              without opening a category. Five rows and a link to the rest. */}
-          <RecentList recipes={recent} t={t} />
         </main>
 
         <footer className={styles.footer}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import type { Step } from '@/lib/constants';
 import { createPortal } from 'react-dom';
 import { useT } from './LangProvider';
 import Confirm from './Confirm';
@@ -66,14 +67,16 @@ function useWakeLock(active: boolean) {
 }
 
 export default function CookMode({
-  recipeId, title, ingredients, method,
+  recipeId, title, ingredients, steps, methodTitle,
 }: {
   recipeId: string;
   title: string;
   /** The Ingredients component, rendered by the server with ticks ON. */
   ingredients: ReactNode;
-  /** The method list, rendered by the server. */
-  method: ReactNode;
+  /** The steps as DATA, not markup: cooking mode renders them itself so each one can
+      carry a tick — "which step am I on" is the other thing wet hands lose. */
+  steps: Step[];
+  methodTitle: string;
 }) {
   const t = useT();
   const [cooking, setCooking] = useState(false);
@@ -83,18 +86,40 @@ export default function CookMode({
   const unwinding = useRef(false);
   const opener = useRef<HTMLButtonElement>(null);
 
+  /* Step ticks. Same shape as the ingredient ticks (Ingredients.tsx), same lifetime:
+     kept per recipe while cooking, cleared on exit. */
+  const stepsKey = `aviente.stepsChecked.${recipeId}`;
+  const [doneSteps, setDoneSteps] = useState<Set<string>>(new Set());
+  /* Read once, on enter (in the click handler, not an effect): a stale set from an
+     interrupted cook comes back, a clean exit leaves nothing to come back. */
+  const loadSteps = () => {
+    try {
+      const raw = localStorage.getItem(stepsKey);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch { return new Set<string>(); }
+  };
+  const toggleStep = (id: string) => {
+    const next = new Set(doneSteps);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setDoneSteps(next);
+    try { localStorage.setItem(stepsKey, JSON.stringify([...next])); } catch { /* ignore */ }
+  };
+
   useWakeLock(cooking);
 
   const finish = useCallback(() => {
     clearTicks(recipeId);
+    try { localStorage.removeItem(stepsKey); } catch { /* ignore */ }
+    setDoneSteps(new Set());
     setAsking(false);
     setCooking(false);
     try { document.body.style.overflow = ''; } catch { /* no DOM */ }
     /* Focus back on the control that started it, once the overlay is gone. */
     requestAnimationFrame(() => opener.current?.focus());
-  }, [recipeId]);
+  }, [recipeId, stepsKey]);
 
   function enter() {
+    setDoneSteps(loadSteps());
     setCooking(true);
     try {
       history.pushState({ aviente: 'cooking' }, '');
@@ -162,7 +187,29 @@ export default function CookMode({
 
           <div className={styles.sheet}>
             <div className={styles.ingredients}>{ingredients}</div>
-            <div className={styles.method}>{method}</div>
+            <div className={styles.method}>
+              <h2 className={styles.h2}>{methodTitle}</h2>
+              <ol className={styles.steps}>
+                {steps.map((st, i) => {
+                  const done = doneSteps.has(st.id);
+                  return (
+                    <li key={st.id} className={`${styles.step} ${done ? styles.stepDone : ''}`}
+                      onClick={() => toggleStep(st.id)}>
+                      <input
+                        type="checkbox" className={styles.stepTick} checked={done}
+                        onChange={() => toggleStep(st.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={t('recipe.stepDone', { n: i + 1 })}
+                      />
+                      <span className={styles.stepText}>
+                        {st.heading && <strong lang="he" dir="auto">{st.heading} </strong>}
+                        <span lang="he" dir="auto">{st.body}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
           </div>
         </div>,
         document.body,

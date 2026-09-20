@@ -17,7 +17,10 @@
   display: grid;
   /* Five, since the kids' planner joined the bar — it was reachable only from the
      home screen, so planning the week from a recipe meant going home first. */
-  grid-template-columns: repeat(5, 1fr);
+  /* `minmax(0, 1fr)`, not `1fr`: a bare `1fr` has an `auto` minimum, so the longest
+     label refused to be narrower than its text and widened the whole bar past the
+     screen — 428px on a 412px phone, which scrolled the page sideways. */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .link {

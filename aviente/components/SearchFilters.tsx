@@ -42,7 +42,7 @@ export default function SearchFilters({
 
   return (
     <div className={styles.wrap}>
-      <nav aria-label={t('book.categories')}>
+      <nav className={chips.wrap} aria-label={t('book.categories')}>
         <ul className={chips.row}>
           <li>
             {!category

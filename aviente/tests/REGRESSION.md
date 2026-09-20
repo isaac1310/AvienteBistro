@@ -119,7 +119,7 @@ Fast, shallow, fails loudly on a broken build.
 | 1.3 | Routes | `/`, `/login`, `/recipes/[cat]`, recipe view, `/menus`, builder, `/m/[id]`, `/kids`, `/import`, three `/print/*` all respond |
 | 1.4 | Counts agree | the homepage total matches the sum of the category counts, and a category's count matches the rows it lists. **Only the seeded fixture can assert absolute numbers** (it was "13 recipes, breads = 5"); this database now holds the real book, so the check is now internal consistency, not a magic number |
 | 1.5 | Signed out | every route redirects to `/login` and **no recipe data renders** |
-| 1.6 | Widths | 412×915 and 1280×800 with **no horizontal page scroll** |
+| 1.6 | Widths | 412×915 and 1280×800 with **no horizontal page scroll**, on a **results list** as well as the home page — `/recipes/search?q=<common word>&selftest=1` and `/recipes/mains`, not just `/` |
 | 1.7 | Version | the footer matches `APP_VERSION` |
 | 1.8 | Splash | `?splash=hold` shows the plaque; without it, it is gone and not hit-testable |
 | 1.9 | Suite | `window.__selftest` 0 failed at **both** widths, every skip explained. **Signed in only:** since 11.5.0 a suite run on `/login` fails its four DOM groups with "signed out" by construction — that red is honest, not a bug, and it cannot be reported as a pass |
@@ -127,6 +127,12 @@ Fast, shallow, fails loudly on a broken build.
 | 1.11 | Add part | "＋ הוספת חלק" produces a **second** section; naming it does not rename the first section's ingredients |
 | 1.12 | Refused save | Save an empty new recipe from the bottom of the form: the page scrolls to the name field, focuses it, marks it invalid |
 | 1.13 | No card delete | a recipe card in a category list has an edit pencil and **no** ✕ |
+| 1.14 | Search page suite | `/recipes/search?q=<common word>&selftest=1` **and** `?q=zzzqqq&selftest=1` (no results) at 412px: 0 failed, and "the page does not scroll sideways" **passes rather than skips** |
+
+1.14 is here because the suite already owned a "does not scroll sideways" check and
+still missed v11.5.1's worst layout bug: `?selftest=1` was only ever opened on the
+home page, which was fine, while the search page pushed its results off-screen. A
+check is only as good as the routes it is pointed at — so this one names its routes.
 
 1.10 and 1.11 are in Sanity rather than Regression because they cost seconds and
 they have now bitten twice: the caret jumped to the part heading on every keystroke,
@@ -221,6 +227,7 @@ catch — a suite that only tests what was never broken is decoration.
 | 2.60 | Duplicate keeps no note | **שכפול** of a menu with an after-note: the copy's note field is empty |
 | 2.61 | Search input | `/recipes/search` has the field prefilled with the query and a **חיפוש** button; searching `%` returns no wildcard flood |
 | 2.62 | Search filters | a category chip narrows the list and puts `cat=` in the URL; whose/time selects do the same with `chef=`/`max=`; re-submitting the field keeps them |
+| 2.64 | Search layout | at 412px, with results **and** with none: the page does not scroll sideways, the chip row scrolls **inside itself** to its last chip while the page stays put, and the first result card is fully on screen without scrolling sideways |
 | 2.63 | Recently added | the home page lists up to five recipes under **נוספו לאחרונה**, newest first, stable across two reloads; **כל המתכונים לפי תאריך הוספה** opens `/recipes/recent` |
 
 ## 2D · Rendering and accessibility
@@ -397,6 +404,23 @@ Two traps here, both of which caught the first agent to run this:
    press **חיפוש** → `cat` and `chef` are still in the URL.
 3. `/` → **נוספו לאחרונה** shows ≤5 rows; reload twice, same order. The foot link
    opens `/recipes/recent`, newest first.
+
+### Search layout at 412px (2.64)
+
+At 412×915, on `?q=<common word>` and again on `?q=zzzqqq` (no results):
+
+1. `document.documentElement.scrollWidth - clientWidth` is **0**. Measure it; the
+   page being RTL means an overflow shows as content pushed off the side rather
+   than as an obvious gap, and it is easy to miss by eye.
+2. Scroll the category chip row to its far end. The **last chip becomes visible**
+   and the page itself does not move — the row scrolls inside its own box.
+3. The first result card sits fully within 412px.
+
+This is the v11.5.1 bug, and it had three causes, all the same mistake: a grid track
+with an `auto` minimum (bare `1fr`, or no `grid-template-columns` at all) refuses to
+be narrower than its widest child, so the track grows past the screen instead of the
+child clipping inside it. It was in the filter chips' container, the results list,
+and the bottom nav bar. Any new grid here wants `minmax(0, 1fr)`.
 
 ## Kids (2.54, 2.52)
 

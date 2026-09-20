@@ -1,4 +1,8 @@
-.wrap { display: grid; gap: var(--sp-3); padding: var(--sp-3) 0 var(--sp-2); }
+/* `minmax(0, 1fr)`, not the default `auto`: the chip row inside is `max-content`
+   wide, and an auto grid track sizes itself to that, so the row stretched the page
+   instead of scrolling inside itself and the results were pushed off-screen. */
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3);
+  padding: var(--sp-3) 0 var(--sp-2); }
 .selects { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
 .label { display: grid; gap: var(--sp-1); font-family: var(--san); font-size: var(--t-label);
   letter-spacing: 2px; text-transform: uppercase; color: var(--gold-ink); }

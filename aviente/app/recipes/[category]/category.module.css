@@ -34,15 +34,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* `minmax(0, 1fr)`, not the default `auto`: an auto track sizes itself to the widest
+   card's max-content, so one long unbroken title stretched the whole list — and with
+   it the page — past the viewport, and the results sat off-screen to the side. */
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--sp-3);
 }
-@media (min-width: 768px)  { .list { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1280px) { .list { grid-template-columns: repeat(3, 1fr); } }
+/* `minmax(0, 1fr)` again, for the same reason: a bare `1fr` has an `auto` minimum,
+   so a wide card pushes its track past its share instead of being clipped inside it. */
+@media (min-width: 768px)  { .list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .empty {
   padding: var(--sp-7) var(--sp-5);

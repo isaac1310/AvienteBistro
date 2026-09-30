@@ -123,7 +123,9 @@
    the Ultra — 130px of drawing in a 320px-tall hero, 78px in a 92px thumb. The slot
    sizes stay; only the ink inside them grows. */
 @media (max-width: 767px) {
-  .hero .art { width: min(62vw, 240px); height: auto; aspect-ratio: 110 / 90; }
+  /* Capped by height too: the slot is min(42vh, 320px), so on a short screen a
+     width-only size pushed the caption out of the bottom of the plate. */
+  .hero .art { width: min(62vw, 240px, 32vh); height: auto; aspect-ratio: 110 / 90; }
   .thumb { flex-basis: 104px; width: 104px; }
   .thumb .art { width: 96px; height: 76px; }
   .row { width: 88px; height: 88px; flex-basis: 88px; }

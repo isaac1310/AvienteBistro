@@ -332,7 +332,9 @@ const SUBGROUP_NAMES = {
 const SUBGROUP_HINTS = [
   [/^\s*לחמני|\b(rolls?|buns?)\b/i, 'rolls'],
   [/בורקס|גוזלומה|גזלמה|חלוז|מאפינס|מאפין|burek|gozleme|muffin/i, 'savory'],
-  [/פשטיד|קיש|quiche|\bpie\b/i, 'pies'],
+  /* קיש as a whole word: a bare substring also matched קישואים (zucchini). JS \b is
+     ASCII-only, so the Hebrew boundary is spelled out. */
+  [/פשטיד|(^|\s)קיש(\s|$)|quiche|\bpie\b/i, 'pies'],
 ];
 
 /**

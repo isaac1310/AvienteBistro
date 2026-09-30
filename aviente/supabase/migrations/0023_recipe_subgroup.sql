@@ -128,7 +128,7 @@ where category = 'breads' and title like '%טוסט%';
 update recipes set subgroup = case
     when title ~ '^\s*לחמני'                          then 'rolls'
     when title ~ '(בורקס|גוזלומה|גזלמה|חלוז|מאפינס|מאפין)' then 'savory'
-    when title ~ '(פשטיד|קיש)'                          then 'pies'
+    when title ~ '(פשטיד|(^|\s)קיש(\s|$))'            then 'pies'  -- not קישואים
     else 'loaves'
   end
 where category = 'breads' and subgroup is null;

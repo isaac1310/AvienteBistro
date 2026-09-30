@@ -77,13 +77,9 @@ export default async function Home() {
             />
           </form>
 
-          {/* What arrived lately, right under the search — the two "find something"
-              tools together, above the four actions. Three rows and a link to the
-              rest (Itzik's edit after seeing five: too tall for the fold). */}
-          <RecentList recipes={recent} t={t} />
-
-          <hr className="rule" />
-
+          {/* The four actions straight under the search: on the Ultra they sat below
+              the recent list and off the first screen, so adding a recipe began with a
+              scroll. What arrived lately follows, as the browsing half of the page. */}
           <ul className={styles.actions}>
             {ACTIONS.map((a) => (
               <li key={a.href}>
@@ -101,6 +97,11 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+
+          <hr className="rule" />
+
+          {/* Three rows and a link to the rest (Itzik's edit after seeing five). */}
+          <RecentList recipes={recent} t={t} />
 
         </main>
 

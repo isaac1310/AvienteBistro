@@ -212,13 +212,30 @@ export async function listRevisions(recipeId: string) {
  * The current state is snapshotted FIRST, so restoring is itself undoable —
  * otherwise "look at an old version" becomes a one-way door and nobody dares
  * press it.
+ *
+ * Through save_recipe_tx (0021), the same single transaction a normal save uses —
+ * which snapshots first, updates the row and replaces the children, all or nothing.
+ * It used to be five separate writes with NO error checks: a refused update (a
+ * constraint, a dropped connection) was ignored, and the ingredients and steps were
+ * deleted and re-inserted anyway — the half-written recipe 0021 exists to prevent,
+ * left open on the one path whose whole job is undoing a mistake.
+ *
+ * Two more things the old version got wrong, fixed here:
+ *  - it spread EVERY column of the snapshot back into the row — created_at, the
+ *    retired photo_url, whatever the snapshot happened to hold. Now only the columns
+ *    an edit can change are restored, named explicitly, the same set saveRecipe writes.
+ *  - a revision from before a photo change points at an object saveRecipe has since
+ *    DELETED from Storage (the replaced photo is removed after a save). Restoring
+ *    that path produced a recipe pointing at nothing. The current photo is kept
+ *    unless the snapshot's photo still exists.
  */
 export async function restoreRecipeRevision(revisionId: string) {
   const member = await requireMember();
   const db = await supabaseServer();
 
-  const { data: rev } = await db
+  const { data: rev, error: revErr } = await db
     .from('recipe_revisions').select('recipe_id, snapshot').eq('id', revisionId).maybeSingle();
+  if (revErr) throw new Error(revErr.message);
   if (!rev) throw new Error('That version is no longer there.');
 
   const snap = rev.snapshot as Record<string, unknown> & {
@@ -226,29 +243,75 @@ export async function restoreRecipeRevision(revisionId: string) {
     steps?: Record<string, unknown>[];
   };
 
-  await snapshot(rev.recipe_id, member.id);
+  const { data: current, error: curErr } = await db
+    .from('recipes').select('photo_path').eq('id', rev.recipe_id).maybeSingle();
+  if (curErr) throw new Error(curErr.message);
+  if (!current) throw new Error('That recipe is no longer there.');
 
-  const { ingredients, steps, id, ...fields } = snap;
-  void id;
-  await db.from('recipes')
-    .update({ ...fields, updated_by: member.id, updated_at: new Date().toISOString() })
-    .eq('id', rev.recipe_id);
+  const str = (v: unknown) => (typeof v === 'string' ? v : null);
+  const num = (v: unknown) => (typeof v === 'number' ? v : null);
+  const category = str(snap.category) ?? 'other';
 
-  await db.from('ingredients').delete().eq('recipe_id', rev.recipe_id);
-  await db.from('steps').delete().eq('recipe_id', rev.recipe_id);
-  if (ingredients?.length) {
-    await db.from('ingredients').insert(ingredients.map((i) => {
-      const { id: _drop, ...rest } = i as { id?: string };
-      void _drop; return rest;
-    }));
-  }
-  if (steps?.length) {
-    await db.from('steps').insert(steps.map((s) => {
-      const { id: _drop, ...rest } = s as { id?: string };
-      void _drop; return rest;
-    }));
-  }
+  const photo = await restorablePhoto(str(snap.photo_path), current.photo_path as string | null);
+
+  const fields = {
+    title: str(snap.title) ?? '',
+    title_en: str(snap.title_en),
+    category,
+    meal_type: category === 'kids' ? str(snap.meal_type) : null,
+    /* Snapshots older than 0023 have no subgroup: null, i.e. "not sorted yet". */
+    subgroup: cleanSubgroup(category, str(snap.subgroup)),
+    description_he: str(snap.description_he),
+    description_en: str(snap.description_en),
+    story: str(snap.story),
+    serving_suggestions: str(snap.serving_suggestions),
+    prep_minutes: num(snap.prep_minutes),
+    cook_minutes: num(snap.cook_minutes),
+    servings: num(snap.servings),
+    yield_text: str(snap.yield_text),
+    source_member_id: str(snap.source_member_id),
+    photo_path: photo,
+    updated_by: member.id,
+    updated_at: new Date().toISOString(),
+  };
+
+  /* Children in their stored order. jsonb_agg in the snapshot does not promise it,
+     and save_recipe_tx numbers positions by array order. */
+  const byPos = (a: Record<string, unknown>, b: Record<string, unknown>) =>
+    (num(a.position) ?? 0) - (num(b.position) ?? 0);
+  const ingredients = [...(snap.ingredients ?? [])].sort(byPos).map((i) => ({
+    name: str(i.name) ?? '',
+    amount: num(i.amount), amount_max: num(i.amount_max),
+    unit: str(i.unit), note: str(i.note), group_label: str(i.group_label),
+  }));
+  const steps = [...(snap.steps ?? [])].sort(byPos).map((st) => ({
+    heading: str(st.heading), body: str(st.body) ?? '',
+  }));
+
+  const { error } = await db.rpc('save_recipe_tx', {
+    p_id: rev.recipe_id,
+    p_fields: fields,
+    p_ingredients: ingredients,
+    p_steps: steps,
+    p_member: member.id,
+  });
+  if (error) throw new Error(error.message);
+
   revalidatePath('/', 'layout');
+}
+
+/** The snapshot's photo if its object still exists in Storage, else the current one. */
+async function restorablePhoto(wanted: string | null, current: string | null) {
+  if (!wanted || wanted === current) return wanted ?? current;
+  const db = await supabaseServer();
+  const slash = wanted.lastIndexOf('/');
+  const dir = slash >= 0 ? wanted.slice(0, slash) : '';
+  const name = wanted.slice(slash + 1);
+  const { data, error } = await db.storage.from('recipe-photos').list(dir, { search: name, limit: 5 });
+  /* Unknown (listing refused or failed) → keep what works today rather than risk
+     pointing at nothing. */
+  if (error || !data?.some((o) => o.name === name)) return current;
+  return wanted;
 }
 
 /**

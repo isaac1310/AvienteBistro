@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RecipeCard from './RecipeCard';
 import { useT } from './LangProvider';
@@ -27,8 +27,12 @@ import Arrow from './Arrow';
 type Group = { key: string; label: string };
 
 export default function SelectableList({
-  recipes, groups, unsortedLabel,
-}: { recipes: RecipeSummary[]; groups?: Group[]; unsortedLabel?: string }) {
+  recipes, groups, unsortedLabel, initialShelf,
+}: {
+  recipes: RecipeSummary[]; groups?: Group[]; unsortedLabel?: string;
+  /** ?shelf= from the URL, read on the server so the first paint is already filtered. */
+  initialShelf?: string;
+}) {
   const t = useT();
   const router = useRouter();
   const [chosen, setChosen] = useState<string[]>([]);
@@ -74,6 +78,29 @@ export default function SelectableList({
     return out;
   })();
 
+  /* The shelf filter. It was jump links first, and the pain was plain once used:
+     tap Rolls, land three screens down, then scroll all the way back to reach Pies.
+     A FILTER removes the scroll instead of shortening it — pick a shelf and the list
+     IS that shelf — and the bar is sticky, so changing your mind is one tap from
+     anywhere. Kept in ?shelf= with replaceState: refresh and Back keep the choice,
+     the history does not fill up with one entry per tap, and SortSelect (which
+     copies the current params) keeps it through a re-sort. */
+  const shelved = sections.length > 1;
+  const [shelf, setShelf] = useState<string>(
+    initialShelf && sections.some((x) => x.key === initialShelf) ? initialShelf : 'all');
+  const listTop = useRef<HTMLDivElement>(null);
+  const pick = (key: string) => {
+    setShelf(key);
+    const url = new URL(location.href);
+    if (key === 'all') url.searchParams.delete('shelf'); else url.searchParams.set('shelf', key);
+    history.replaceState(history.state, '', url);
+    /* Picked from further down: bring the start of the shelf into view, or the new
+       list begins somewhere above the screen. Never scrolls DOWN to it. */
+    const top = listTop.current?.getBoundingClientRect().top ?? 0;
+    if (top < 0) listTop.current?.scrollIntoView({ block: 'start' });
+  };
+  const visible = !shelved || shelf === 'all' ? sections : sections.filter((x) => x.key === shelf);
+
   const renderItems = (items: RecipeSummary[]) => (
     items.map((r) => (
       <li key={r.id} className={styles.item}>
@@ -118,23 +145,27 @@ export default function SelectableList({
         </button>
       </div>
 
-      {/* Jump links to each shelf, when there is more than one — Breads is 26 cards
-          long, and the heading you want is usually three screens down. Plain anchors:
-          no script, and the back button returns to the top. */}
-      {sections.length > 1 && (
-        <nav className={styles.jumps} aria-label={t('book.shelves')}>
-          {sections.map((sec) => (
-            <a key={sec.key} href={`#shelf-${sec.key}`} className={styles.jump}>
-              {sec.label} <span className={styles.shelfCount}>{sec.items.length}</span>
-            </a>
-          ))}
-        </nav>
+      {shelved && (
+        <div ref={listTop} className={styles.shelfBar}>
+          <div className={styles.shelfScroll} role="radiogroup" aria-label={t('book.shelves')}>
+            {[{ key: 'all', label: t('book.allShelves'), n: recipes.length },
+              ...sections.map((x) => ({ key: x.key, label: x.label ?? '', n: x.items.length }))]
+              .map((c) => (
+                <button key={c.key} type="button" role="radio" aria-checked={shelf === c.key}
+                  className={`${styles.jump} ${shelf === c.key ? styles.jumpOn : ''}`}
+                  onClick={() => pick(c.key)}>
+                  {c.label} <span className={styles.shelfCount}>{c.n}</span>
+                </button>
+              ))}
+          </div>
+        </div>
       )}
 
-      {sections.map((sec) => (
-        <section key={sec.key} id={sec.label ? `shelf-${sec.key}` : undefined}
-          className={styles.section} aria-label={sec.label ?? undefined}>
-          {sec.label && (
+      {visible.map((sec) => (
+        <section key={sec.key} className={styles.section} aria-label={sec.label ?? undefined}>
+          {/* The heading only in the full list: filtered, the lit button above
+              already says which shelf this is. */}
+          {sec.label && shelf === 'all' && (
             <h2 className={styles.shelf}>
               {sec.label} <span className={styles.shelfCount}>{sec.items.length}</span>
             </h2>

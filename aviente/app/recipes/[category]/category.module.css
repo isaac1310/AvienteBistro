@@ -92,4 +92,8 @@
 
 /* The chip strip. Tight to the header above it and loose to the count below, so it
    groups with the page's identity rather than with the list. */
-.chipRow { padding: var(--sp-3) 0 var(--sp-1); }
+/* Vertical padding ONLY. The shorthand used to zero the .shell's side gutters, and
+   CategoryChips bleeds past those gutters by exactly their width — so with no gutter
+   the strip overhung the screen by 16px and every category page scrolled sideways at
+   phone width (the selftest caught it on /recipes/mains and /recipes/breads). */
+.chipRow { padding-top: var(--sp-3); padding-bottom: var(--sp-1); }

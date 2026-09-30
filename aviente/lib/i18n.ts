@@ -63,6 +63,7 @@ const DICT = {
   'book.noRecipes':    { he: 'אין מתכונים', en: 'no recipes yet' },
   /* The last heading on a sub-shelved page: recipes nobody has placed yet. */
   'book.shelves':     { he: 'מדפים', en: 'Shelves' },
+  'book.allShelves':  { he: 'הכול', en: 'All' },
   'book.unsorted':     { he: 'עוד לא ממוין', en: 'Not sorted yet' },
   'book.count.one':    { he: 'מתכון אחד',   en: '1 recipe' },
   'book.count.many':   { he: '{n} מתכונים', en: '{n} recipes' },

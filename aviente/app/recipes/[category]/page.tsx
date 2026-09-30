@@ -18,7 +18,7 @@ import Arrow from '@/components/Arrow';
 
 type Params = {
   params: Promise<{ category: string }>;
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; shelf?: string }>;
 };
 
 export async function generateMetadata({ params }: Params) {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Params) {
 /* Category browse (§3.2). */
 export default async function CategoryPage({ params, searchParams }: Params) {
   const { category } = await params;
-  const { sort } = await searchParams;
+  const { sort, shelf } = await searchParams;
   // An unknown slug is a 404, not an empty list — otherwise a typo looks like an
   // empty category and sends someone hunting for missing recipes.
   if (!CATEGORIES.some((c) => c.key === category)) notFound();
@@ -104,7 +104,8 @@ export default async function CategoryPage({ params, searchParams }: Params) {
             <SelectableList
               recipes={recipes}
               groups={subgroupsFor(category).map((g) => ({ key: g.key, label: lang === 'he' ? g.he : g.en }))}
-              unsortedLabel={t('book.unsorted')} />
+              unsortedLabel={t('book.unsorted')}
+              initialShelf={shelf} />
           )}
         </main>
       </div>

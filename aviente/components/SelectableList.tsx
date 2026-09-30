@@ -118,8 +118,22 @@ export default function SelectableList({
         </button>
       </div>
 
+      {/* Jump links to each shelf, when there is more than one — Breads is 26 cards
+          long, and the heading you want is usually three screens down. Plain anchors:
+          no script, and the back button returns to the top. */}
+      {sections.length > 1 && (
+        <nav className={styles.jumps} aria-label={t('book.shelves')}>
+          {sections.map((sec) => (
+            <a key={sec.key} href={`#shelf-${sec.key}`} className={styles.jump}>
+              {sec.label} <span className={styles.shelfCount}>{sec.items.length}</span>
+            </a>
+          ))}
+        </nav>
+      )}
+
       {sections.map((sec) => (
-        <section key={sec.key} className={styles.section} aria-label={sec.label ?? undefined}>
+        <section key={sec.key} id={sec.label ? `shelf-${sec.key}` : undefined}
+          className={styles.section} aria-label={sec.label ?? undefined}>
           {sec.label && (
             <h2 className={styles.shelf}>
               {sec.label} <span className={styles.shelfCount}>{sec.items.length}</span>

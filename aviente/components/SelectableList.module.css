@@ -83,3 +83,18 @@
   color: var(--gold-ink);
   font-variant-numeric: tabular-nums;
 }
+
+/* Shelf jump links. Wrap rather than scroll sideways: four short names fit two rows
+   at 412px, and a sideways strip is the one thing the search page just stopped doing. */
+.jumps { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-5); }
+.jump {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  min-height: var(--tap); padding: 0 var(--sp-4);
+  border: 1px solid var(--card-border); border-radius: 999px;
+  background: var(--card);
+  font-family: var(--ser); font-size: 1rem; color: var(--primary);
+  text-decoration: none;
+}
+@media (hover: hover) { .jump:hover { border-color: var(--gold-deep); } }
+/* Lands below the sticky top bar, not under it. */
+.section { scroll-margin-top: calc(var(--tap) + var(--sp-4)); }

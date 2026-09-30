@@ -8,7 +8,7 @@ import PageHeader from '@/components/PageHeader';
 import PageTitle from '@/components/PageTitle';
 import { categoryName } from '@/lib/i18n';
 import { currentLang, serverT } from '@/lib/lang';
-import type { CategoryKey } from '@/lib/constants';
+import { subgroupsFor, type CategoryKey } from '@/lib/constants';
 import SelectableList from '@/components/SelectableList';
 import UndoToast from '@/components/UndoToast';
 import SortSelect from '@/components/SortSelect';
@@ -101,7 +101,10 @@ export default async function CategoryPage({ params, searchParams }: Params) {
               <Link href="/add" className="btn">{t('book.add')}</Link>
             </div>
           ) : (
-            <SelectableList recipes={recipes} />
+            <SelectableList
+              recipes={recipes}
+              groups={subgroupsFor(category).map((g) => ({ key: g.key, label: lang === 'he' ? g.he : g.en }))}
+              unsortedLabel={t('book.unsorted')} />
           )}
         </main>
       </div>

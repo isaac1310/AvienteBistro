@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabaseServer, currentMember } from './supabase/server';
-import type { Unit } from './constants';
+import { cleanSubgroup, type Unit } from './constants';
 
 /* Every write the app does. Server Actions, so the anon key never has to be
  * trusted with anything and RLS still decides what is allowed.
@@ -29,6 +29,8 @@ export type RecipeInput = {
   title_en: string | null;
   category: string;
   meal_type: string | null;
+  /* A key from SUBGROUPS for this category, or null. */
+  subgroup: string | null;
   description_he: string | null;
   description_en: string | null;
   story: string | null;
@@ -76,6 +78,9 @@ export async function saveRecipe(input: RecipeInput): Promise<string> {
     // meal_type belongs to kids recipes only; the DB check constraint enforces
     // this too, but sending it would just produce a confusing error.
     meal_type: input.category === 'kids' ? input.meal_type : null,
+    /* Same rule, same reason: recipes_subgroup_valid rejects a subgroup the category
+       does not have, so moving a loaf to Mains clears it here rather than failing. */
+    subgroup: cleanSubgroup(input.category, input.subgroup),
     description_he: input.description_he?.trim() || null,
     description_en: input.description_en?.trim() || null,
     story: input.story?.trim() || null,

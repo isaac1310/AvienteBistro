@@ -61,6 +61,8 @@ const DICT = {
   'book.back':         { he: 'לספר',        en: 'The Book' },
   'book.empty':        { he: 'אין כאן כלום עדיין', en: 'Nothing here yet' },
   'book.noRecipes':    { he: 'אין מתכונים', en: 'no recipes yet' },
+  /* The last heading on a sub-shelved page: recipes nobody has placed yet. */
+  'book.unsorted':     { he: 'עוד לא ממוין', en: 'Not sorted yet' },
   'book.count.one':    { he: 'מתכון אחד',   en: '1 recipe' },
   'book.count.many':   { he: '{n} מתכונים', en: '{n} recipes' },
   'book.select':       { he: '✓ בחירה לתפריט', en: '✓ Select for a menu' },
@@ -197,6 +199,7 @@ const DICT = {
   'form.discard':            { he: 'לבטל את השינויים?', en: 'Discard your changes?' },
   'form.waitForPhoto':       { he: 'רגע, התמונה עולה…', en: 'Waiting for the photo…' },
   'form.meal':               { he: 'ארוחה',   en: 'Meal' },
+  'form.subgroup':           { he: 'מדף',     en: 'Shelf' },
   'form.breakfast':          { he: 'בוקר',    en: 'Breakfast' },
   'form.lunch':              { he: 'צהריים',  en: 'Lunch' },
   'form.dinner':             { he: 'ערב',     en: 'Dinner' },

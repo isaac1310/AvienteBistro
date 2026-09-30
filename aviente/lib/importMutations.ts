@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { supabaseServer, currentMember } from './supabase/server';
 import type { RecipeInput } from './mutations';
+import { cleanSubgroup } from './constants';
 
 /* Bulk import (§3.9). Deliberately separate from saveRecipe: an import is one
  * transaction-shaped operation over many recipes, and it must report per row
@@ -111,6 +112,7 @@ async function runImport(
           title_en: input.title_en,
           category: input.category,
           meal_type: input.category === 'kids' ? input.meal_type : null,
+          subgroup: cleanSubgroup(input.category, input.subgroup),
           description_he: input.description_he,
           description_en: input.description_en,
           story: input.story,
@@ -192,6 +194,7 @@ async function runImport(
         title_en: input.title_en,
         category: input.category,
         meal_type: input.category === 'kids' ? input.meal_type : null,
+        subgroup: cleanSubgroup(input.category, input.subgroup),
         description_he: input.description_he,
         description_en: input.description_en,
         story: input.story,

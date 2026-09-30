@@ -97,6 +97,7 @@ const PROBES = [
      (save_recipe_tx / save_menu_tx), invisible to a column probe — same blind spot
      as 16 and 18, covered by db-check. The pre-0021 write fallbacks were removed in
      v11.5.0, so a database at 20 no longer works; 22's column is the gate for both. */
+  [23, 'recipes?select=id,subgroup&limit=1'],
   [22, 'menus?select=id,after_notes&limit=1'],
   [21, 'family_settings?select=id,last_backup_at&limit=1'],
   [20, 'family_settings?select=id,last_backup_at&limit=1'],

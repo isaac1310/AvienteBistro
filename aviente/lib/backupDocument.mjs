@@ -12,7 +12,7 @@
 import { SCHEMA_VERSION } from './recipeParse.mjs';
 
 /** The select for `recipes`, children embedded, exactly as the export needs them. */
-export const BACKUP_SELECT = `title, title_en, category, meal_type, description_he, description_en,
+export const BACKUP_SELECT = `title, title_en, category, meal_type, subgroup, description_he, description_en,
              story, serving_suggestions, prep_minutes, cook_minutes, servings,
              yield_text, external_ref, updated_at,
              source:family_members!recipes_source_member_id_fkey(name),
@@ -22,6 +22,7 @@ export const BACKUP_SELECT = `title, title_en, category, meal_type, description_
 
 /**
  * @typedef {{ title: string, title_en: string|null, category: string, meal_type: string|null,
+ *   subgroup?: string|null,
  *   description_he: string|null, description_en: string|null, story: string|null,
  *   serving_suggestions: string|null, prep_minutes: number|null, cook_minutes: number|null,
  *   servings: number|null, yield_text: string|null, external_ref: string|null,
@@ -47,6 +48,7 @@ export function toBackupDocument(rows, exportedBy) {
       titleEn: r.title_en,
       category: r.category,
       mealType: r.meal_type,
+      subgroup: r.subgroup ?? null,
       servings: r.servings,
       yieldText: r.yield_text,
       prepMinutes: r.prep_minutes,

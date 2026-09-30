@@ -20,7 +20,15 @@ import Arrow from './Arrow';
  * way to Mains, so the flow could not assemble the one thing it exists to assemble.
  * It still dies with the tab.
  */
-export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }) {
+/* Optional headings (sub-shelves, migration 0023). Given `groups`, the list splits
+   under one heading per group that has recipes, in the order given, with anything
+   unplaced last under `unsortedLabel`. The order WITHIN a heading is the page's sort,
+   so sorting by "recent" still works — it just sorts each shelf. */
+type Group = { key: string; label: string };
+
+export default function SelectableList({
+  recipes, groups, unsortedLabel,
+}: { recipes: RecipeSummary[]; groups?: Group[]; unsortedLabel?: string }) {
   const t = useT();
   const router = useRouter();
   const [chosen, setChosen] = useState<string[]>([]);
@@ -53,6 +61,48 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
 
   const chosenHere = recipes.filter((r) => chosen.includes(r.id)).length;
 
+  const sections: { key: string; label: string | null; items: RecipeSummary[] }[] = (() => {
+    if (!groups?.length || !recipes.some((r) => r.subgroup)) {
+      return [{ key: 'all', label: null, items: recipes }];
+    }
+    const known = new Set(groups.map((g) => g.key));
+    const out = groups
+      .map((g) => ({ key: g.key, label: g.label, items: recipes.filter((r) => r.subgroup === g.key) }))
+      .filter((g) => g.items.length > 0);
+    const rest = recipes.filter((r) => !r.subgroup || !known.has(r.subgroup));
+    if (rest.length) out.push({ key: '_unsorted', label: unsortedLabel ?? '—', items: rest });
+    return out;
+  })();
+
+  const renderItems = (items: RecipeSummary[]) => (
+    items.map((r) => (
+      <li key={r.id} className={styles.item}>
+        {selecting ? (
+          /* In select mode the whole card becomes a checkbox rather than a
+             link — tapping through to a recipe mid-selection would lose the
+             selection, which is worse than not browsing for a moment. */
+          <label className={`card ${styles.selectable} ${chosen.includes(r.id) ? styles.on : ''}`}>
+            <input
+              type="checkbox"
+              className={styles.box}
+              checked={chosen.includes(r.id)}
+              onChange={() => toggle(r.id)}
+            />
+            <span className={styles.body}>
+              <span className={styles.title} lang="he">{r.title}</span>
+              <span className={styles.meta}>
+                {r.source_name ? t('book.whose', { name: r.source_name }) : ''}
+                {r.servings ? ` · ${t('book.serves', { n: r.servings })}` : ''}
+              </span>
+            </span>
+          </label>
+        ) : (
+          <RecipeCard recipe={r} />
+        )}
+      </li>
+    ))
+  );
+
   return (
     <>
       <div className={styles.bar}>
@@ -68,34 +118,18 @@ export default function SelectableList({ recipes }: { recipes: RecipeSummary[] }
         </button>
       </div>
 
-      <ul className={styles.list}>
-        {recipes.map((r) => (
-          <li key={r.id} className={styles.item}>
-            {selecting ? (
-              /* In select mode the whole card becomes a checkbox rather than a
-                 link — tapping through to a recipe mid-selection would lose the
-                 selection, which is worse than not browsing for a moment. */
-              <label className={`card ${styles.selectable} ${chosen.includes(r.id) ? styles.on : ''}`}>
-                <input
-                  type="checkbox"
-                  className={styles.box}
-                  checked={chosen.includes(r.id)}
-                  onChange={() => toggle(r.id)}
-                />
-                <span className={styles.body}>
-                  <span className={styles.title} lang="he">{r.title}</span>
-                  <span className={styles.meta}>
-                    {r.source_name ? t('book.whose', { name: r.source_name }) : ''}
-                    {r.servings ? ` · ${t('book.serves', { n: r.servings })}` : ''}
-                  </span>
-                </span>
-              </label>
-            ) : (
-              <RecipeCard recipe={r} />
-            )}
-          </li>
-        ))}
-      </ul>
+      {sections.map((sec) => (
+        <section key={sec.key} className={styles.section} aria-label={sec.label ?? undefined}>
+          {sec.label && (
+            <h2 className={styles.shelf}>
+              {sec.label} <span className={styles.shelfCount}>{sec.items.length}</span>
+            </h2>
+          )}
+          <ul className={styles.list}>
+            {renderItems(sec.items)}
+          </ul>
+        </section>
+      ))}
 
       {/* Sticky footer, so the count and the way forward stay reachable without
           scrolling back up a long list. */}

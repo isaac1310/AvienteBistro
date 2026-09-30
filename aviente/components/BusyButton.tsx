@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Loading from './Loading';
 import styles from './BusyButton.module.css';
 
@@ -24,6 +25,13 @@ import styles from './BusyButton.module.css';
  *
  * The label does not change while busy unless `busyLabel` is given: a button that
  * swaps its text AND grows a drawing moves everything under it twice.
+ *
+ * v11.6.0 — and a floating card while it waits. The mark inside the button is capped
+ * by the button's 44px height, and "the loader is too small" was the feedback again.
+ * So the wait is ALSO shown above the bottom bar: the drawing at 72px with what is
+ * happening in words. Not a blocking overlay — the button is already disabled, and
+ * dimming the page for half a second reads as the app freezing. Portalled to <body>
+ * so no ancestor's overflow or transform can clip it.
  */
 export default function BusyButton({
   busy, done = false, onClick, children, busyLabel, className = 'btn',
@@ -63,6 +71,7 @@ export default function BusyButton({
   }, [busy, holding]);
 
   const waiting = busy || holding;
+  const label = busyLabel ?? children;
 
   return (
     <button
@@ -81,8 +90,17 @@ export default function BusyButton({
             <Loading size="inline" done={!waiting && done} />
           </span>
         )}
-        {waiting ? (busyLabel ?? children) : (done ? (doneLabel ?? children) : children)}
+        {waiting ? label : (done ? (doneLabel ?? children) : children)}
       </span>
+      {/* Only ever rendered after an interaction, so `document` exists. aria-hidden
+          for the same reason as the mark: aria-busy on the button is the announcement. */}
+      {waiting && createPortal(
+        <span className={styles.float} aria-hidden="true">
+          <span className={styles.floatMark}><Loading size="inline" /></span>
+          <span className={styles.floatLabel}>{label}</span>
+        </span>,
+        document.body,
+      )}
     </button>
   );
 }

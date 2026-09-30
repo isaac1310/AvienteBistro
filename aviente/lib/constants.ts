@@ -36,6 +36,27 @@ export const CATEGORIES = [
 
 export type CategoryKey = (typeof CATEGORIES)[number]['key'];
 
+/* Sub-shelves: headings inside a category page (migration 0023). Only breads has
+   them — it is the second-largest shelf and the one that was a long scroll. Order
+   here is the order on the page. The keys must match recipes_subgroup_valid; add a
+   category here and that constraint has to widen in the same commit. */
+export const SUBGROUPS: Partial<Record<CategoryKey, readonly { key: string; en: string; he: string }[]>> = {
+  breads: [
+    { key: 'loaves', en: 'Loaves & baguettes', he: 'לחמים' },
+    { key: 'rolls',  en: 'Rolls & buns',       he: 'לחמניות' },
+    { key: 'savory', en: 'Savory pastries',    he: 'מאפים מלוחים' },
+    { key: 'pies',   en: 'Pies',               he: 'פשטידות' },
+  ],
+};
+
+export const subgroupsFor = (category: string) =>
+  SUBGROUPS[category as CategoryKey] ?? [];
+
+/** The subgroup only when this category has it — what the DB constraint enforces,
+    applied before the write so a recategorised recipe clears it instead of failing. */
+export const cleanSubgroup = (category: string, subgroup: string | null | undefined) =>
+  subgroup && subgroupsFor(category).some((g) => g.key === subgroup) ? subgroup : null;
+
 export const categoryLabel = (key: string) =>
   CATEGORIES.find((c) => c.key === key) ?? { key, en: key, he: key };
 
@@ -63,6 +84,9 @@ export type RecipeSummary = {
   servings: number | null; yield_text: string | null;
   prep_minutes: number | null; cook_minutes: number | null;
   source_name: string | null;
+  /* The heading this recipe sits under on its category page. Optional: only the
+     category list needs it, and a database before 0023 has no such column. */
+  subgroup?: string | null;
   /* Only the sort control needs these, and only the list query selects them —
      optional so nothing else has to pretend to have them. */
   updated_at?: string | null;

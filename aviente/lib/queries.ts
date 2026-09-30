@@ -35,7 +35,7 @@ export async function categoryCounts(): Promise<Record<string, number>> {
 /* The source member is a join; Supabase returns it as a nested object, so it is
    flattened here rather than leaking the shape into every component. */
 const SUMMARY_COLUMNS =
-  'id, title, title_en, category, photo_url, photo_path, servings, yield_text, ' +
+  'id, title, title_en, category, subgroup, photo_url, photo_path, servings, yield_text, ' +
   'prep_minutes, cook_minutes, updated_at, created_at, ' +
   'source:family_members!recipes_source_member_id_fkey(name)';
 

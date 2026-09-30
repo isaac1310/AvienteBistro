@@ -62,3 +62,63 @@
   font-size: var(--t-small);
   opacity: 0.8;
 }
+
+/* Sub-shelf headings. The label voice of the page (the count row), set a little
+   larger, with a hairline under it so each shelf reads as its own block. */
+.section + .section { margin-top: var(--sp-6); }
+.shelf {
+  display: flex; align-items: baseline; gap: var(--sp-2);
+  margin: 0 0 var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--card-border);
+  font-family: var(--ser);
+  font-weight: 500;
+  font-size: 1.375rem;
+  color: var(--primary);
+}
+.shelfCount {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The shelf filter bar. Sticky at the top of the screen, so switching shelf never
+   needs a scroll back up. One row that scrolls sideways INSIDE itself when it must —
+   the page itself never does — with the page ground behind it so cards slide under
+   cleanly. */
+.shelfBar {
+  position: sticky; top: 0; z-index: 5;
+  /* Inside the shell's gutter, not bled past it: a negative margin here made the
+     page 16px wider than a 412px screen — a sideways scroll, the very bug fixed in
+     PR #19. */
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-2) 0;
+  background: var(--page);
+  border-bottom: 1px solid var(--card-border);
+}
+.shelfScroll {
+  display: flex; gap: var(--sp-2);
+  overflow-x: auto; scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.shelfScroll::-webkit-scrollbar { display: none; }
+/* A fade at the far edge says "there is more this way" — in Hebrew that is the LEFT,
+   which is exactly where the last shelf was sitting cut in half with no hint. */
+.shelfScroll { mask-image: linear-gradient(to var(--fade-to, left), #000 90%, transparent); }
+:global([dir='ltr']) .shelfScroll { --fade-to: right; }
+.jump {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  min-height: var(--tap); padding: 0 var(--sp-4);
+  border: 1px solid var(--card-border); border-radius: 999px;
+  background: var(--card);
+  font: inherit; font-family: var(--ser); font-size: 1rem; color: var(--primary);
+  white-space: nowrap; cursor: pointer;
+}
+@media (hover: hover) { .jump:hover { border-color: var(--gold-deep); } }
+/* The chosen shelf, filled — the same weight as the category chip for the page
+   you are on. Colour AND fill, so it is not colour-only state. */
+.jumpOn { background: var(--primary); border-color: var(--primary); color: var(--card); }
+.jumpOn .shelfCount { color: inherit; opacity: 0.8; }

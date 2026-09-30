@@ -11,7 +11,7 @@
  *   share links now show the new design.
  * minor = features, additive migrations included · patch = fixes
  */
-export const APP_VERSION = '11.5.1';
+export const APP_VERSION = '11.6.0';
 
 /**
  * The highest migration this build requires.
@@ -26,6 +26,6 @@ export const APP_VERSION = '11.5.1';
  * Two numbers that mean different things must not share a name. Bump this one in the
  * SAME commit as the migration that needs it.
  */
-export const DB_SCHEMA_VERSION = 22;
+export const DB_SCHEMA_VERSION = 23;
 
 export const BUILD_LABEL = `Aviente v${APP_VERSION} · schema ${DB_SCHEMA_VERSION}`;

@@ -8,7 +8,7 @@ import BusyButton from './BusyButton';
 import Confirm from './Confirm';
 import { useLang, useT } from './LangProvider';
 import { saveRecipe, softDeleteRecipe, type RecipeInput } from '@/lib/mutations';
-import { CATEGORIES, type Recipe, type Unit } from '@/lib/constants';
+import { CATEGORIES, subgroupsFor, type Recipe, type Unit } from '@/lib/constants';
 /* The parts rules live in lib/ so the selftest can exercise them directly — two
    bugs have shipped from them, and neither was reachable from a read-only suite
    while they sat inside this component. */
@@ -46,6 +46,8 @@ export default function RecipeForm({
   const [titleEn, setTitleEn] = useState(recipe?.title_en ?? '');
   const [category, setCategory] = useState(recipe?.category ?? 'mains');
   const [mealType, setMealType] = useState(recipe?.meal_type ?? '');
+  const [subgroup, setSubgroup] = useState(recipe?.subgroup ?? '');
+  const subgroups = subgroupsFor(category);
   /* The stored path. `recipe.photo_url` is the signed URL the server made for this
      render, and is only good for the preview. */
   const [photo, setPhoto] = useState<string | null>(recipe?.photo_path ?? null);
@@ -169,6 +171,7 @@ export default function RecipeForm({
         id: recipe?.id,
         title, title_en: titleEn || null, category,
         meal_type: mealType || null,
+        subgroup: subgroup || null,
         description_he: descHe || null, description_en: descEn || null,
         story: story || null, serving_suggestions: serveWith || null,
         prep_minutes: num(prep), cook_minutes: num(cook),
@@ -311,6 +314,22 @@ export default function RecipeForm({
             ))}
           </select>
         </label>
+
+        {/* The heading on the category page — only where the category has them
+            (breads, today). Same rule as meal type: offered only where it means
+            something, and cleared on save if the category changes. */}
+        {subgroups.length > 0 && (
+          <label className={styles.field}>
+            <span className={styles.label}>{t('form.subgroup')}</span>
+            <select className={styles.input} value={subgroup}
+              onChange={(e) => touch(setSubgroup)(e.target.value)}>
+              <option value="">—</option>
+              {subgroups.map((g) => (
+                <option key={g.key} value={g.key}>{uiLang === 'he' ? g.he : g.en}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {/* Meal type appears only for kids recipes — it is meaningless elsewhere
             and the DB constraint rejects it. */}

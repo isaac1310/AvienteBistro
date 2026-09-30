@@ -104,3 +104,7 @@
 }
 
 .rowLink { color: var(--primary); }
+
+/* Category, and under it the shelf when the category has shelves. Stacked, not side
+   by side: the card's second column is only as wide as its widest select. */
+.picks { display: grid; gap: var(--sp-2); align-content: start; }

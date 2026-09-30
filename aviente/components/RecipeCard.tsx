@@ -49,7 +49,7 @@ export default function RecipeCard({
         )}
         <span className={styles.body}>
           <span className={styles.title} lang="he">{recipe.title}</span>
-          {recipe.title_en && <span className={styles.titleEn}>{recipe.title_en}</span>}
+          {recipe.title_en && <span className={styles.titleEn} lang="en" dir="ltr">{recipe.title_en}</span>}
           {attribution && <span className={styles.meta}>{attribution}</span>}
         </span>
       </Link>

@@ -19,3 +19,49 @@
   --loader-inline-w: 34px;
   --loader-inline-h: 26px;
 }
+
+/* The floating wait card (v11.6.0). Above the bottom tab bar on a phone, bottom-centre
+   of the content column on a desktop, where the bar is a side rail instead. */
+.float {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(var(--tap) + var(--sp-5) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  max-width: calc(100vw - 2 * var(--sp-4));
+  padding: var(--sp-2) var(--sp-5) var(--sp-2) var(--sp-3);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(30, 30, 20, 0.16);
+  color: var(--primary);
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .float { bottom: var(--sp-6); left: calc(50% + 105px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .float { animation: floatIn 180ms ease-out; }
+  @keyframes floatIn {
+    from { opacity: 0; transform: translate(-50%, 8px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+}
+.floatMark {
+  display: inline-grid;
+  place-items: center;
+  --loader-inline-w: 72px;
+  --loader-inline-h: 56px;
+}
+.floatLabel {
+  font-family: var(--san);
+  font-size: var(--t-label);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

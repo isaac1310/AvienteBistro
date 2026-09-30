@@ -78,6 +78,10 @@
 }
 
 .titleEn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* dir="ltr" on the element, so the ellipsis cuts the END of a Latin name. Inside the
+   Hebrew page it inherited rtl and lost the START — "…D FLOUR SPELT BAGUETTE". The
+   Hebrew side's alignment is kept: it still sits flush with the title above it. */
+[dir='rtl'] .titleEn { text-align: right; }
 
 @media (hover: hover) {
   .card:hover { border-color: var(--gold-deep); }
@@ -95,4 +99,10 @@
   min-width: 0;
   text-decoration: none;
   color: inherit;
+}
+
+/* Matches the plate's phone-width column (CategoryPlate.module.css) so a card with a
+   photograph and one without keep the same text edge down a list. */
+@media (max-width: 767px) {
+  .thumb { flex-basis: 104px; width: 104px; }
 }

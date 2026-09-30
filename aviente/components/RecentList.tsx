@@ -10,10 +10,9 @@ import styles from './RecentList.module.css';
  * "Recently added" — the newest recipes, under the home page's search box.
  *
  * A SERVER component (links only), so `timeAgo(iso, t)` runs here with the request's
- * clock and translator. Three rows, under the search box: the two "find something"
- * tools sit together above the four action cards, and three keeps the cards above the
- * fold on the Ultra (five did not, ten certainly would not). The foot link opens
- * everything, newest first.
+ * clock and translator. Three rows, below the four action cards (moved there in
+ * v11.6.0: under the search it pushed the cards off the Ultra's first screen). The
+ * foot link opens everything, newest first.
  */
 export default function RecentList({ recipes, t }: { recipes: RecipeSummary[]; t: T }) {
   if (recipes.length < 2) return null;
@@ -27,7 +26,7 @@ export default function RecentList({ recipes, t }: { recipes: RecipeSummary[]; t
               <span className={styles.thumb} aria-hidden="true">
                 {r.photo_url
                   ? <RecipePhoto src={r.photo_url} category={r.category} className={styles.img} />
-                  : <CategoryPlate category={r.category as CategoryKey} size="chip" />}
+                  : <CategoryPlate category={r.category as CategoryKey} size="row" />}
               </span>
               <span className={styles.text}>
                 <span className={styles.title} lang="he" dir="auto">{r.title}</span>

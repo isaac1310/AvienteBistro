@@ -346,6 +346,16 @@
       eq(A.splitTitle('תמצית ג\'ינג\'ר (להקפאה)').titleEn, null, 'titleEn'));
     check('breads absorbs the baked goods', () =>
       eq(A.mapCategory('מאפים מסורתיים').category, 'breads', 'category'));
+    /* Sub-shelves (0023). The title guess is what fills every import that omits the
+       field, and cleanSubgroup is what stops a recategorised loaf failing its save. */
+    check('subgroup: rolls guessed from the title', () =>
+      eq(A.mapSubgroup('breads', null, 'לחמניות פרעצל').subgroup, 'rolls', 'subgroup'));
+    check('subgroup: a stated Hebrew heading is accepted', () =>
+      eq(A.mapSubgroup('breads', 'פשטידות', 'משהו').subgroup, 'pies', 'subgroup'));
+    check('subgroup: none outside breads', () =>
+      eq(A.mapSubgroup('mains', 'loaves', 'לחם').subgroup, null, 'subgroup'));
+    check('subgroup: cleared when the category no longer has it', () =>
+      eq(A.cleanSubgroup('mains', 'loaves'), null, 'cleanSubgroup'));
     check('an unknown schemaVersion is refused, not guessed', () => {
       const out = A.normalizeDocument({ schemaVersion: 99, recipes: [] });
       return out.errors.length ? true : 'accepted an unknown schemaVersion';

@@ -4,8 +4,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { importRecipes, undoImport, type ImportedRow, type ImportResult, type OnDuplicate } from '@/lib/importMutations';
 import { toRecipeInput, type ParsedRecipe } from '@/lib/toRecipeInput';
-import { normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
-import { categoryLabel, CATEGORIES } from '@/lib/constants';
+import { mapSubgroup, normalizeDocument, parsePastedJson } from '@/lib/recipeParse.mjs';
+import { categoryLabel, CATEGORIES, subgroupsFor } from '@/lib/constants';
 import type { RecipeInput } from '@/lib/mutations';
 import { useT } from './LangProvider';
 import Link from 'next/link';
@@ -29,7 +29,8 @@ const rowHref = (r: ImportedRow) => `/recipes/${r.category}/${r.id}`;
 const PROMPT = `קרא את המתכון — מתמונה, מקובץ, או מהטקסט שאני מדביק כאן — והחזר JSON בלבד, בלי טקסט נוסף, במבנה הזה:
 
 {"schemaVersion":1,"title":"שם המתכון","titleEn":"Latin name or null",
- "category":"mains|soups|salads|entrees|sides|breads|desserts|kids|other",
+ "category":"mains|soups|salads|entrees|sides|breads|desserts|kids|sauces|other",
+ "subgroup":"loaves|rolls|savory|pies or null",
  "servings":6,"yieldText":null,"prepMinutes":20,"cookMinutes":40,
  "descriptionHe":"תיאור קצר לתפריט","story":null,
  "servingSuggestions":"איך להגיש",
@@ -38,6 +39,8 @@ const PROMPT = `קרא את המתכון — מתמונה, מקובץ, או מה
  "steps":[{"heading":null,"body":"..."}]}
 
 unit חייב להיות אחד מ: g, kg, ml, l, cup, tbsp, tsp, pcs, pinch, to taste.
+subgroup רק כש-category הוא breads: loaves ללחמים, בגטים וחלות; rolls ללחמניות; savory למאפים מלוחים (בורקס, גוזלמה, מאפינס מלוחים); pies לפשטידות וקישים. בכל קטגוריה אחרת — null.
+sauces לרטבים וממרחים.
 group הוא החלק שהמרכיב שייך אליו — "לרוטב", "למילוי", "לקציצות". אם המתכון מחולק לחלקים, סמן כל מרכיב בחלק שלו; אם לא, השאר null בכולם. מרכיבים של אותו חלק חייבים להופיע רצוף.
 לטווח כמויות השתמש ב-amount ו-amountMax. אם אין כמות, השמט את amount.
 אפשר להחזיר מערך של כמה מתכונים.`;
@@ -56,6 +59,8 @@ export default function ImportPaste({
      overrides, and empty until something is actually edited — so an untouched
      preview passes the parsed title through rather than a copy of it. */
   const [titles, setTitles] = useState<Record<number, string>>({});
+  /* Shelves chosen on the preview card, same keying as the category overrides. */
+  const [shelves, setShelves] = useState<Record<number, string>>({});
   const [source, setSource] = useState('');
   const [onDuplicate, setOnDuplicate] = useState<OnDuplicate>('skip');
   const [busy, setBusy] = useState(false);
@@ -79,6 +84,14 @@ export default function ImportPaste({
     return hit?.id ?? null;
   };
 
+  /* The shelf a card will import with: a choice made on the card, else what the
+     parser found — or, when the card's category was changed, a fresh guess for the
+     new one. The same rule toRecipeInput applies, shown BEFORE the write. */
+  const shelfFor = (r: ParsedRecipe, i: number, cat: string): string =>
+    shelves[i] ?? (cat === r.category
+      ? (r.subgroup ?? '')
+      : (mapSubgroup(cat, null, titles[i] ?? r.title).subgroup ?? ''));
+
   async function onImport() {
     if (!parsed?.recipes.length) return;
     setBusy(true);
@@ -91,6 +104,7 @@ export default function ImportPaste({
         toRecipeInput(r, {
           category: overrides[i] ?? r.category,
           title: titles[i],
+          subgroup: shelfFor(r, i, overrides[i] ?? r.category) || null,
           sourceMemberId: memberIdFor(r.source) ?? (source || null),
         }));
       setResult(await importRecipes(inputs, { onDuplicate }));
@@ -271,6 +285,9 @@ export default function ImportPaste({
               /* An unrecognised category lands in `other` and says so, with a
                  dropdown right there — never a silent misfiling. */
               const unsure = r.warnings?.some((w: string) => w.includes('category'));
+              const shelvesHere = subgroupsFor(cat);
+              const shelf = shelfFor(r as ParsedRecipe, i, cat);
+              const shelfUnsure = !shelves[i] && r.warnings?.some((w: string) => w.includes('subgroup'));
               return (
                 <li key={i} className={`card ${styles.row}`}>
                   <div>
@@ -297,15 +314,37 @@ export default function ImportPaste({
                       </p>
                     ))}
                   </div>
-                  <select
-                    className={`${styles.select} ${unsure ? styles.unsure : ''}`}
-                    value={cat}
-                    onChange={(e) => setOverrides({ ...overrides, [i]: e.target.value })}
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c.key} value={c.key}>{categoryLabel(c.key).en}</option>
-                    ))}
-                  </select>
+                  <div className={styles.picks}>
+                    <select
+                      className={`${styles.select} ${unsure ? styles.unsure : ''}`}
+                      value={cat}
+                      aria-label={t('form.category')}
+                      onChange={(e) => {
+                        setOverrides({ ...overrides, [i]: e.target.value });
+                        /* A shelf picked for the old category means nothing in the new one. */
+                        const { [i]: _drop, ...rest } = shelves; void _drop; setShelves(rest);
+                      }}
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c.key} value={c.key}>{categoryLabel(c.key).en}</option>
+                      ))}
+                    </select>
+                    {/* The shelf, only where the category has shelves. Amber like the
+                        category when it was a guess, until someone picks one. */}
+                    {shelvesHere.length > 0 && (
+                      <select
+                        className={`${styles.select} ${shelfUnsure ? styles.unsure : ''}`}
+                        value={shelf}
+                        aria-label={t('form.subgroup')}
+                        onChange={(e) => setShelves({ ...shelves, [i]: e.target.value })}
+                      >
+                        <option value="">—</option>
+                        {shelvesHere.map((g) => (
+                          <option key={g.key} value={g.key}>{g.en}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                 </li>
               );
             })}

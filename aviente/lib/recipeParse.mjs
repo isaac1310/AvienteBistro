@@ -318,6 +318,42 @@ export function normalizeStep(input) {
 }
 
 
+/* ── sub-shelves (migration 0023) ─────────────────────────────────────────────
+   Breads only. A stated value is accepted as the key or its Hebrew heading; when it
+   is missing the title decides, and the preview warns — same policy as category.
+   Keys mirror SUBGROUPS in lib/constants.ts and recipes_subgroup_valid. */
+const SUBGROUP_NAMES = {
+  loaves: ['loaves', 'loaf', 'bread', 'לחמים', 'לחם'],
+  rolls:  ['rolls', 'buns', 'לחמניות'],
+  savory: ['savory', 'savoury', 'pastries', 'מאפים מלוחים', 'מאפים'],
+  pies:   ['pies', 'pie', 'quiche', 'פשטידות', 'פשטידה'],
+};
+/** @type {[RegExp, string][]} */
+const SUBGROUP_HINTS = [
+  [/^\s*לחמני|\b(rolls?|buns?)\b/i, 'rolls'],
+  [/בורקס|גוזלומה|גזלמה|חלוז|מאפינס|מאפין|burek|gozleme|muffin/i, 'savory'],
+  /* קיש as a whole word: a bare substring also matched קישואים (zucchini). JS \b is
+     ASCII-only, so the Hebrew boundary is spelled out. */
+  [/פשטיד|(^|\s)קיש(\s|$)|quiche|\bpie\b/i, 'pies'],
+];
+
+/**
+ * { subgroup, guessed } for a breads recipe; null for every other category.
+ * @param {string} category @param {unknown} stated @param {string} title
+ * @returns {{ subgroup: string | null, guessed: boolean }}
+ */
+export function mapSubgroup(category, stated, title) {
+  if (category !== 'breads') return { subgroup: null, guessed: false };
+  const s = String(stated ?? '').trim().toLowerCase();
+  if (s) {
+    for (const [key, names] of Object.entries(SUBGROUP_NAMES)) {
+      if (names.includes(s)) return { subgroup: key, guessed: false };
+    }
+  }
+  for (const [re, key] of SUBGROUP_HINTS) if (re.test(title ?? '')) return { subgroup: key, guessed: true };
+  return { subgroup: 'loaves', guessed: true };
+}
+
 /* ── guessing a category from the TITLE ───────────────────────────────────────
  *
  * These lived in tools/parse-markdown-book.mjs, used only by the one-off markdown
@@ -470,11 +506,20 @@ export function normalizeRecipe(input, opts = {}) {
   const usage = pick(input, 'servingSuggestions', 'usage_recommendations', 'usageRecommendations');
   const servingSuggestions = Array.isArray(usage) ? usage.join('\n') : nonEmpty(usage);
 
+  const stated = nonEmpty(pick(input, 'subgroup', 'subGroup', 'sub_category', 'subcategory'));
+  const { subgroup, guessed: subgroupGuessed } = mapSubgroup(category, stated, title);
+  if (subgroupGuessed) {
+    warnings.push(stated
+      ? `subgroup "${stated}" unrecognised → guessed ${subgroup} from the title`
+      : `no subgroup stated → guessed ${subgroup} from the title`);
+  }
+
   const recipe = {
     schemaVersion: SCHEMA_VERSION,
     title, titleEn,
     category,
     mealType: category === 'kids' ? nonEmpty(pick(input, 'mealType', 'meal_type')) : null,
+    subgroup,
     descriptionHe: nonEmpty(pick(input, 'descriptionHe', 'description_he')),
     descriptionEn: nonEmpty(pick(input, 'descriptionEn', 'description_en', 'description')),
     story: nonEmpty(pick(input, 'story', 'notes', 'note')),

@@ -1,4 +1,6 @@
 import type { RecipeInput } from './mutations';
+import { mapSubgroup } from './recipeParse.mjs';
+import { cleanSubgroup } from './constants';
 
 /**
  * Parser output → the shape the mutations write.
@@ -21,7 +23,7 @@ type ParsedStep = { heading?: string | null; body?: string };
 
 export type ParsedRecipe = {
   title: string; titleEn?: string | null; category: string;
-  mealType?: string | null; descriptionHe?: string | null; descriptionEn?: string | null;
+  mealType?: string | null; subgroup?: string | null; descriptionHe?: string | null; descriptionEn?: string | null;
   story?: string | null; servingSuggestions?: string | null;
   prepMinutes?: number | null; cookMinutes?: number | null;
   servings?: number | null; yieldText?: string | null;
@@ -31,7 +33,9 @@ export type ParsedRecipe = {
 
 export function toRecipeInput(
   r: ParsedRecipe,
-  opts: { category?: string; sourceMemberId?: string | null; title?: string } = {},
+  opts: { category?: string; sourceMemberId?: string | null; title?: string;
+    /** The shelf chosen on the preview card; wins when given. */
+    subgroup?: string | null } = {},
 ): RecipeInput {
   return {
     /* An overridden title, when the preview card was corrected before importing.
@@ -41,6 +45,14 @@ export function toRecipeInput(
     title_en: r.titleEn ?? null,
     category: (opts.category ?? r.category) as RecipeInput['category'],
     meal_type: (r.mealType ?? null) as RecipeInput['meal_type'],
+    /* Re-derived when the preview changed the category: a loaf moved to Mains must
+       not carry `loaves` into a write the constraint refuses, and a pastry moved INTO
+       breads should land under a heading rather than "unsorted". */
+    subgroup: opts.subgroup !== undefined
+      ? cleanSubgroup(opts.category ?? r.category, opts.subgroup)
+      : (opts.category ?? r.category) === r.category
+      ? (r.subgroup ?? null)
+      : mapSubgroup(opts.category ?? r.category, null, opts.title?.trim() || r.title).subgroup,
     description_he: r.descriptionHe ?? null,
     description_en: r.descriptionEn ?? null,
     story: r.story ?? null,

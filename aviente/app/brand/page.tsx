@@ -1,6 +1,7 @@
 import BackLink from '@/components/BackLink';
 import Cachet from '@/components/Cachet';
 import Loading from '@/components/Loading';
+import BusyDemo from './BusyDemo';
 import CategoryPlate from '@/components/CategoryPlate';
 import Nav from '@/components/Nav';
 import { serverT } from '@/lib/lang';
@@ -123,6 +124,8 @@ export default async function BrandSheet() {
                 <span className={styles.heroName}>inline · in a control</span>
               </li>
             </ul>
+            {/* The floating card every busy action shows, above the bottom bar. */}
+            <p><BusyDemo /></p>
           </section>
 
           <section className={styles.block}>
